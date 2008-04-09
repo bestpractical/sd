@@ -1,0 +1,117 @@
+#!/usr/bin/perl 
+use warnings;
+use strict;
+package main;
+use Prophet::CLI;
+
+
+$ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.svb';
+
+my $CLI = Prophet::CLI->new( { app_class => 'App::SD' } );
+$CLI->register_types('App::SD::Model' => qw(ticket comment));
+
+my $command = shift @ARGV;
+
+my $func = main->can('cmd_'.$command) || main->can('cmd_help');
+
+$func->();
+
+
+sub cmd_help {
+
+print <<EOF
+
+$0 ticket create --summary "This is a summary" --status new --somekey value
+$0 ticket update --uuid <uuid> --status resolved
+$0 ticket search --regex .
+$0 ticket delete --uuid <uuid>
+$0 ticket show --uuid <uuid>
+$0 pull remote-url
+
+$0 help  
+    Show this file
+
+EOF
+
+}
+
+
+sub cmd_comments {
+    my ($ticket) = @ARGV;
+    my $record = App::SD::Model::Ticket->new( { handle => $CLI->handle } );
+    $record->load( uuid => $ticket );
+    print "id: " . $record->uuid . "\n";
+    unless (@{$record->comments}) {
+        print "No commnets found\n";
+    }
+
+    for (@{$record->comments}) {
+        print "comment id: ".$_->uuid."\n";
+        print "Content:\n".$_->prop('content');
+        print "\n\n";
+    }
+
+}
+
+sub cmd_push {
+
+    # Trivial first pass:
+#    only support pull
+    my $url = shift @ARGV;
+
+
+
+    local $ENV{PROPHET_RESOLVER} = 'Prompt';
+    my %args =  ( to => $url, from => "svn:file://".$CLI->handle->repo_path );
+
+    $CLI->args(\%args);
+    $CLI->do_merge();
+
+
+
+return;
+    my $source = Prophet::Replica->new( { url => 'svn:file://'.$CLI->handle->repo_path } );
+    my $target = Prophet::Replica->new( { url => $url });
+#    my $changesets = $source->new_changesets_for($target);
+    my $changesets = $source->new_changesets_for($target);
+    warn Dumper($changesets); use Data::Dumper;
+
+# handle: record_changeset_integration
+#    $self->_record_merge_ticket( $changeset->original_source_uuid, $changeset->original_sequence_no );
+
+    $target->record_changeset_integration( $_->original_source_uuid, $_->original_sequence_no) for @$changesets;
+
+}
+
+
+sub cmd_pull {
+    my $url = shift @ARGV;
+    local $ENV{PROPHET_RESOLVER} = 'Prompt';
+    my %args =  ( from => $url, to => "svn:file://".$CLI->handle->repo_path );
+
+    $CLI->args(\%args);
+    $CLI->do_merge();
+        
+#         [ 'merge', '--prefer', 'to', '--from', repo_uri_for($from), '--to', repo_uri_for( $self->name ) ],
+}
+=begin comment
+    # Trivial first pass:
+    
+    # Give a SVN URL to the remote replica? do we need two svn urls (for res db?)
+    
+    
+    
+=end comment
+
+
+
+# svb ticket --create --owner foo@bar --subject hate --status new --comment "wtf svb!"
+# svb ticket --update <id> --status resolved
+# svb ticket --list <regex>
+# svb ticket --show <id>
+
+# svb pull <url>
+# svb push <url>
+# svb pull http://<rt url>
+# svb push http://<rt url>
+
