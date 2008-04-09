@@ -1,12 +1,11 @@
 #!/usr/bin/perl 
 use warnings;
 use strict;
-package main;
-use Prophet::CLI;
 
 
 $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.svb';
 
+use Prophet::CLI;
 my $CLI = Prophet::CLI->new( { app_class => 'App::SD' } );
 $CLI->register_types('App::SD::Model' => qw(ticket comment));
 
