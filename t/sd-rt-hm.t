@@ -9,8 +9,10 @@ use strict;
 use Prophet::Test;
 
 BEGIN {
-    eval 'require RT::Test; 1'
-        or plan skip_all => 'requires 3.7 to run tests.' . $@;
+    unless (eval 'use RT::Test; 1') {
+        diag $@;
+        plan skip_all => 'requires 3.7 to run tests.';
+    }
 }
 
 BEGIN {
