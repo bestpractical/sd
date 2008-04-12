@@ -37,7 +37,7 @@ EOF
 
 sub cmd_comments {
     my ($ticket) = @ARGV;
-    my $record = App::SD::Model::Ticket->new( { handle => $CLI->handle } );
+    my $record = App::SD::Model::Ticket->new( { handle => $CLI->app_handle->handle } );
     $record->load( uuid => $ticket );
     print "id: " . $record->uuid . "\n";
     unless (@{$record->comments}) {
@@ -61,7 +61,7 @@ sub cmd_push {
 
 
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
-    my %args =  ( to => $url, from => "svn:file://".$CLI->handle->repo_path );
+    my %args =  ( to => $url, from => "svn:file://".$CLI->app_handle->handle->repo_path );
 
     $CLI->args(\%args);
     $CLI->do_merge();
@@ -86,7 +86,7 @@ return;
 sub cmd_pull {
     my $url = shift @ARGV;
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
-    my %args =  ( from => $url, to => "svn:file://".$CLI->handle->repo_path );
+    my %args =  ( from => $url, to => "svn:file://".$CLI->app_handle->handle->repo_path );
 
     $CLI->args(\%args);
     $CLI->do_merge();

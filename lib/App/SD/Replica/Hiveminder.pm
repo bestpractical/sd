@@ -10,7 +10,6 @@ use Net::Jifty;
 
 use URI;
 use Memoize;
-use Prophet::Handle;
 use Prophet::ChangeSet;
 use App::SD::Replica::Hiveminder::PullEncoder;
 
@@ -18,7 +17,6 @@ __PACKAGE__->mk_accessors(qw/hm_username hm hm_url ressource/);
 use constant scheme => 'hm';
 
 
-our $DEBUG = $Prophet::Handle::DEBUG;
 
 =head2 setup
 
@@ -53,8 +51,8 @@ sub setup {
     );
 
     $self->hm_username($username);
-    my $cli = Prophet::CLI->new();
-    $self->state_handle( $cli->get_handle_for_replica( $self, $self->state_db_uuid ) );
+
+    $self->SUPER::setup(@_);
 }
 
 =head2 uuid

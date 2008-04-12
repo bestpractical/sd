@@ -9,7 +9,6 @@ use RT::Client::REST       ();
 use RT::Client::REST::User ();
 use RT::Client::REST::Ticket;
 use Memoize;
-use Prophet::Handle;
 use Prophet::ChangeSet;
 use App::SD::Replica::RT::PullEncoder;
 
@@ -17,7 +16,6 @@ use constant scheme => 'rt';
 
 __PACKAGE__->mk_accessors(qw/rt rt_url rt_queue rt_query/);
 
-our $DEBUG = $Prophet::Handle::DEBUG;
 
 =head1 NOTES ON PUSH
 
@@ -93,8 +91,8 @@ sub setup {
 
     $self->rt->login( username => $username, password => $password );
 
-    my $cli = Prophet::CLI->new();
-    $self->state_handle( $cli->get_handle_for_replica( $self, $self->state_db_uuid ) );
+        $self->SUPER::setup(@_);
+
 }
 
 sub record_pushed_transactions {

@@ -118,8 +118,8 @@ as_alice {
     ( $ret, $out, $err ) = run_script( 'sd', [ 'push', $sd_rt_url ] );
 
     ok( $task->load_by_cols( summary => 'Fly Man' ) );
-
-}
+};
+exit(0);
 
 __END__
 

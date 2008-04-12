@@ -3,6 +3,6 @@ use strict;
 
 package App::SD;
 
-#use base 'Prophet::App';
+use base 'Prophet::App';
 
 1;
