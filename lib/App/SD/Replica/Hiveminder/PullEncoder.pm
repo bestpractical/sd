@@ -30,8 +30,8 @@ sub run {
 
             # In Hiveminder, a changeset has only one change
             $change = Prophet::Change->new(
-                {   node_type   => 'ticket',
-                    node_uuid   => $self->sync_source->uuid_for_remote_id( $args{'task'}->{id} ),
+                {   record_type   => 'ticket',
+                    record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'task'}->{id} ),
                     change_type => 'update_file'
                 }
             );
@@ -50,8 +50,8 @@ sub run {
 
             # In Hiveminder, a changeset has only one change
             $change = Prophet::Change->new(
-                {   node_type   => 'ticket',
-                    node_uuid   => $self->sync_source->uuid_for_remote_id( $args{'task'}->{'id'} ),
+                {   record_type   => 'ticket',
+                    record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'task'}->{'id'} ),
                     change_type => 'add_file'
                 }
             );
@@ -104,8 +104,8 @@ sub _recode_entry_create {
     my %args = validate( @_, { txn => 1, previous_state => 1, changeset => 1 } );
 
     my $change = Prophet::Change->new(
-        {   node_type   => 'ticket',
-            node_uuid   => $self->sync_source->uuid_for_remote_id( $args{'previous_state'}->{'id'} ),
+        {   record_type   => 'ticket',
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'previous_state'}->{'id'} ),
             change_type => 'add_file'
         }
     );
@@ -131,8 +131,8 @@ sub _recode_content_update {
     my $self   = shift;
     my %args   = validate( @_, { txn => 1, previous_state => 1, changeset => 1 } );
     my $change = Prophet::Change->new(
-        {   node_type => 'comment',
-            node_uuid =>
+        {   record_type => 'comment',
+            record_uuid =>
                 $self->sync_source->uuid_for_url( $self->sync_source->rt_url . "/transaction/" . $args{'txn'}->{'id'} ),
             change_type => 'add_file'
         }
@@ -226,7 +226,7 @@ sub translate_props {
     my $changeset = shift;
 
     for my $change ( $changeset->changes ) {
-        next unless $change->node_type eq 'ticket';
+        next unless $change->record_type eq 'ticket';
         my @new_props;
         for my $prop ( $change->prop_changes ) {
             $prop->name( $PROP_MAP{ lc( $prop->name ) } ) if $PROP_MAP{ lc( $prop->name ) };

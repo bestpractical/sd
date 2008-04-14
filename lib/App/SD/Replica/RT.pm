@@ -204,15 +204,15 @@ sub _integrate_change {
     my ( $change, $changeset ) = validate_pos( @_, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' } );
     my $id;
     eval {
-        if ( $change->node_type eq 'ticket' and $change->change_type eq 'add_file' )
+        if ( $change->record_type eq 'ticket' and $change->change_type eq 'add_file' )
         {
             $id = $self->integrate_ticket_create( $change, $changeset );
-            $self->record_pushed_ticket( uuid => $change->node_uuid, remote_id => $id );
+            $self->record_pushed_ticket( uuid => $change->record_uuid, remote_id => $id );
 
-        } elsif ( $change->node_type eq 'comment' ) {
+        } elsif ( $change->record_type eq 'comment' ) {
 
             $id = $self->integrate_comment( $change, $changeset );
-        } elsif ( $change->node_type eq 'ticket' ) {
+        } elsif ( $change->record_type eq 'ticket' ) {
             $id = $self->integrate_ticket_update( $change, $changeset );
 
         } else {
@@ -232,7 +232,7 @@ sub integrate_ticket_update {
     my ( $change, $changeset ) = validate_pos( @_, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' } );
 
     # Figure out the remote site's ticket ID for this change's record
-    my $remote_ticket_id = $self->remote_id_for_uuid( $change->node_uuid );
+    my $remote_ticket_id = $self->remote_id_for_uuid( $change->record_uuid );
     my $ticket           = RT::Client::REST::Ticket->new(
         rt => $self->rt,
         id => $remote_ticket_id,

@@ -88,8 +88,8 @@ sub _recode_txn_Set {
     my %args = validate( @_, { ticket => 1, txn => 1, create_state => 1, changeset => 1 } );
 
     my $change = Prophet::Change->new(
-        {   node_type   => 'ticket',
-            node_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
+        {   record_type   => 'ticket',
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
             change_type => 'update_file'
         }
     );
@@ -136,8 +136,8 @@ sub _recode_txn_Create {
     my %args = validate( @_, { ticket => 1, txn => 1, create_state => 1, changeset => 1 } );
 
     my $change = Prophet::Change->new(
-        {   node_type   => 'ticket',
-            node_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
+        {   record_type   => 'ticket',
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
             change_type => 'add_file'
         }
     );
@@ -170,8 +170,8 @@ sub _recode_txn_AddLink {
     );
 
     my $change = Prophet::Change->new(
-        {   node_type   => 'ticket',
-            node_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
+        {   record_type   => 'ticket',
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
             change_type => 'update_file'
         }
     );
@@ -188,8 +188,8 @@ sub _recode_content_update {
     my $self   = shift;
     my %args   = validate( @_, { ticket => 1, txn => 1, create_state => 1, changeset => 1 } );
     my $change = Prophet::Change->new(
-        {   node_type => 'comment',
-            node_uuid =>
+        {   record_type => 'comment',
+            record_uuid =>
                 $self->sync_source->uuid_for_url( $self->sync_source->rt_url . "/transaction/" . $args{'txn'}->{'id'} ),
             change_type => 'add_file'
         }
@@ -236,8 +236,8 @@ sub _recode_txn_AddWatcher {
     );
 
     my $change = Prophet::Change->new(
-        {   node_type   => 'ticket',
-            node_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
+        {   record_type   => 'ticket',
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
             change_type => 'update_file'
         }
     );
@@ -278,8 +278,8 @@ sub _recode_txn_CustomField {
     );
 
     my $change = Prophet::Change->new(
-        {   node_type   => 'ticket',
-            node_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
+        {   record_type   => 'ticket',
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
             change_type => 'update_file'
         }
     );
@@ -373,7 +373,7 @@ sub translate_prop_names {
     my $changeset = shift;
 
     for my $change ( $changeset->changes ) {
-        next unless $change->node_type eq 'ticket';
+        next unless $change->record_type eq 'ticket';
 
         my @new_props;
         for my $prop ( $change->prop_changes ) {
