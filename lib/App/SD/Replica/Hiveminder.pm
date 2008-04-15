@@ -13,7 +13,7 @@ use Memoize;
 use Prophet::ChangeSet;
 use App::SD::Replica::Hiveminder::PullEncoder;
 
-__PACKAGE__->mk_accessors(qw/hm_username hm hm_url ressource/);
+__PACKAGE__->mk_accessors(qw/hm_username hm hm_url/);
 use constant scheme => 'hm';
 
 
