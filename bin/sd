@@ -1,8 +1,9 @@
 #!/usr/bin/perl 
 use warnings;
 use strict;
+use Carp::Always;
 
-
+$ENV{'PROPHET_REPLICA_TYPE'} ||= 'prophet';
 $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.svb';
 
 use Prophet::CLI;
@@ -61,7 +62,7 @@ sub cmd_push {
 
 
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
-    my %args =  ( to => $url, from => "svn:file://".$CLI->app_handle->handle->repo_path );
+    my %args =  ( to => $url, from => $ENV{'PROPHET_REPLICA_TYPE'}.":file://".$CLI->app_handle->handle->fs_root );
 
     $CLI->args(\%args);
     $CLI->do_merge();
@@ -69,7 +70,7 @@ sub cmd_push {
 
 
 return;
-    my $source = Prophet::Replica->new( { url => 'svn:file://'.$CLI->handle->repo_path } );
+    my $source = Prophet::Replica->new( { url => $ENV{'PROPHET_REPLICA_TYPE'}.':file://'.$CLI->app_handle->fs_root } );
     my $target = Prophet::Replica->new( { url => $url });
 #    my $changesets = $source->new_changesets_for($target);
     my $changesets = $source->new_changesets_for($target);
@@ -86,7 +87,7 @@ return;
 sub cmd_pull {
     my $url = shift @ARGV;
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
-    my %args =  ( from => $url, to => "svn:file://".$CLI->app_handle->handle->repo_path );
+    my %args =  ( from => $url, to => $ENV{'PROPHET_REPLICA_TYPE'}.":file://".$CLI->app_handle->handle->fs_root );
 
     $CLI->args(\%args);
     $CLI->do_merge();
@@ -95,9 +96,6 @@ sub cmd_pull {
 }
 =begin comment
     # Trivial first pass:
-    
-    # Give a SVN URL to the remote replica? do we need two svn urls (for res db?)
-    
     
     
 =end comment
