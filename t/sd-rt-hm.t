@@ -89,10 +89,13 @@ as_alice {
 as_bob {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
     run_output_matches( 'sd', [ 'ticket', '--list', '--regex', '.' ], [] );
+
+    diag("Bob pulling from RT");
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', $sd_rt_url ] );
     diag($err) if ($err);
     run_output_matches( 'sd', [ 'ticket', '--list', '--regex', '.' ], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man new/] );
 
+    diag("Bob pulling from alice");
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', repo_uri_for('alice') ] );
     run_output_matches(
         'sd',
@@ -100,6 +103,8 @@ as_bob {
         [ sort "$yatta_uuid YATTA (no status)", "$flyman_uuid Fly Man new", ]
     );
 
+
+    diag("Bob pushing to RT");
     ( $ret, $out, $err ) = run_script( 'sd', [ 'push', $sd_rt_url ] );
     diag($err) if ($err);
 

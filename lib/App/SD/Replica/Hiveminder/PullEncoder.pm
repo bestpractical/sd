@@ -20,6 +20,8 @@ sub run {
 
     my $previous_state = $args{'task'};
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @{ $args{'transactions'} } ) {
+
+
         my $changeset = Prophet::ChangeSet->new(
             {   original_source_uuid => $self->sync_source->uuid,
                 original_sequence_no => $txn->{'id'},
@@ -81,6 +83,8 @@ sub run {
 sub add_prop_change {
     my $self = shift;
     my %args = validate( @_, { history_entry => 1, previous_state => 1, change => 1 } );
+    
+
 
     if ( $args{'previous_state'}->{ $args{history_entry}->{field} } eq $args{history_entry}->{'new_value'} ) {
         $args{'previous_state'}->{ $args{history_entry}->{field} } = $args{history_entry}->{'old_value'};
@@ -90,6 +94,8 @@ sub add_prop_change {
             . $args{history_entry}->{'new_value'} . "\n\n"
             . YAML::Dump( \%args );
     }
+      
+
     $args{change}->add_prop_change(
         name => $args{history_entry}->{'field'},
         old  => $args{history_entry}->{'old_value'},
@@ -252,5 +258,6 @@ sub translate_props {
     }
     return $changeset;
 }
+
 
 1;

@@ -22,14 +22,16 @@ sub run {
     $args{'ticket'}->{'id'} =~ s/^ticket\///g;
 
     my $ticket = $args{'ticket'};
-
+    map { delete $ticket->{$_} if (!defined $ticket->{$_}  || $ticket->{$_} eq '') } keys %$ticket;
+    map { $ticket->{$_} = $self->date_to_iso( $ticket->{$_} ) } qw(Created Resolved Told LastUpdated Starts Started);
+    map { $ticket->{$_} =~ s/ minutes$// if defined $ticket->{$_} } qw(TimeWorked TimeLeft TimeEstimated);
     my $create_state = $ticket;
-    map { $create_state->{$_} = $self->date_to_iso( $create_state->{$_} ) }
-        qw(Created Resolved Told LastUpdated Starts Started);
 
-    map { $create_state->{$_} =~ s/ minutes$// } qw(TimeWorked TimeLeft TimeEstimated);
     my @changesets;
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @{ $args{'transactions'} } ) {
+        delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '');
+        delete $txn->{'NewValue'} if ( $txn->{'NewValue'} eq '');
+
         if ( my $sub = $self->can( '_recode_txn_' . $txn->{'Type'} ) ) {
             my $changeset = Prophet::ChangeSet->new(
                 {   original_source_uuid => $self->sync_source->uuid,
@@ -86,6 +88,10 @@ sub _recode_txn_Told {
 sub _recode_txn_Set {
     my $self = shift;
     my %args = validate( @_, { ticket => 1, txn => 1, create_state => 1, changeset => 1 } );
+        
+    
+    
+
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
@@ -103,9 +109,8 @@ sub _recode_txn_Set {
         }
 
     } elsif ( $args{txn}->{Field} eq 'Owner' ) {
-        $args{'txn'}->{NewValue} = $self->resolve_user_id_to( name => $args{'txn'}->{'NewValue'} ),
-            $args{'txn'}->{OldValue}
-            = $self->resolve_user_id_to( name => $args{'txn'}->{'OldValue'} )
+        $args{'txn'}->{NewValue} = $self->resolve_user_id_to( name => $args{'txn'}->{'NewValue'} );
+        $args{'txn'}->{OldValue} = $self->resolve_user_id_to( name => $args{'txn'}->{'OldValue'} );
 
     }
 
@@ -114,9 +119,7 @@ sub _recode_txn_Set {
         $args{'create_state'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
     } else {
         $args{'create_state'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
-        warn $args{'create_state'}->{ $args{txn}->{Field} } . " != "
-            . $args{txn}->{'NewValue'} . "\n\n"
-            . YAML::Dump( \%args );
+        warn $args{'create_state'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'} . "\n\n" . YAML::Dump( \%args );
     }
     $change->add_prop_change(
         name => $args{txn}->{'Field'},
@@ -337,7 +340,7 @@ sub date_to_iso {
     my $self = shift;
     my $date = shift;
 
-    return '' if $date eq 'Not set';
+    return undef if $date eq 'Not set';
     my $t = DateTime::Format::HTTP->parse_datetime($date);
     return $t->ymd . " " . $t->hms;
 }

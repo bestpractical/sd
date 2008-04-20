@@ -186,7 +186,6 @@ sub _recode_props_for_integrate {
     my %attr;
 
     for my $key ( keys %props ) {
-
         # XXX: fill me in
         #        next unless ( $key =~ /^(summary|queue|status|owner|custom)/ );
         $attr{$key} = $props{$key};
