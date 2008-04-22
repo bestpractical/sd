@@ -72,12 +72,9 @@ sub cmd_push {
 return;
     my $source = Prophet::Replica->new( { url => $ENV{'PROPHET_REPLICA_TYPE'}.':file://'.$CLI->app_handle->fs_root } );
     my $target = Prophet::Replica->new( { url => $url });
-#    my $changesets = $source->new_changesets_for($target);
     my $changesets = $source->new_changesets_for($target);
     warn Dumper($changesets); use Data::Dumper;
 
-# handle: record_changeset_integration
-#    $self->_record_merge_ticket( $changeset->original_source_uuid, $changeset->original_sequence_no );
 
     $target->record_changeset_integration( $_->original_source_uuid, $_->original_sequence_no) for @$changesets;
 
