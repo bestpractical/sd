@@ -5,13 +5,10 @@ package App::SD::Replica::Hiveminder;
 use base qw/Prophet::ForeignReplica/;
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
-
-use Net::Jifty;
-
 use URI;
 use Memoize;
 use Prophet::ChangeSet;
-use App::SD::Replica::Hiveminder::PullEncoder;
+
 
 __PACKAGE__->mk_accessors(qw/hm_username hm hm_url/);
 use constant scheme => 'hm';
@@ -28,6 +25,9 @@ use File::Temp 'tempdir';
 
 sub setup {
     my $self = shift;
+
+    require Net::Jifty;
+    require App::SD::Replica::Hiveminder::PullEncoder;
     my ($server) = $self->{url} =~ m/^(.*?)$/
         or die "Can't parse hiveminder server spec";
     my $uri = URI->new($server);

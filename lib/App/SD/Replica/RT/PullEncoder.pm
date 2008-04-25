@@ -5,9 +5,6 @@ package App::SD::Replica::RT::PullEncoder;
 use base qw/Class::Accessor/;
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
-use RT::Client::REST       ();
-use RT::Client::REST::User ();
-use RT::Client::REST::Ticket;
 
 use Memoize;
 

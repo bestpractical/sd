@@ -5,13 +5,10 @@ package App::SD::Replica::RT;
 use base qw/Prophet::ForeignReplica/;
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
-use RT::Client::REST       ();
-use RT::Client::REST::User ();
-use RT::Client::REST::Ticket;
-use Memoize;
 use Prophet::ChangeSet;
-use App::SD::Replica::RT::PullEncoder;
 
+
+use Memoize;
 use constant scheme => 'rt';
 
 __PACKAGE__->mk_accessors(qw/rt rt_url rt_queue rt_query/);
@@ -74,6 +71,14 @@ use File::Temp 'tempdir';
 
 sub setup {
     my $self = shift;
+    
+    # Require rather than use to defer load
+    require RT::Client::REST       ;
+    require RT::Client::REST::User ;
+    require RT::Client::REST::Ticket;
+
+
+
     my ( $server, $type, $query ) = $self->{url} =~ m/^(.*?)\|(.*?)\|(.*)$/
         or die "Can't parse rt server spec";
     my $uri = URI->new($server);
@@ -320,6 +325,7 @@ sub traverse_changesets {
 
     my $first_rev = ( $args{'after'} + 1 ) || 1;
 
+    require App::SD::Replica::RT::PullEncoder;
     my $recoder = App::SD::Replica::RT::PullEncoder->new( { sync_source => $self } );
     for my $id ( $self->find_matching_tickets ) {
 
