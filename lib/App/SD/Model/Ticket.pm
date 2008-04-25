@@ -1,5 +1,6 @@
 use warnings;
 use strict;
+
 package App::SD::Model::Ticket;
 use base qw/App::SD::Record/;
 
@@ -13,21 +14,18 @@ use constant summary_props => qw(summary status);
 
 
 
-sub validate_status {
+sub validate_prop_status {
     my ($self, %args) = @_;
+
+
     # XXX: validater not called when a value is unset, so can't do
     # mandatory check here
-    return 1 if scalar grep { $args{props}{status} eq $_ }
-        qw(new open closed stalled);
+    return 1 if scalar grep { $args{props}{status} eq $_ } qw(new open closed stalled);
 
-    $args{errors}{status} = 'hate';
+    $args{errors}{status} = "'".$args{props}->{status}."' is not a valid status";
     return 0;
 
 }
-
-#has many SVK::Model::Comment
-#has status
-#has owner
 
 __PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment',
                                  by => 'ticket'
