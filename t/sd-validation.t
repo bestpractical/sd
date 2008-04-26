@@ -2,7 +2,7 @@
 
 use strict;
 
-use Prophet::Test tests => 6;
+use Prophet::Test tests => 10;
 
 no warnings 'once';
 
@@ -65,6 +65,25 @@ run_output_matches( 'sd', [ 'ticket',
     '--list', '--regex', '.' ],
     [ sort "$yatta_uuid YATTA stalled"]
 );
+
+
+is_script_output( 'sd', [ 'ticket',  
+    '--update', '--uuid', $yatta_uuid, '--status', ''
+    ],
+   [], # stdout
+    [qr/Validation error for 'status': '' is not a valid status/], #stderr
+   "Setting the status to stalled went ok"
+
+);
+
+
+run_output_matches( 'sd', [ 'ticket',  
+    '--list', '--regex', '.' ],
+    [ sort "$yatta_uuid YATTA stalled"]
+);
+
+
+
 
 
 1;
