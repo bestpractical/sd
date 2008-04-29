@@ -6,16 +6,21 @@ $ENV{'PROPHET_REPLICA_TYPE'} ||= 'prophet';
 $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.svb';
 
 use Prophet::CLI;
-my $CLI = Prophet::CLI->new( { app_class => 'App::SD' } );
-$CLI->register_types('App::SD::Model' => qw(ticket comment));
-
-my $command = shift @ARGV;
-
-my $func = main->can('cmd_'.$command) || main->can('cmd_help');
-$func->();
+my $cli = Prophet::CLI->new( { app_class => 'App::SD' } );
+$cli->run_one_command;
 
 
-sub cmd_help {
+
+
+package App::SD::CLI::Command;
+use base qw/Prophet::CLI::Command/;
+
+
+
+package App::SD::CLI::Command::Help;
+use base qw/App::SD::CLI::Command/;
+
+sub run {
 
 print <<EOF
 
@@ -33,14 +38,20 @@ EOF
 
 }
 
-sub cmd_details {
-    $CLI->do_show;
-    cmd_comments($CLI->uuid);
+
+package App::SD::CLI::Command::Details;
+use base qw/App::SD::CLI::Command/;
+sub run {
+    App::SD::Command::Ticket::Show->run();
+    App::SD::Command::Comments->run();
 }
 
-sub cmd_comments {
-    my ($ticket) = @ARGV;
-    my $record = App::SD::Model::Ticket->new( { handle => $CLI->app_handle->handle } );
+package App::SD::CLI::Command::Comments;
+use base qw/App::SD::CLI::Command/;
+sub run {
+    my $self = shift;
+    my ($ticket) = $self->args->{'uuid'};
+    my $record = App::SD::Model::Ticket->new( { handle => $self->app_handle->handle } );
     $record->load( uuid => $ticket );
     print "id: " . $record->uuid . "\n";
     unless (@{$record->comments}) {
@@ -55,59 +66,30 @@ sub cmd_comments {
 
 }
 
-sub cmd_push {
 
-    # Trivial first pass:
-#    only support pull
-    my $url = shift @ARGV;
+package App::SD::CLI::Command::Merge;
+use base qw/App::SD::CLI::Command Prophet::CLI::Command::Merge/;
 
+package App::SD::CLI::Command::Push;
+use base qw/App::SD::CLI::Command::Merge/;
 
-
+sub run {
+    my $self = shift; 
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
-    my %args =  ( to => $url, from => $ENV{'PROPHET_REPLICA_TYPE'}.":file://".$CLI->app_handle->handle->fs_root );
-
-    $CLI->args(\%args);
-    $CLI->do_merge();
-
-
-
-return;
-    my $source = Prophet::Replica->new( { url => $ENV{'PROPHET_REPLICA_TYPE'}.':file://'.$CLI->app_handle->fs_root } );
-    my $target = Prophet::Replica->new( { url => $url });
-    my $changesets = $source->new_changesets_for($target);
-    warn Dumper($changesets); use Data::Dumper;
-
-
-    $target->record_changeset_integration( $_->original_source_uuid, $_->original_sequence_no) for @$changesets;
-
+    bless $self, 'App::SD::CLI::Command::Merge';
+    $self->args( {to => $self->args->{'to'}, from => $ENV{'PROPHET_REPLICA_TYPE'}.":file://".$self->app_handle->handle->fs_root });
+    $self->run; 
 }
 
-sub cmd_pull {
-    my $url = shift @ARGV;
+package App::SD::CLI::Command::Pull;
+use base qw/App::SD::CLI::Command::Merge/;
+
+sub run {
+    my $self = shift; 
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
-    my %args =  ( from => $url, to => $ENV{'PROPHET_REPLICA_TYPE'}.":file://".$CLI->app_handle->handle->fs_root );
-
-    $CLI->args(\%args);
-    $CLI->do_merge();
-        
-#         [ 'merge', '--prefer', 'to', '--from', repo_uri_for($from), '--to', repo_uri_for( $self->name ) ],
+    bless $self, 'App::SD::CLI::Command::Merge';
+    $self->args({  from => $self->args->{'from'}, 
+                   to => $ENV{'PROPHET_REPLICA_TYPE'}.":file://".$cli->app_handle->handle->fs_root });
+    $self->run; 
 }
-
-=begin comment
-    # Trivial first pass:
-    
-    
-=end comment
-
-
-
-# svb ticket --create --owner foo@bar --subject hate --status new --comment "wtf svb!"
-# svb ticket --update <id> --status resolved
-# svb ticket --list <regex>
-# svb ticket --show <id>
-
-# svb pull <url>
-# svb push <url>
-# svb pull http://<rt url>
-# svb push http://<rt url>
 

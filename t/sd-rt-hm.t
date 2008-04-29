@@ -81,31 +81,31 @@ my ( $ret, $out, $err );
 # now the tests, bob syncs with rt, alice syncs with hm
 as_alice {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', $sd_hm_url ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
     diag($err) if ($err);
-    run_output_matches( 'sd', [ 'ticket', '--list', '--regex', '.' ], [qr/(.*?)(?{ $yatta_uuid = $1 }) YATTA .*/] );
+    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/(.*?)(?{ $yatta_uuid = $1 }) YATTA .*/] );
 };
 
 as_bob {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
-    run_output_matches( 'sd', [ 'ticket', '--list', '--regex', '.' ], [] );
+    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [] );
 
     diag("Bob pulling from RT");
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', $sd_rt_url ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
     diag($err) if ($err);
-    run_output_matches( 'sd', [ 'ticket', '--list', '--regex', '.' ], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man new/] );
+    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man new/] );
 
     diag("Bob pulling from alice");
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', repo_uri_for('alice') ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('alice') ] );
     run_output_matches(
         'sd',
-        [ 'ticket',                             '--list', '--regex', '.' ],
+        [ 'ticket',                             'list', '--regex', '.' ],
         [ sort "$yatta_uuid YATTA (no status)", "$flyman_uuid Fly Man new", ]
     );
 
 
     diag("Bob pushing to RT");
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', $sd_rt_url ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
     diag($err) if ($err);
 
     # XXX: to check YATTA ticket created in RT.
@@ -113,17 +113,18 @@ as_bob {
 
 as_alice {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', repo_uri_for('bob') ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('bob') ] );
     run_output_matches(
         'sd',
-        [ 'ticket',                             '--list', '--regex', '.' ],
+        [ 'ticket',                             'list', '--regex', '.' ],
         [ sort "$yatta_uuid YATTA (no status)", "$flyman_uuid Fly Man new", ]
     );
 
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', $sd_rt_url ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
 
     ok( $task->load_by_cols( summary => 'Fly Man' ) );
 };
+
 exit(0);
 
 __END__
@@ -152,10 +153,10 @@ my $ticket = RT::Client::REST::Ticket->new(
 
 diag $ticket->id;
 my ($ret, $out, $err);
-($ret, $out, $err) = run_script('sd', ['pull', $sd_rt_url]);
+($ret, $out, $err) = run_script('sd', ['pull', '--from', $sd_rt_url]);
 warn $err;
 my ($yatta_uuid, $flyman_uuid);
-run_output_matches('sd', ['ticket', '--list', '--regex', '.'], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man new/]);
+run_output_matches('sd', ['ticket', 'list', '--regex', '.'], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man new/]);
 
 
 RT::Client::REST::Ticket->new(
@@ -164,23 +165,23 @@ RT::Client::REST::Ticket->new(
         status => 'open',
     )->store();
 
-($ret, $out, $err) = run_script('sd', ['pull', $sd_rt_url]);
+($ret, $out, $err) = run_script('sd', ['pull', '--from', $sd_rt_url]);
 
-run_output_matches('sd', ['ticket', '--list', '--regex', '.'], ["$flyman_uuid Fly Man open"]);
+run_output_matches('sd', ['ticket', 'list', '--regex', '.'], ["$flyman_uuid Fly Man open"]);
 
 # create from sd and push
 
-run_output_matches('sd', ['ticket', '--create', '--summary', 'YATTA', '--status', 'new'], [qr/Created ticket (.*)(?{ $yatta_uuid = $1 })/]);
+run_output_matches('sd', ['ticket', 'create', '--summary', 'YATTA', '--status', 'new'], [qr/Created ticket (.*)(?{ $yatta_uuid = $1 })/]);
 
 diag $yatta_uuid;
 
-run_output_matches('sd', ['ticket', '--list', '--regex', '.'],
+run_output_matches('sd', ['ticket', 'list', '--regex', '.'],
                    [ sort 
                     "$yatta_uuid YATTA new",
                      "$flyman_uuid Fly Man open",
                    ]);
 
-($ret, $out, $err) = run_script('sd', ['push', $sd_rt_url]);
+($ret, $out, $err) = run_script('sd', ['push', '--to', $sd_rt_url]);
 diag $err;
 my @tix = $rt->search(
         type  => 'ticket',
@@ -189,9 +190,9 @@ my @tix = $rt->search(
 
 ok(scalar @tix, 'YATTA pushed');
 
-($ret, $out, $err) = run_script('sd', ['pull', $sd_rt_url]);
+($ret, $out, $err) = run_script('sd', ['pull', '--from', $sd_rt_url]);
 
-run_output_matches('sd', ['ticket', '--list', '--regex', '.'],
+run_output_matches('sd', ['ticket', 'list', '--regex', '.'],
                    [ sort
                     "$yatta_uuid YATTA new",
                      "$flyman_uuid Fly Man open",
@@ -203,9 +204,9 @@ RT::Client::REST::Ticket->new(
         status => 'stalled',
     )->store();
 
-($ret, $out, $err) = run_script('sd', ['pull', $sd_rt_url]);
+($ret, $out, $err) = run_script('sd', ['pull', '--from', $sd_rt_url]);
 
-run_output_matches('sd', ['ticket', '--list', '--regex', '.'],
+run_output_matches('sd', ['ticket', 'list', '--regex', '.'],
                    [ sort
                     "$yatta_uuid YATTA new",
                      "$flyman_uuid Fly Man stalled",
@@ -218,9 +219,9 @@ RT::Client::REST::Ticket->new(
     )->store();
 
 warn "===> bad pull";
-($ret, $out, $err) = run_script('sd', ['pull', $sd_rt_url]);
+($ret, $out, $err) = run_script('sd', ['pull', '--from', $sd_rt_url]);
 diag $err;
-run_output_matches('sd', ['ticket', '--list', '--regex', '.'],
+run_output_matches('sd', ['ticket', 'list', '--regex', '.'],
                    [ sort
                     "$yatta_uuid YATTA open",
                      "$flyman_uuid Fly Man stalled",

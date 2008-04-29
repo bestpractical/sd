@@ -43,35 +43,34 @@ my $ticket = RT::Client::REST::Ticket->new(
 )->store( text => "Ticket Comment" );
 
 my ( $ret, $out, $err );
-( $ret, $out, $err ) = run_script( 'sd', [ 'pull', $sd_rt_url ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from',  $sd_rt_url ] );
 my ( $yatta_uuid, $flyman_uuid );
-run_output_matches( 'sd', [ 'ticket', '--list', '--regex', '.' ], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man new/] );
-
+run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man new/] );
 RT::Client::REST::Ticket->new(
     rt     => $rt,
     id     => $ticket->id,
     status => 'open',
 )->store();
 
-( $ret, $out, $err ) = run_script( 'sd', [ 'pull', $sd_rt_url ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
-run_output_matches( 'sd', [ 'ticket', '--list', '--regex', '.' ], ["$flyman_uuid Fly Man open"] );
+run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_uuid Fly Man open"] );
 
 # create from sd and push
 
 run_output_matches(
     'sd',
-    [ 'ticket', '--create', '--summary', 'YATTA', '--status', 'new' ],
+    [ 'ticket', 'create', '--summary', 'YATTA', '--status', 'new' ],
     [qr/Created ticket (.*)(?{ $yatta_uuid = $1 })/]
 );
 
 run_output_matches(
     'sd',
-    [ 'ticket',                     '--list', '--regex', '.' ],
+    [ 'ticket',                     'list', '--regex', '.' ],
     [ sort "$yatta_uuid YATTA new", "$flyman_uuid Fly Man open", ]
 );
 
-( $ret, $out, $err ) = run_script( 'sd', [ 'push', $sd_rt_url ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
 my @tix = $rt->search(
     type  => 'ticket',
     query => "Subject='YATTA'"
@@ -79,11 +78,11 @@ my @tix = $rt->search(
 
 ok( scalar @tix, 'YATTA pushed' );
 
-( $ret, $out, $err ) = run_script( 'sd', [ 'pull', $sd_rt_url ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
 run_output_matches(
     'sd',
-    [ 'ticket',                     '--list', '--regex', '.' ],
+    [ 'ticket',                     'list', '--regex', '.' ],
     [ sort "$yatta_uuid YATTA new", "$flyman_uuid Fly Man open", ]
 );
 
@@ -93,11 +92,11 @@ RT::Client::REST::Ticket->new(
     status => 'stalled',
 )->store();
 
-( $ret, $out, $err ) = run_script( 'sd', [ 'pull', $sd_rt_url ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
 run_output_matches(
     'sd',
-    [ 'ticket',                     '--list', '--regex', '.' ],
+    [ 'ticket',                     'list', '--regex', '.' ],
     [ sort "$yatta_uuid YATTA new", "$flyman_uuid Fly Man stalled", ]
 );
 
@@ -108,10 +107,10 @@ RT::Client::REST::Ticket->new(
 )->store();
 
 warn "===> bad pull";
-( $ret, $out, $err ) = run_script( 'sd', [ 'pull', $sd_rt_url ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 run_output_matches(
     'sd',
-    [ 'ticket',                      '--list', '--regex', '.' ],
+    [ 'ticket',                      'list', '--regex', '.' ],
     [ sort "$yatta_uuid YATTA open", "$flyman_uuid Fly Man stalled", ]
 );
 
