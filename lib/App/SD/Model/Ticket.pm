@@ -11,9 +11,6 @@ use constant record_type => 'ticket';
 use constant summary_format => '%u %s %s';
 use constant summary_props => qw(summary status);
 
-
-
-
 sub validate_prop_status {
     my ($self, %args) = @_;
 
@@ -27,8 +24,7 @@ sub validate_prop_status {
 
 }
 
-__PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment',
-                                 by => 'ticket'
-                               );
+__PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment', by => 'ticket');
+__PACKAGE__->register_reference( attachments => 'App::SD::Collection::Attachment', by => 'ticket');
 
 1;

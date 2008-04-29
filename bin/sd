@@ -2,10 +2,10 @@
 use warnings;
 use strict;
 
-$ENV{'PROPHET_REPLICA_TYPE'} ||= 'prophet';
-$ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.svb';
+$ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.sd';
 
 use Prophet::CLI;
+use App::SD::Model::Ticket;
 my $cli = Prophet::CLI->new( { app_class => 'App::SD' } );
 $cli->run_one_command;
 
@@ -15,6 +15,19 @@ $cli->run_one_command;
 package App::SD::CLI::Command;
 use base qw/Prophet::CLI::Command/;
 
+package App::SD::CLI::Command::Ticket::Comment;
+use base qw/App::SD::CLI::Command/;
+
+use constant record_class => 'App::SD::Model::Comment';
+
+package App::SD::CLI::Command::Ticket::Comment::Create;
+use base qw/App::SD::CLI::Command::Ticket::Comment Prophet::CLI::Command::Create/;
+
+# override args to feed in that ticket's uuid as an argument to the comment
+sub args {
+    my $self = shift;
+    return { %{$self->SUPER::args}, ticket => $self->uuid};
+}
 
 
 package App::SD::CLI::Command::Help;
@@ -39,33 +52,45 @@ EOF
 }
 
 
+package App::SD::CLI::Command::Ticket::Show;
+use base qw/App::SD::CLI::Command Prophet::CLI::Command::Show/;
+
+
+
+
+
 package App::SD::CLI::Command::Details;
 use base qw/App::SD::CLI::Command/;
 sub run {
-    App::SD::Command::Ticket::Show->run();
-    App::SD::Command::Comments->run();
+    my $self = shift;
+    print "\n=head1 METADATA\n\n"; 
+    $self->App::SD::CLI::Command::Ticket::Show::run();
+    print "\n=head1 COMMENTS\n\n";
+    $self->App::SD::CLI::Command::Ticket::Comments::run();
 }
 
-package App::SD::CLI::Command::Comments;
+package App::SD::CLI::Command::Ticket;
 use base qw/App::SD::CLI::Command/;
+
+use constant record_class => 'App::SD::Model::Ticket';
+
+package App::SD::CLI::Command::Ticket::Comments;
+use base qw/App::SD::CLI::Command::Ticket/;
+
 sub run {
     my $self = shift;
-    my ($ticket) = $self->args->{'uuid'};
-    my $record = App::SD::Model::Ticket->new( { handle => $self->app_handle->handle } );
-    $record->load( uuid => $ticket );
-    print "id: " . $record->uuid . "\n";
+    my $record = $self->_get_record();
+    $record->load( uuid => $self->cli->uuid );
     unless (@{$record->comments}) {
         print "No comments found\n";
     }
 
     for (@{$record->comments}) {
         print "comment id: ".$_->uuid."\n";
-        print "Content:\n".$_->prop('content');
-        print "\n\n";
+        print "Content:\n".$_->prop('content')."\n";
     }
 
 }
-
 
 package App::SD::CLI::Command::Merge;
 use base qw/App::SD::CLI::Command Prophet::CLI::Command::Merge/;
