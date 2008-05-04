@@ -10,8 +10,6 @@ my $cli = Prophet::CLI->new( { app_class => 'App::SD' } );
 $cli->run_one_command;
 
 
-
-
 package App::SD::CLI::Command;
 use base qw/Prophet::CLI::Command/;
 
@@ -102,7 +100,7 @@ sub run {
     my $self = shift; 
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
     bless $self, 'App::SD::CLI::Command::Merge';
-    $self->args( {to => $self->args->{'to'}, from => $ENV{'PROPHET_REPLICA_TYPE'}.":file://".$self->app_handle->handle->fs_root });
+    $self->args( {to => $self->args->{'to'}, from => $self->app_handle->default_replica_type.":file://".$self->app_handle->handle->fs_root });
     $self->run; 
 }
 
@@ -114,7 +112,7 @@ sub run {
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
     bless $self, 'App::SD::CLI::Command::Merge';
     $self->args({  from => $self->args->{'from'}, 
-                   to => $ENV{'PROPHET_REPLICA_TYPE'}.":file://".$cli->app_handle->handle->fs_root });
+                   to => $self->cli->app_handle->default_replica_type.":file://".$cli->app_handle->handle->fs_root });
     $self->run; 
 }
 
