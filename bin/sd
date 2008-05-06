@@ -14,31 +14,60 @@ package App::SD::CLI::Command;
 use base qw/Prophet::CLI::Command/;
 
 package App::SD::CLI::Command::Ticket::Comment;
-use base qw/App::SD::CLI::Command/;
 
 use constant record_class => 'App::SD::Model::Comment';
 
 package App::SD::CLI::Command::Ticket::Comment::Create;
 use base qw/App::SD::CLI::Command::Ticket::Comment Prophet::CLI::Command::Create/;
 
-# override args to feed in that ticket's uuid as an argument to the comment
-sub args {
+sub run {
     my $self = shift;
-    return { %{$self->SUPER::args}, ticket => $self->uuid};
+    $self->args->{'ticket'} = $self->uuid;
+    $self->SUPER::run(@_);
 }
+# override args to feed in that ticket's uuid as an argument to the comment
 
+package App::SD::CLI::Command::Attachment;
+use constant record_class => 'App::SD::Model::Attachment';
+
+package App::SD::CLI::Command::Attachment::Create;
+use base qw/App::SD::CLI::Command::Attachment Prophet::CLI::Command::Create/;
+use Path::Class;
+
+sub run {
+    my $self = shift;
+
+    if  (my $file = file(delete $self->args->{'file'})) {
+        $self->args->{'tricksy'} = 'abc';
+        $self->args->{'content'} = $file->slurp();
+        $self->args->{'name'} = $file->basename;
+    }
+
+    $self->SUPER::run(@_);
+
+}
 
 package App::SD::CLI::Command::Ticket::Attachment::Create;
-use base qw/App::SD::CLI::Command::Ticket::Attachment Prophet::CLI::Command::Create/;
-
+use base qw/App::SD::CLI::Command::Attachment::Create/;
 # override args to feed in that ticket's uuid as an argument to the comment
-sub args {
+#
+
+
+sub run {
     my $self = shift;
-    return { %{$self->SUPER::args}, ticket => $self->uuid};
+    $self->args->{'ticket'} = $self->uuid;
+    $self->SUPER::run(@_);
 }
 
+package App::SD::CLI::Command::Attachment::Content;
+use base qw/App::SD::CLI::Command::Attachment App::SD::CLI::Command Prophet::CLI::Command::Show/;
 
-
+sub run {
+    my $self = shift;
+    my $record =  $self->_get_record;
+    $record->load(uuid => $self->cli->uuid);
+    print $record->prop('content') ."\n";
+}
 
 package App::SD::CLI::Command::Help;
 use base qw/App::SD::CLI::Command/;
@@ -61,13 +90,8 @@ EOF
 
 }
 
-
 package App::SD::CLI::Command::Ticket::Show;
 use base qw/App::SD::CLI::Command Prophet::CLI::Command::Show/;
-
-
-
-
 
 package App::SD::CLI::Command::Details;
 use base qw/App::SD::CLI::Command/;
