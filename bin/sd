@@ -28,6 +28,18 @@ sub args {
 }
 
 
+package App::SD::CLI::Command::Ticket::Attachment::Create;
+use base qw/App::SD::CLI::Command::Ticket::Attachment Prophet::CLI::Command::Create/;
+
+# override args to feed in that ticket's uuid as an argument to the comment
+sub args {
+    my $self = shift;
+    return { %{$self->SUPER::args}, ticket => $self->uuid};
+}
+
+
+
+
 package App::SD::CLI::Command::Help;
 use base qw/App::SD::CLI::Command/;
 
@@ -63,6 +75,8 @@ sub run {
     my $self = shift;
     print "\n=head1 METADATA\n\n"; 
     $self->App::SD::CLI::Command::Ticket::Show::run();
+    print "\n=head1 ATTACHMENTS\n\n";
+    $self->App::SD::CLI::Command::Ticket::Attachments::run();
     print "\n=head1 COMMENTS\n\n";
     $self->App::SD::CLI::Command::Ticket::Comments::run();
 }
@@ -86,6 +100,25 @@ sub run {
     for (@{$record->comments}) {
         print "comment id: ".$_->uuid."\n";
         print "Content:\n".$_->prop('content')."\n";
+    }
+
+}
+
+package App::SD::CLI::Command::Ticket::Attachments;
+use base qw/App::SD::CLI::Command::Ticket/;
+
+sub run {
+    my $self = shift;
+    my $record = $self->_get_record();
+    $record->load( uuid => $self->cli->uuid );
+    unless (@{$record->attachments}) {
+        print "No attachments found\n";
+    }
+
+    for (@{$record->attachments}) {
+        print "attachment id: ".$_->uuid."\n";
+        print "name: ".$_->prop('name')."\n";
+        print "content_type: ".$_->prop('content_type')."\n";
     }
 
 }
