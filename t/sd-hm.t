@@ -1,14 +1,15 @@
 #!/usr/bin/env perl
 use warnings;
 use strict;
-use Prophet::Test tests => 10;
+use Prophet::Test;
 
 use Test::More;
 
 BEGIN {
     unless ( $ENV{'JIFTY_APP_ROOT'} ) {
-        die "You must define a JIFTY_APP_ROOT environment variable which points to your hiveminder source tree";
+        plan skip_all => "You must define a JIFTY_APP_ROOT environment variable which points to your hiveminder source tree";
     }
+    plan tests => 10;
     require File::Temp;
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
     warn $ENV{'PROPHET_REPO'};
