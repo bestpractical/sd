@@ -16,7 +16,10 @@ __PACKAGE__->register_reference( ticket => 'App::SD::Model::Ticket');
 sub create {
     my $self = shift;
     my %args = validate( @_,  {props => 1});
-    
+
+
+    return (0,"You can't create an attachment without specifying a 'ticket' uuid") unless ($args{'props'}->{'ticket'});
+
     $args{'props'}->{'content_type'} ||=  'text/plain'; # XXX TODO use real mime typing;
     
 
