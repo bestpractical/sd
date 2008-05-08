@@ -8,10 +8,10 @@ use strict;
 use Test::More;
 unless (eval 'use RT::Test; 1') {
     diag $@;
-    plan skip_all => 'requires 3.7 to run tests.';
+    plan skip_all => 'requires 3.7 or newer to run tests.';
 }
 
-eval 'use Prophet::Test tests => 9';
+eval 'use Prophet::Test tests => 11';
 
 no warnings 'once';
 
@@ -106,13 +106,43 @@ RT::Client::REST::Ticket->new(
     status => 'open',
 )->store();
 
-warn "===> bad pull";
+diag( "===> bad pull");
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 run_output_matches(
     'sd',
     [ 'ticket',                      'list', '--regex', '.' ],
     [ sort "$yatta_uuid YATTA open", "$flyman_uuid Fly Man stalled", ]
 );
+
+
+my $tick = RT::Client::REST::Ticket->new(
+    rt => $rt,
+    id => $tix[0])->retrieve;
+
+warn $tick->subject;
+warn $tick->status;
+my ($val,$msg) = $tick->comment( message => 'this is a comment', attachments => [qw|t/data/bplogo.gif|]);
+    
+    my $attachments = RT::Client::REST::Ticket->new( rt => $rt, id => $tix[0])->attachments();
+    my $iterator = $attachments->get_iterator;
+    my @attachments;
+    while (my $att = &$iterator) { 
+        if ( $att->file_name eq 'bplogo.gif'  ) {
+        push @attachments, $att ;
+        warn "goto ne";
+    }
+    }
+is (scalar @attachments, 1, "Found our one attachment");
+
+ 
+( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
+run_output_matches(
+    'sd',
+    [ 'ticket',                      'list', '--regex', '.' ],
+    [ sort "$yatta_uuid YATTA open", "$flyman_uuid Fly Man stalled", ]
+);
+
+
 
 #diag $uuid;
 
