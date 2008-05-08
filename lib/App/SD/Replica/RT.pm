@@ -5,14 +5,14 @@ package App::SD::Replica::RT;
 use base qw/Prophet::ForeignReplica/;
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
+    use File::Temp ();
+    use Path::Class;
 use Prophet::ChangeSet;
-
 
 use Memoize;
 use constant scheme => 'rt';
 
 __PACKAGE__->mk_accessors(qw/rt rt_url rt_queue rt_query/);
-
 
 =head1 NOTES ON PUSH
 
@@ -71,13 +71,11 @@ use File::Temp 'tempdir';
 
 sub setup {
     my $self = shift;
-    
+
     # Require rather than use to defer load
-    require RT::Client::REST       ;
-    require RT::Client::REST::User ;
+    require RT::Client::REST;
+    require RT::Client::REST::User;
     require RT::Client::REST::Ticket;
-
-
 
     my ( $server, $type, $query ) = $self->{url} =~ m/^(.*?)\|(.*?)\|(.*)$/
         or die "Can't parse rt server spec";
@@ -92,17 +90,19 @@ sub setup {
     $self->rt_query( $query . " AND Queue = '$type'" );
     $self->rt( RT::Client::REST->new( server => $server ) );
 
-    ( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
+    ( $username, $password ) = $self->prompt_for_login( $uri, $username )
+        unless $password;
 
     $self->rt->login( username => $username, password => $password );
 
-        $self->SUPER::setup(@_);
+    $self->SUPER::setup(@_);
 
 }
 
 sub record_pushed_transactions {
     my $self = shift;
-    my %args = validate( @_, { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
+    my %args = validate( @_,
+        { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
 
     for my $txn (
         reverse RT::Client::REST::Ticket->new(
@@ -111,8 +111,14 @@ sub record_pushed_transactions {
         )->transactions->get_iterator->()
         )
     {
-        last if $txn->id <= $self->last_changeset_from_source( $args{changeset}->original_source_uuid );
-        $self->record_pushed_transaction( transaction => $txn->id, changeset => $args{'changeset'} );
+        last
+            if $txn->id <= $self->last_changeset_from_source(
+                    $args{changeset}->original_source_uuid
+            );
+        $self->record_pushed_transaction(
+            transaction => $txn->id,
+            changeset   => $args{'changeset'}
+        );
     }
 }
 
@@ -136,7 +142,8 @@ my $TXN_METATYPE = 'txn-source';
 
 sub _txn_storage {
     my $self = shift;
-    return $self->state_handle->metadata_storage( $TXN_METATYPE, 'prophet-txn-source' );
+    return $self->state_handle->metadata_storage( $TXN_METATYPE,
+        'prophet-txn-source' );
 }
 
 sub prophet_has_seen_transaction {
@@ -147,11 +154,14 @@ sub prophet_has_seen_transaction {
 
 sub record_pushed_transaction {
     my $self = shift;
-    my %args = validate( @_, { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
+    my %args = validate( @_,
+        { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
 
     $self->_txn_storage->(
         $self->uuid . '-txn-' . $args{transaction},
-        join( ':', $args{changeset}->original_source_uuid, $args{changeset}->original_sequence_no )
+        join( ':',
+            $args{changeset}->original_source_uuid,
+            $args{changeset}->original_sequence_no )
     );
 }
 
@@ -163,25 +173,18 @@ sub record_pushed_transaction {
 sub remote_id_for_uuid {
     my ( $self, $uuid_for_remote_id ) = @_;
 
+
     # XXX: should not access CLI handle
-    my $ticket = Prophet::Record->new( handle => Prophet::CLI->new->handle, type => 'ticket' );
+    my $ticket = Prophet::Record->new(
+        handle => Prophet::CLI->new->app_handle->handle,
+        type   => 'ticket'
+    );
     $ticket->load( uuid => $uuid_for_remote_id );
-    return $ticket->prop( $self->uuid . '-id' );
+    my $id =  $ticket->prop( $self->uuid . '-id' );
+    return $id;
 }
 
-sub uuid_for_remote_id {
-    my ( $self, $id ) = @_;
-    return $self->_lookup_remote_id($id) || $self->uuid_for_url( $self->rt_url . "/ticket/$id" );
-}
-
-sub _lookup_remote_id {
-    my $self = shift;
-    my ($id) = validate_pos( @_, 1 );
-
-    return $self->_remote_id_storage( $self->uuid_for_url( $self->rt_url . "/ticket/$id" ) );
-}
-
-sub _set_remote_id {
+sub _set_remote_id_for_uuid {
     my $self = shift;
     my %args = validate(
         @_,
@@ -189,8 +192,34 @@ sub _set_remote_id {
             remote_id => 1
         }
     );
-    return $self->_remote_id_storage( $self->uuid_for_url( $self->rt_url . "/ticket/" . $args{'remote_id'} ),
-        $args{uuid} );
+
+    # XXX: should not access CLI handle
+    my $ticket = Prophet::Record->new(
+        handle => Prophet::CLI->new->app_handle->handle,
+        type   => 'ticket'
+    );
+    $ticket->load( uuid => $args{'uuid'});
+    $ticket->set_props( props => {  $self->uuid.'-id' => $args{'remote_id'}});
+
+}
+
+
+sub uuid_for_remote_id {
+    my ( $self, $id ) = @_;
+    return $self->_lookup_uuid_for_remote_id($id) || $self->uuid_for_url( $self->rt_url . "/ticket/$id" );
+}
+
+sub _lookup_uuid_for_remote_id {
+    my $self = shift;
+    my ($id) = validate_pos( @_, 1 );
+
+    return $self->_remote_id_storage( $self->uuid_for_url( $self->rt_url . "/ticket/$id" ) );
+}
+
+sub _set_uuid_for_remote_id {
+    my $self = shift;
+    my %args = validate( @_, {   uuid      => 1, remote_id => 1 });
+    return $self->_remote_id_storage( $self->uuid_for_url( $self->rt_url . "/ticket/" . $args{'remote_id'} ), $args{uuid});
 }
 
 sub record_pushed_ticket {
@@ -201,21 +230,37 @@ sub record_pushed_ticket {
             remote_id => 1
         }
     );
-    $self->_set_remote_id(%args);
+    $self->_set_uuid_for_remote_id(%args);
+    $self->_set_remote_id_for_uuid(%args);
 }
 
 sub _integrate_change {
     my $self = shift;
-    my ( $change, $changeset ) = validate_pos( @_, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' } );
+    my ( $change, $changeset ) = validate_pos(
+        @_,
+        { isa => 'Prophet::Change' },
+        { isa => 'Prophet::ChangeSet' }
+    );
     my $id;
     eval {
-        if ( $change->record_type eq 'ticket' and $change->change_type eq 'add_file' )
+        if (    $change->record_type eq 'ticket'
+            and $change->change_type eq 'add_file' 
+    )
         {
             $id = $self->integrate_ticket_create( $change, $changeset );
-            $self->record_pushed_ticket( uuid => $change->record_uuid, remote_id => $id );
+            $self->record_pushed_ticket(
+                uuid      => $change->record_uuid,
+                remote_id => $id
+            );
 
-        } elsif ( $change->record_type eq 'comment' ) {
-
+        } elsif ( $change->record_type eq 'attachment'
+            and $change->change_type eq 'add_file' 
+        
+        ) {
+            $id = $self->integrate_attachment( $change, $changeset );
+        } elsif ( $change->record_type eq 'comment' 
+            and $change->change_type eq 'add_file' 
+        ) {
             $id = $self->integrate_comment( $change, $changeset );
         } elsif ( $change->record_type eq 'ticket' ) {
             $id = $self->integrate_ticket_update( $change, $changeset );
@@ -224,7 +269,10 @@ sub _integrate_change {
             return undef;
         }
 
-        $self->record_pushed_transactions( ticket => $id, changeset => $changeset );
+        $self->record_pushed_transactions(
+            ticket    => $id,
+            changeset => $changeset
+        );
 
     };
     warn $@ if $@;
@@ -233,7 +281,11 @@ sub _integrate_change {
 
 sub integrate_ticket_update {
     my $self = shift;
-    my ( $change, $changeset ) = validate_pos( @_, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' } );
+    my ( $change, $changeset ) = validate_pos(
+        @_,
+        { isa => 'Prophet::Change' },
+        { isa => 'Prophet::ChangeSet' }
+    );
 
     # Figure out the remote site's ticket ID for this change's record
     my $remote_ticket_id = $self->remote_id_for_uuid( $change->record_uuid );
@@ -248,7 +300,11 @@ sub integrate_ticket_update {
 
 sub integrate_ticket_create {
     my $self = shift;
-    my ( $change, $changeset ) = validate_pos( @_, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' } );
+    my ( $change, $changeset ) = validate_pos(
+        @_,
+        { isa => 'Prophet::Change' },
+        { isa => 'Prophet::ChangeSet' }
+    );
 
     # Build up a ticket object out of all the record's attributes
     my $ticket = RT::Client::REST::Ticket->new(
@@ -262,25 +318,44 @@ sub integrate_ticket_create {
 
 sub integrate_comment {
     my $self = shift;
-    my ($change) = validate_pos( @_, { isa => 'Prophet::Change' } );
+    my ($change, $changeset) = validate_pos( @_, { isa => 'Prophet::Change' }, {isa => 'Prophet::ChangeSet'} );
 
     # Figure out the remote site's ticket ID for this change's record
 
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
 
-    my $id     = $self->remote_id_for_uuid( $props{'ticket'} );
-    my $ticket = RT::Client::REST::Ticket->new(
-        rt => $self->rt,
-        id => $id
-    );
-    if ( $props{'type'} eq 'comment' ) {
-        $ticket->comment( message => $props{'content'} );
-    } else {
-        $ticket->correspond( message => $props{'content'} );
+    my $ticket_id     = $self->remote_id_for_uuid( $props{'ticket'} );
+    my $ticket = RT::Client::REST::Ticket->new( rt => $self->rt, id => $ticket_id);
 
+    my %content = ( message => $props{'content'},   
+                );
+
+    if (  ($props{'type'} ||'') eq 'comment' ) {
+        $ticket->comment( %content);
+    } else {
+        $ticket->correspond(%content);
     }
-    return $id;
+    return $ticket_id;
+} 
+
+sub integrate_attachment {
+    my ($self, $change, $changeset ) = validate_pos( @_, { isa => 'App::SD::Replica::RT'}, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' });
+
+
+    my %props = map { $_->name => $_->new_value } $change->prop_changes;
+    my $ticket_id = $self->remote_id_for_uuid( $props{'ticket'});
+    my $ticket = RT::Client::REST::Ticket->new( rt => $self->rt, id => $ticket_id );
+
+    my $tempdir = File::Temp::tempdir( CLEANUP => 1 );
+    my $file = file( $tempdir => ( $props{'name'} || 'unnamed' ) );
+    my $fh = $file->openw;
+    print $fh $props{content};
+    close $fh;
+    my %content = ( message     => '(See attachments)', attachments => ["$file"]);
+    $ticket->correspond(%content);
+    return $ticket_id;
 }
+
 
 sub _recode_props_for_integrate {
     my $self = shift;
@@ -326,7 +401,8 @@ sub traverse_changesets {
     my $first_rev = ( $args{'after'} + 1 ) || 1;
 
     require App::SD::Replica::RT::PullEncoder;
-    my $recoder = App::SD::Replica::RT::PullEncoder->new( { sync_source => $self } );
+    my $recoder
+        = App::SD::Replica::RT::PullEncoder->new( { sync_source => $self } );
     for my $id ( $self->find_matching_tickets ) {
 
         # XXX: _recode_transactions should ignore txn-id <= $first_rev
@@ -334,7 +410,11 @@ sub traverse_changesets {
             for @{
             $recoder->run(
                 ticket => $self->rt->show( type => 'ticket', id => $id ),
-                transactions => $self->find_matching_transactions( ticket => $id, starting_transaction => $first_rev )
+                transactions => $self->find_matching_transactions(
+                    ticket               => $id,
+                    starting_transaction => $first_rev
+                ),
+
             )
             };
     }
@@ -350,9 +430,26 @@ sub find_matching_transactions {
     my %args = validate( @_, { ticket => 1, starting_transaction => 1 } );
     my @txns;
     for my $txn ( sort $self->rt->get_transaction_ids( parent_id => $args{ticket} ) ) {
-        next if $txn < $args{'starting_transaction'};        # Skip things we've pushed
+        next if $txn < $args{'starting_transaction'}; # Skip things we've pushed
         next if $self->prophet_has_seen_transaction($txn);
-        push @txns, $self->rt->get_transaction( parent_id => $args{ticket}, id => $txn, type => 'ticket' );
+        my $txn_hash = $self->rt->get_transaction(
+            parent_id => $args{ticket},
+            id        => $txn,
+            type      => 'ticket'
+        );
+        if ( my $attachments = delete $txn_hash->{'Attachments'} ) {
+            foreach my $attach ( split( /\n/, $attachments ) ) {
+                next unless ( $attach =~ /^(\d+):/ );
+                my $id = $1;
+                my $a  = $self->rt->get_attachment( parent_id => $args{'ticket'}, id        => $id);
+
+                push( @{ $txn_hash->{_attachments} }, $a )
+                    if ( $a->{Filename} );
+
+            }
+
+        }
+        push @txns, $txn_hash;
     }
     return \@txns;
 }

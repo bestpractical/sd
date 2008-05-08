@@ -8,7 +8,7 @@ use Params::Validate qw/validate/;
 use constant collection_class => 'App::SD::Collection::Attachment';
 use constant record_type => 'attachment';
 
-use constant summary_format => '%u %s';
+use constant summary_format => '%u %s %s';
 use constant summary_props => qw(name content_type);
 
 __PACKAGE__->register_reference( ticket => 'App::SD::Model::Ticket');

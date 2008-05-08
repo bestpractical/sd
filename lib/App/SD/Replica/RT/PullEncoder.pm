@@ -14,7 +14,7 @@ our $DEBUG = $Prophet::Handle::DEBUG;
 
 sub run {
     my $self = shift;
-    my %args = validate( @_, { ticket => 1, transactions => 1 } );
+    my %args = validate( @_, { ticket => 1, transactions => 1, attachments => 0 } );
 
     $args{'ticket'}->{'id'} =~ s/^ticket\///g;
 
@@ -26,8 +26,16 @@ sub run {
 
     my @changesets;
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @{ $args{'transactions'} } ) {
-        delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '');
-        delete $txn->{'NewValue'} if ( $txn->{'NewValue'} eq '');
+            my $changeset = $self->txn_to_changeset($txn, $ticket, $create_state);
+            unshift @changesets, $changeset unless $changeset->is_empty;
+        }
+
+    return \@changesets;
+}
+
+
+sub txn_to_changeset {
+    my ($self, $txn, $ticket, $create_state) = (@_);
 
         if ( my $sub = $self->can( '_recode_txn_' . $txn->{'Type'} ) ) {
             my $changeset = Prophet::ChangeSet->new(
@@ -41,24 +49,43 @@ sub run {
                 next;
             }
 
-            $sub->(
-                $self,
-                ticket       => $ticket,
-                create_state => $create_state,
-                txn          => $txn,
-                changeset    => $changeset
-            );
+            delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '');
+            delete $txn->{'NewValue'} if ( $txn->{'NewValue'} eq '');
+
+            $sub->( $self, ticket       => $ticket, create_state => $create_state, txn          => $txn, changeset    => $changeset);
             $self->translate_prop_names($changeset);
 
-            unshift @changesets, $changeset unless $changeset->is_empty;
+            if (my $attachments = delete $txn->{'_attachments'}) {
+               foreach my $attach (@$attachments) { 
+                    $self->_recode_attachment_create( ticket => $ticket, txn => $txn, changeset =>$changeset, attachment => $attach); 
+               }
+            }
+
+            return $changeset;
         } else {
-            warn "not handling txn type $txn->{Type} for $txn->{id} (Ticket $args{ticket}{id}) yet";
+            warn "not handling txn type $txn->{Type} for $txn->{id} yet";
             die YAML::Dump($txn);
         }
-
     }
-    return \@changesets;
+
+
+sub _recode_attachment_create {
+    my $self   = shift;
+    my %args   = validate( @_, { ticket => 1, txn => 1, changeset => 1, attachment => 1 } );
+    my $change = Prophet::Change->new(
+        {   record_type => 'attachment',
+            record_uuid => $self->sync_source->uuid_for_url( $self->sync_source->rt_url . "/attachment/" . $args{'attachment'}->{'id'} ),
+            change_type => 'add_file'
+        }
+    );
+    $change->add_prop_change( name => 'content_type', old  => undef, new  => $args{'attachment'}->{'ContentType'});
+    $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'attachment'}->{'Creator'}));
+    $change->add_prop_change( name => 'content', old  => undef, new  => $args{'attachment'}->{'Content'});
+    $change->add_prop_change( name => 'name', old  => undef, new  => $args{'attachment'}->{'Filename'});
+    $change->add_prop_change( name => 'ticket', old  => undef, new  => $args{ticket}->{uuid},);
+    $args{'changeset'}->add_change( { change => $change } );
 }
+
 
 sub _recode_txn_CommentEmailRecord { return; }
 
@@ -189,32 +216,14 @@ sub _recode_content_update {
     my %args   = validate( @_, { ticket => 1, txn => 1, create_state => 1, changeset => 1 } );
     my $change = Prophet::Change->new(
         {   record_type => 'comment',
-            record_uuid =>
-                $self->sync_source->uuid_for_url( $self->sync_source->rt_url . "/transaction/" . $args{'txn'}->{'id'} ),
+            record_uuid => $self->sync_source->uuid_for_url( $self->sync_source->rt_url . "/transaction/" . $args{'txn'}->{'id'} ),
             change_type => 'add_file'
         }
     );
-    $change->add_prop_change(
-        name => 'type',
-        old  => undef,
-        new  => $args{'txn'}->{'Type'}
-    );
-
-    $change->add_prop_change(
-        name => 'creator',
-        old  => undef,
-        new  => $args{'txn'}->{'Creator'}
-    );
-    $change->add_prop_change(
-        name => 'content',
-        old  => undef,
-        new  => $args{'txn'}->{'Content'}
-    );
-    $change->add_prop_change(
-        name => 'ticket',
-        old  => undef,
-        new  => $args{ticket}->{uuid},
-    );
+    $change->add_prop_change( name => 'type', old  => undef, new  => $args{'txn'}->{'Type'});
+    $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'txn'}->{'Creator'}));
+    $change->add_prop_change( name => 'content', old  => undef, new  => $args{'txn'}->{'Content'});
+    $change->add_prop_change( name => 'ticket', old  => undef, new  => $args{ticket}->{uuid},);
     $args{'changeset'}->add_change( { change => $change } );
 }
 
