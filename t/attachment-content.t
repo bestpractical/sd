@@ -2,7 +2,7 @@
 
 use strict;
 
-use Prophet::Test tests => 6;
+use Prophet::Test tests => 10;
 
 use File::Temp qw/tempdir/;
 use Path::Class;
@@ -42,6 +42,20 @@ run_output_matches('sd', [qw/ticket attachments --uuid/, $yatta_uuid], [qr/^atta
     'name: paper_order.doc', 
     'content_type: text/plain' ], [], "Found the attachment, but doesn't show the content");
 
-
 run_output_matches('sd', [qw/attachment content --uuid/, $attachment_uuid], ['5 tonnes of hard white'],[], "We got the content");
+
+
+diag("Add a binary attachment");
+
+my $image_attach;
+my $image_file = 't/data/bplogo.gif';
+
+run_output_matches('sd', [qw/ticket attachment create --uuid/, $yatta_uuid, '--file', $image_file], [qr/Created attachment (.*?)(?{ $image_attach = $1})$/], [], "Added a attachment");
+
+my $image_data = file($image_file)->slurp;
+
+my ($ret, $stdout, $stderr) = run_script('sd', [qw/attachment content --uuid/, $image_attach]);
+ok($ret, "Ran the script ok");
+is($stdout, $image_data, "We roundtripped some binary");
+is($stderr, '');
 
