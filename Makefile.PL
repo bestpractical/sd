@@ -1,6 +1,7 @@
 use inc::Module::Install;
 name('sd');
-author('jesse and clkao');
-all_from('lib/App/SD.pm');
+author('Jesse Vincent and Chia-Liang Kao');
+copyright('2008 Best Practical Solutions, LLC');
 license('MIT');
+version_from('lib/App/SD.pm');
 &WriteAll;
