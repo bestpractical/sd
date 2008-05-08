@@ -142,7 +142,11 @@ run_output_matches(
     [ sort "$yatta_uuid YATTA open", "$flyman_uuid Fly Man stalled", ]
 );
 
-
+diag("check to see if YATTA has an attachment");
+diag("Check to see if YATTA's attachment is binary-identical to the original one");
+diag("Add an attachment to YATTA");
+diag("Push the attachment to RT");
+diag("Check to see if the RT ticket has two attachments");
 
 #diag $uuid;
 
