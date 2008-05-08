@@ -27,6 +27,8 @@ sub run {
 }
 # override args to feed in that ticket's uuid as an argument to the comment
 
+
+
 package App::SD::CLI::Command::Attachment;
 use constant record_class => 'App::SD::Model::Attachment';
 
@@ -38,8 +40,9 @@ sub run {
     my $self = shift;
 
     if  (my $file = file(delete $self->args->{'file'})) {
-        $self->args->{'tricksy'} = 'abc';
-        $self->args->{'content'} = $file->slurp();
+        my $content = $file->slurp();
+        chomp $content;
+        $self->args->{'content'} = $content;
         $self->args->{'name'} = $file->basename;
     }
 
@@ -128,24 +131,6 @@ sub run {
 
 }
 
-package App::SD::CLI::Command::Ticket::Attachments;
-use base qw/App::SD::CLI::Command::Ticket/;
-
-sub run {
-    my $self = shift;
-    my $record = $self->_get_record();
-    $record->load( uuid => $self->cli->uuid );
-    unless (@{$record->attachments}) {
-        print "No attachments found\n";
-    }
-
-    for (@{$record->attachments}) {
-        print "attachment id: ".$_->uuid."\n";
-        print "name: ".$_->prop('name')."\n";
-        print "content_type: ".$_->prop('content_type')."\n";
-    }
-
-}
 
 package App::SD::CLI::Command::Merge;
 use base qw/App::SD::CLI::Command Prophet::CLI::Command::Merge/;
