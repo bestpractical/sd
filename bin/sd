@@ -39,12 +39,22 @@ use Path::Class;
 sub run {
     my $self = shift;
 
-    if  (my $file = file(delete $self->args->{'file'})) {
-        my $content = $file->slurp();
-        chomp $content;
-        $self->args->{'content'} = $content;
+    my $content;
+    if (my $file = file(delete $self->args->{'file'})) {
+        $content = $file->slurp();
         $self->args->{'name'} = $file->basename;
     }
+    elsif (exists $self->args->{'edit'}) {
+        require Proc::InvokeEditor;
+        $content = Proc::InvokeEditor->edit;
+    }
+    else {
+        print "Please type your comment and press ctrl-d.\n";
+        $content = do { local $/; <> };
+    }
+
+    chomp $content;
+    $self->args->{'content'} = $content;
 
     $self->SUPER::run(@_);
 
