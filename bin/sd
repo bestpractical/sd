@@ -94,7 +94,7 @@ $0 ticket update --uuid <uuid> --status resolved
 $0 ticket search --regex .
 $0 ticket delete --uuid <uuid>
 $0 ticket show --uuid <uuid>
-$0 pull remote-url
+$0 pull --from remote-url
 
 $0 help  
     Show this file
@@ -161,6 +161,9 @@ use base qw/App::SD::CLI::Command::Merge/;
 
 sub run {
     my $self = shift; 
+
+    die "Please specify a --from.\n" if !defined($self->args->{'from'});
+
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
     bless $self, 'App::SD::CLI::Command::Merge';
     $self->args({  from => $self->args->{'from'}, 
