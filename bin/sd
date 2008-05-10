@@ -12,32 +12,11 @@ $cli->run_one_command;
 
 package App::SD::CLI::Command;
 use base qw/Prophet::CLI::Command/;
-
-package App::SD::CLI::Command::Ticket::Comment;
-
-use constant record_class => 'App::SD::Model::Comment';
-
-package App::SD::CLI::Command::Ticket::Comment::Create;
-use base qw/App::SD::CLI::Command::Ticket::Comment Prophet::CLI::Command::Create/;
-
-sub run {
-    my $self = shift;
-    $self->args->{'ticket'} = $self->uuid;
-    $self->SUPER::run(@_);
-}
-# override args to feed in that ticket's uuid as an argument to the comment
-
-
-
-package App::SD::CLI::Command::Attachment;
-use constant record_class => 'App::SD::Model::Attachment';
-
-package App::SD::CLI::Command::Attachment::Create;
-use base qw/App::SD::CLI::Command::Attachment Prophet::CLI::Command::Create/;
 use Path::Class;
 
-sub run {
+sub get_content {
     my $self = shift;
+    my $type = shift;
 
     my $content;
     if (my $file = file(delete $self->args->{'file'})) {
@@ -49,12 +28,43 @@ sub run {
         require Proc::InvokeEditor;
         $content = Proc::InvokeEditor->edit;
     } else {
-        print "Please type your comment and press ctrl-d.\n";
+        print "Please type your $type and press ctrl-d.\n";
         $content = do { local $/; <> };
     }
 
     chomp $content;
-    $self->args->{'content'} = $content;
+    return $content;
+}
+
+package App::SD::CLI::Command::Ticket::Comment;
+use base qw/App::SD::CLI::Command::Ticket/;
+
+use constant record_class => 'App::SD::Model::Comment';
+
+package App::SD::CLI::Command::Ticket::Comment::Create;
+use base qw/App::SD::CLI::Command::Ticket::Comment Prophet::CLI::Command::Create/;
+
+sub run {
+    my $self = shift;
+    $self->args->{'ticket'} = $self->uuid;
+    $self->args->{'content'} = $self->get_content('comment');
+    $self->SUPER::run(@_);
+}
+# override args to feed in that ticket's uuid as an argument to the comment
+
+
+
+package App::SD::CLI::Command::Attachment;
+use base qw/App::SD::CLI::Command/;
+use constant record_class => 'App::SD::Model::Attachment';
+
+package App::SD::CLI::Command::Attachment::Create;
+use base qw/App::SD::CLI::Command::Attachment Prophet::CLI::Command::Create/;
+
+sub run {
+    my $self = shift;
+
+    $self->args->{'content'} = $self->get_content('attachment');
 
     $self->SUPER::run(@_);
 
