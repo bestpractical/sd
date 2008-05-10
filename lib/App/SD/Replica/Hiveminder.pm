@@ -32,7 +32,7 @@ sub setup {
         or die "Can't parse hiveminder server spec";
     my $uri = URI->new($server);
     my ( $username, $password );
-    if ( my $auth = $uri->userinfo ) {
+    if ( $uri->can('userinfo') && (my $auth = $uri->userinfo) ) {
         ( $username, $password ) = split /:/, $auth, 2;
         $uri->userinfo(undef);
     }
