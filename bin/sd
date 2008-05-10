@@ -43,12 +43,12 @@ sub run {
     if (my $file = file(delete $self->args->{'file'})) {
         $content = $file->slurp();
         $self->args->{'name'} = $file->basename;
-    }
-    elsif (exists $self->args->{'edit'}) {
+    } elsif ($content = delete $self->args->{'content'}) {
+
+    } elsif (exists $self->args->{'edit'}) {
         require Proc::InvokeEditor;
         $content = Proc::InvokeEditor->edit;
-    }
-    else {
+    } else {
         print "Please type your comment and press ctrl-d.\n";
         $content = do { local $/; <> };
     }

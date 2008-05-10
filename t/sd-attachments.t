@@ -24,7 +24,7 @@ run_output_matches( 'sd', [ 'ticket',
 );
 
 my $attachment_uuid;
-run_output_matches('sd', [qw/ticket attachment create --uuid/, $yatta_uuid, '--name', "paper_order.doc"], [qr/Created attachment (.*?)(?{ $attachment_uuid = $1})$/], [], "Added a attachment");
+run_output_matches('sd', [qw/ticket attachment create --uuid/, $yatta_uuid, '--content', 'stub', '--name', "paper_order.doc"], [qr/Created attachment (.*?)(?{ $attachment_uuid = $1})$/], [], "Added a attachment");
 ok($attachment_uuid);
 
 run_output_matches('sd', [qw/ticket attachment list --uuid/, $yatta_uuid], [$attachment_uuid .  ' paper_order.doc text/plain',], [], "Found the attachment");
