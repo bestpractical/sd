@@ -25,8 +25,7 @@ sub get_content {
     } elsif ($content = delete $self->args->{'content'}) {
 
     } elsif (exists $self->args->{'edit'}) {
-        require Proc::InvokeEditor;
-        $content = Proc::InvokeEditor->edit;
+        $content = $self->edit_text('');
     } else {
         print "Please type your $type and press ctrl-d.\n";
         $content = do { local $/; <> };

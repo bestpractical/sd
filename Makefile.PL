@@ -6,7 +6,6 @@ license('MIT');
 version_from('lib/App/SD.pm');
 
 requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Path::Class Class::Accessor
-requires 'Proc::InvokeEditor';
 requires 'RT::Client::REST'; # RT::Client::REST::Ticket
 requires 'DateTime::Format::HTTP';
 
