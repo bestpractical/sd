@@ -35,6 +35,7 @@ run_output_matches(
     [   "id: $attachment_uuid",
         "content_type: text/plain",
         qr/paper_order.doc/,
+        "content: stub",
         "ticket: $yatta_uuid"
     ],
     [],
@@ -55,6 +56,7 @@ run_output_matches(
     [   "id: $attachment_uuid",
         "content_type: text/plain",
         qr/plague_recipe.doc/,
+        "content: stub",
         "ticket: $yatta_uuid"
     ],
     [],
