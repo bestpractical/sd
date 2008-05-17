@@ -1,4 +1,4 @@
-#!/usr/bin/env perl 
+#!/usr/bin/perl 
 use warnings;
 use strict;
 
@@ -166,9 +166,10 @@ sub run {
         print "No comments found\n";
     }
 
-    for (@{$record->comments}) {
-        print "comment id: ".$_->uuid."\n";
-        print "Content:\n".$_->prop('content')."\n";
+    for (sort { $a->prop('date') cmp $b->prop('date') } @{$record->comments}) {
+        print "id: ".$_->luid." (".$_->uuid.")\n";
+        print "date: ".$_->prop('date')."\n";
+        print $_->prop('content')."\n";
     }
 
 }

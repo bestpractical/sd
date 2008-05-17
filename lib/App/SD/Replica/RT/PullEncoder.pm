@@ -17,11 +17,15 @@ sub run {
     my %args = validate( @_, { ticket => 1, transactions => 1, attachments => 0 } );
 
     $args{'ticket'}->{'id'} =~ s/^ticket\///g;
+    for (qw(Queue id)) {
+    $args{'ticket'}->{ $self->sync_source->uuid . '-'.lc($_) } = delete $args{'ticket'}->{$_};
+    }
 
     my $ticket = $args{'ticket'};
     map { delete $ticket->{$_} if (!defined $ticket->{$_}  || $ticket->{$_} eq '') } keys %$ticket;
     map { $ticket->{$_} = $self->date_to_iso( $ticket->{$_} ) } qw(Created Resolved Told LastUpdated Starts Started);
     map { $ticket->{$_} =~ s/ minutes$// if defined $ticket->{$_} } qw(TimeWorked TimeLeft TimeEstimated);
+    $ticket->{'Status'} =~ s/^(resolved|rejected)$/closed/;
     my $create_state = $ticket;
 
     my @changesets;
@@ -44,8 +48,8 @@ sub txn_to_changeset {
                 }
             );
 
-            if ( ( $txn->{'Ticket'} ne $ticket->{id} ) && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/ ) {
-                warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'} . ' vs ' . $ticket->{id};
+            if ( ( $txn->{'Ticket'} ne $ticket->{$self->sync_source->uuid . '-id'} ) && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/ ) {
+                warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'} . ' vs ' . $ticket->{$self->sync_source->uuid . '-id'};
                 next;
             }
 
@@ -79,10 +83,11 @@ sub _recode_attachment_create {
         }
     );
     $change->add_prop_change( name => 'content_type', old  => undef, new  => $args{'attachment'}->{'ContentType'});
+    $change->add_prop_change( name => 'date', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
     $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'attachment'}->{'Creator'}));
     $change->add_prop_change( name => 'content', old  => undef, new  => $args{'attachment'}->{'Content'});
     $change->add_prop_change( name => 'name', old  => undef, new  => $args{'attachment'}->{'Filename'});
-    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{'id'} ));
+    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{ $self->sync_source->uuid . '-id'} ));
     $args{'changeset'}->add_change( { change => $change } );
 }
 
@@ -99,6 +104,9 @@ sub _recode_txn_Status {
     my %args = validate( @_, { ticket => 1, txn => 1, create_state => 1, changeset => 1 } );
 
     $args{txn}->{'Type'} = 'Set';
+        for my $type(qw(NewValue OldValue)) {
+                $args{'txn'}->{$type} =~ s/^(resolved|rejected)$/closed/;
+        }
     return $self->_recode_txn_Set(%args);
 }
 
@@ -119,13 +127,13 @@ sub _recode_txn_Set {
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'update_file'
         }
     );
 
     if ( $args{txn}->{Field} eq 'Queue' ) {
-        my $current_queue = $args{ticket}->{'Queue'};
+        my $current_queue = $args{ticket}->{$self->sync_source->uuid .'-queue'};
         my $user          = $args{txn}->{Creator};
         if ( $args{txn}->{Description} =~ /Queue changed from (.*) to $current_queue by $user/ ) {
             $args{txn}->{OldValue} = $1;
@@ -135,7 +143,6 @@ sub _recode_txn_Set {
     } elsif ( $args{txn}->{Field} eq 'Owner' ) {
         $args{'txn'}->{NewValue} = $self->resolve_user_id_to( name => $args{'txn'}->{'NewValue'} );
         $args{'txn'}->{OldValue} = $self->resolve_user_id_to( name => $args{'txn'}->{'OldValue'} );
-
     }
 
     $args{'changeset'}->add_change( { change => $change } );
@@ -143,7 +150,7 @@ sub _recode_txn_Set {
         $args{'create_state'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
     } else {
         $args{'create_state'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
-        warn $args{'create_state'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'} . "\n\n" . YAML::Dump( \%args );
+        warn $args{'create_state'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'} . "\n\n" . YAML::Dump( \%args ); use YAML;
     }
     $change->add_prop_change(
         name => $args{txn}->{'Field'},
@@ -164,12 +171,10 @@ sub _recode_txn_Create {
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'add_file'
         }
     );
-
-    $args{'create_state'}->{ $self->sync_source->uuid . '-id' } = delete $args{'create_state'}->{'id'};
 
     $args{'changeset'}->add_change( { change => $change } );
     for my $name ( keys %{ $args{'create_state'} } ) {
@@ -198,7 +203,7 @@ sub _recode_txn_AddLink {
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'update_file'
         }
     );
@@ -220,10 +225,13 @@ sub _recode_content_update {
             change_type => 'add_file'
         }
     );
+
+        $change->add_prop_change( name => 'date', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
+
     $change->add_prop_change( name => 'type', old  => undef, new  => $args{'txn'}->{'Type'});
     $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'txn'}->{'Creator'}));
     $change->add_prop_change( name => 'content', old  => undef, new  => $args{'txn'}->{'Content'});
-    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{'id'} ));
+    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{ $self->sync_source->uuid . '-id'} ));
     $args{'changeset'}->add_change( { change => $change } );
 }
 
@@ -246,7 +254,7 @@ sub _recode_txn_AddWatcher {
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'update_file'
         }
     );
@@ -288,7 +296,7 @@ sub _recode_txn_CustomField {
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{'id'} ),
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'create_state'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'update_file'
         }
     );
@@ -374,7 +382,7 @@ our %PROP_MAP = (
     timeleft        => 'time_left',
     lastupdated     => '_delete',
     created         => '_delete',            # we should be porting the create date as a metaproperty
-
+    Queue           => 'queue',
 );
 
 sub translate_prop_names {
@@ -388,14 +396,11 @@ sub translate_prop_names {
         for my $prop ( $change->prop_changes ) {
             next if ( ( $PROP_MAP{ lc( $prop->name ) } || '' ) eq '_delete' );
             $prop->name( $PROP_MAP{ lc( $prop->name ) } ) if $PROP_MAP{ lc( $prop->name ) };
-
-            if ( $prop->name eq 'id' ) {
-                $prop->old_value( $prop->old_value . '@' . $changeset->original_source_uuid )
-                    if ( $prop->old_value || '' ) =~ /^\d+$/;
-                $prop->old_value( $prop->new_value . '@' . $changeset->original_source_uuid )
-                    if ( $prop->new_value || '' ) =~ /^\d+$/;
-
-            }
+#
+#            if ( $prop->name eq 'id' || $prop->name eq 'queue') {
+#                $prop->old_value( $prop->old_value . '@' . $changeset->original_source_uuid ) if ( $prop->old_value);
+#                $prop->old_value( $prop->new_value . '@' . $changeset->original_source_uuid ) if ( $prop->new_value);
+#            }
 
             if ( $prop->name =~ /^cf-(.*)$/ ) {
                 $prop->name( 'custom-' . $1 );

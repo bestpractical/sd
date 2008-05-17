@@ -63,7 +63,6 @@ SD::Source::RT->recode_ticket
 
 =head2 setup
 
-Open a connection to the SVN source identified by C<$self->url>.
 
 =cut
 
@@ -372,6 +371,9 @@ sub _recode_props_for_integrate {
             $attr{'subject'} = $props{summary};
         } else {
             $attr{$key} = $props{$key};
+        }
+        if ( $key eq 'status' ) {
+            $attr{$key} =~ s/^closed$/resolved/;
         }
     }
     return \%attr;
