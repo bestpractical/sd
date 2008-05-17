@@ -103,7 +103,7 @@ as_bob {
     $flyman_uuid = get_uuid_for_luid($bob_flyman_id);
     my $bob_yatta_id = get_luid_for_uuid($yatta_uuid);
 
-    run_output_matches(
+    run_output_matches_unordered(
         'sd',
         [ 'ticket',                             'list', '--regex', '.' ],
         [ reverse sort "$bob_yatta_id YATTA (no status)", "$bob_flyman_id Fly Man new" ]
@@ -124,7 +124,7 @@ as_alice {
 
     $alice_flyman_id = get_luid_for_uuid($flyman_uuid);
 
-    run_output_matches(
+    run_output_matches_unordered(
         'sd',
         [ 'ticket',                             'list', '--regex', '.' ],
         [ sort "$alice_yatta_id YATTA (no status)", "$alice_flyman_id Fly Man new" ]

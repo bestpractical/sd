@@ -70,11 +70,7 @@ run_output_matches(
     [qr/Created ticket (\d+)(?{ $yatta_id = $1 })/]
 );
 
-run_output_matches(
-    'sd',
-    [ 'ticket',                     'list', '--regex', '.' ],
-    [ sort "$yatta_id YATTA new", "$flyman_id Fly Man open" ]
-);
+run_output_matches_unordered( 'sd', [ 'ticket',                     'list', '--regex', '.' ], [sort  "$yatta_id YATTA new", "$flyman_id Fly Man open" ]);
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
 my @tix = $rt->search(
@@ -84,12 +80,16 @@ my @tix = $rt->search(
 
 ok( scalar @tix, 'YATTA pushed' );
 
+
+
+
+
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
-run_output_matches(
+run_output_matches_unordered(
     'sd',
     [ 'ticket',                     'list', '--regex', '.' ],
-    [ sort "$yatta_id YATTA new", "$flyman_id Fly Man open", ]
+    [  "$yatta_id YATTA new", "$flyman_id Fly Man open", ]
 );
 
 RT::Client::REST::Ticket->new(
@@ -100,10 +100,10 @@ RT::Client::REST::Ticket->new(
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
-run_output_matches(
+run_output_matches_unordered(
     'sd',
     [ 'ticket',                     'list', '--regex', '.' ],
-    [ sort "$yatta_id YATTA new", "$flyman_id Fly Man stalled", ]
+    [ "$yatta_id YATTA new", "$flyman_id Fly Man stalled", ]
 );
 
 RT::Client::REST::Ticket->new(
@@ -114,10 +114,10 @@ RT::Client::REST::Ticket->new(
 
 diag( "===> bad pull");
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
-run_output_matches(
+run_output_matches_unordered(
     'sd',
     [ 'ticket',                      'list', '--regex', '.' ],
-    [ sort "$yatta_id YATTA open", "$flyman_id Fly Man stalled", ]
+    [ "$yatta_id YATTA open", "$flyman_id Fly Man stalled", ]
 );
 
 
@@ -134,10 +134,10 @@ is (scalar @attachments, 1, "Found our one attachment");
 
  
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
-run_output_matches(
+run_output_matches_unordered(
     'sd',
     [ 'ticket',                      'list', '--regex', '.' ],
-    [ sort "$yatta_id YATTA open", "$flyman_id Fly Man stalled", ]
+    [ "$yatta_id YATTA open", "$flyman_id Fly Man stalled", ]
 );
 
 diag("check to see if YATTA has an attachment");
@@ -206,5 +206,6 @@ sub get_rt_ticket_attachments {
     }
     return @attachments
 }
+
 1;
 
