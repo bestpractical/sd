@@ -49,7 +49,7 @@ my %required;
     ok( open( MAKEFILE, "Makefile.PL" ), "Opened Makefile" );
     my $data = <MAKEFILE>;
     close(FILE);
-    while ( $data =~ /^\s*?(?:requires|recommends).*?([\w:]+)'(?:\s*=>\s*['"]?([\d\.]+)['"]?)?.*?(?:#(.*))?$/gm ) {
+    while ( $data =~ /^\s*?(?:requires|recommends)?.*?([\w:]+)'(?:\s*=>\s*['"]?([\d\.]+)['"]?)?.*?(?:#(.*))?$/gm ) {
         $required{$1} = $2;
         if ( defined $3 and length $3 ) {
             $required{$_} = undef for split ' ', $3;

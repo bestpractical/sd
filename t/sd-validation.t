@@ -3,7 +3,7 @@
 use strict;
 
 use Prophet::Test tests => 10;
-
+use App::SD::Test;
 no warnings 'once';
 
 BEGIN {
@@ -12,15 +12,12 @@ BEGIN {
     warn $ENV{'PROPHET_REPO'};
 }
 # create from sd and push
-my $yatta_uuid;
-run_output_matches( 'sd', [ 'ticket',
-    'create', '--summary', 'YATTA', '--status', 'new' ],
-    [qr/Created ticket (.*)(?{ $yatta_uuid = $1 })/]
-);
+my ($yatta_id, $yatta_uuid) = create_ticket_ok(    '--summary', 'YATTA', '--status', 'new' );
+
 
 run_output_matches( 'sd', [ 'ticket',  
     'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA new"]
+    [  qr/(\d+) YATTA new/]
 );
 
 
@@ -34,7 +31,7 @@ is_script_output( 'sd', [ 'ticket',
 
 run_output_matches( 'sd', [ 'ticket',  
     'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA new"]
+    [ qr/(\d+) YATTA new/]
 );
 
 
@@ -49,7 +46,7 @@ is_script_output( 'sd', [ 'ticket',
 
 run_output_matches( 'sd', [ 'ticket',  
     'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA stalled"]
+    [ qr/(\d+) YATTA stalled/]
 );
 
 
@@ -63,7 +60,7 @@ is_script_output( 'sd', [ 'ticket',
 
 run_output_matches( 'sd', [ 'ticket',  
     'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA stalled"]
+    [ qr/(\d+) YATTA stalled/]
 );
 
 
@@ -79,7 +76,7 @@ is_script_output( 'sd', [ 'ticket',
 
 run_output_matches( 'sd', [ 'ticket',  
     'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA stalled"]
+    [ qr/(\d+) YATTA stalled/]
 );
 
 
