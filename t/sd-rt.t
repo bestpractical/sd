@@ -13,6 +13,7 @@ unless (eval 'use RT::Test; 1') {
 }
 
 eval 'use Prophet::Test tests => 23';
+use App::SD::Test;
 
 no warnings 'once';
 
@@ -48,9 +49,9 @@ my $ticket = RT::Client::REST::Ticket->new(
 
 my ( $ret, $out, $err );
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from',  $sd_rt_url ] );
-my ( $yatta_uuid, $flyman_uuid );
+my ( $yatta_id, $flyman_id );
 run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], 
-    [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man new/] );
+    [qr/(.*?)(?{ $flyman_id = $1 }) Fly Man new/] );
 RT::Client::REST::Ticket->new(
     rt     => $rt,
     id     => $ticket->id,
@@ -59,20 +60,20 @@ RT::Client::REST::Ticket->new(
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
-run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_uuid Fly Man open"] );
+run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_id Fly Man open"] );
 
 # create from sd and push
 
 run_output_matches(
     'sd',
     [ 'ticket', 'create', '--summary', 'YATTA', '--status', 'new' ],
-    [qr/Created ticket (.*)(?{ $yatta_uuid = $1 })/]
+    [qr/Created ticket (\d+)(?{ $yatta_id = $1 })/]
 );
 
 run_output_matches(
     'sd',
     [ 'ticket',                     'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA new", "$flyman_uuid Fly Man open", ]
+    [ sort "$yatta_id YATTA new", "$flyman_id Fly Man open" ]
 );
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
@@ -88,7 +89,7 @@ ok( scalar @tix, 'YATTA pushed' );
 run_output_matches(
     'sd',
     [ 'ticket',                     'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA new", "$flyman_uuid Fly Man open", ]
+    [ sort "$yatta_id YATTA new", "$flyman_id Fly Man open", ]
 );
 
 RT::Client::REST::Ticket->new(
@@ -102,7 +103,7 @@ RT::Client::REST::Ticket->new(
 run_output_matches(
     'sd',
     [ 'ticket',                     'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA new", "$flyman_uuid Fly Man stalled", ]
+    [ sort "$yatta_id YATTA new", "$flyman_id Fly Man stalled", ]
 );
 
 RT::Client::REST::Ticket->new(
@@ -116,7 +117,7 @@ diag( "===> bad pull");
 run_output_matches(
     'sd',
     [ 'ticket',                      'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA open", "$flyman_uuid Fly Man stalled", ]
+    [ sort "$yatta_id YATTA open", "$flyman_id Fly Man stalled", ]
 );
 
 
@@ -136,14 +137,14 @@ is (scalar @attachments, 1, "Found our one attachment");
 run_output_matches(
     'sd',
     [ 'ticket',                      'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA open", "$flyman_uuid Fly Man stalled", ]
+    [ sort "$yatta_id YATTA open", "$flyman_id Fly Man stalled", ]
 );
 
 diag("check to see if YATTA has an attachment");
 
 
 my $rt_attach_uuid;
-run_output_matches( sd => [qw/ticket attachment list --uuid/, $yatta_uuid], [qr/(.*?)(?{ $rt_attach_uuid = $1 }) bplogo.gif image\/gif/] ); 
+run_output_matches( sd => [qw/ticket attachment list --id/, $yatta_id], [qr/(.*?)(?{ $rt_attach_uuid = $1 }) bplogo.gif image\/gif/] ); 
 ok($rt_attach_uuid);
 
 diag("Check to see if YATTA's attachment is binary-identical to the original one");
@@ -160,7 +161,7 @@ diag("Add an attachment to YATTA");
 my $MAKEFILE_CONTENT =    file('Makefile.PL')->slurp;
 chomp($MAKEFILE_CONTENT); 
 my $makefile_attach_uuid;
-run_output_matches('sd', [qw/ticket attachment create --uuid/, $yatta_uuid, '--file', 'Makefile.PL'], [qr/Created attachment (.*?)(?{ $makefile_attach_uuid = $1})$/], [], "Added a attachment");
+run_output_matches('sd', [qw/ticket attachment create --id/, $yatta_id, '--file', 'Makefile.PL'], [qr/Created attachment (\d+) \((.*?)(?{ $makefile_attach_uuid = $2})\)/], [], "Added a attachment");
 
 
 

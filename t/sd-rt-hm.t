@@ -7,6 +7,7 @@ use strict;
 
 # setup for rt
 use Prophet::Test;
+use App::SD::Test;
 
 BEGIN {
     unless (eval 'use RT::Test (); 1') {
@@ -75,7 +76,7 @@ $task->create(
     description => '',
 );
 
-my ( $yatta_uuid, $flyman_uuid );
+my ( $bob_yatta_id, $bob_flyman_id, $flyman_uuid, $yatta_uuid, $alice_yatta_id, $alice_flyman_id );
 my ( $ret, $out, $err );
 
 # now the tests, bob syncs with rt, alice syncs with hm
@@ -83,7 +84,8 @@ as_alice {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
     diag($err) if ($err);
-    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/(.*?)(?{ $yatta_uuid = $1 }) YATTA .*/] );
+    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $alice_yatta_id = $1 }) YATTA .*/] );
+    $yatta_uuid = get_uuid_for_luid($alice_yatta_id);
 };
 
 as_bob {
@@ -93,14 +95,18 @@ as_bob {
     diag("Bob pulling from RT");
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
     diag($err) if ($err);
-    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man new/] );
-
+    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $bob_flyman_id = $1 }) Fly Man new/] );
+    warn `sd ticket list --regex .`;
     diag("Bob pulling from alice");
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('alice') ] );
+
+    $flyman_uuid = get_uuid_for_luid($bob_flyman_id);
+    my $bob_yatta_id = get_luid_for_uuid($yatta_uuid);
+
     run_output_matches(
         'sd',
         [ 'ticket',                             'list', '--regex', '.' ],
-        [ sort "$yatta_uuid YATTA (no status)", "$flyman_uuid Fly Man new", ]
+        [ reverse sort "$bob_yatta_id YATTA (no status)", "$bob_flyman_id Fly Man new" ]
     );
 
 
@@ -114,10 +120,14 @@ as_bob {
 as_alice {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('bob') ] );
+
+
+    $alice_flyman_id = get_luid_for_uuid($flyman_uuid);
+
     run_output_matches(
         'sd',
         [ 'ticket',                             'list', '--regex', '.' ],
-        [ sort "$yatta_uuid YATTA (no status)", "$flyman_uuid Fly Man new", ]
+        [ sort "$alice_yatta_id YATTA (no status)", "$alice_flyman_id Fly Man new" ]
     );
 
     ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );

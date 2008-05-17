@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 use Prophet::Test;
-
+use App::SD::Test;
 use Test::More;
 
 BEGIN {
@@ -42,11 +42,10 @@ diag $task->id;
 my ( $ret, $out, $err );
 
 my $sd_hm_url = "hm:$URL";
-warn $URL;
 eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] ) };
 diag $err;
 
-my ( $yatta_uuid, $flyman_uuid );
+my ($flyman_uuid, $flyman_id );
 run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man (.*)/] );
 
 $task->set_summary('Crash Man');
@@ -55,21 +54,24 @@ $task->set_summary('Crash Man');
 
 run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr"$flyman_uuid Crash Man (.*)"] );
 
-( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'show', '--uuid', $flyman_uuid ] );
 
-run_output_matches(
-    'sd',
-    [ 'ticket', 'create', '--summary', 'YATTA', '--status', 'new' ],
-    [qr/Created ticket (.*)(?{ $yatta_uuid = $1 })/]
-);
+( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'show', '--id', $flyman_uuid ] );
+if ($out =~ /^id: (\d+) /) {
+    $flyman_id = $1;
+}
+
+my ($yatta_id, $yatta_uuid) = create_ticket_ok( '--summary', 'YATTA', '--status', 'new' );
 
 diag $yatta_uuid;
+
 
 run_output_matches(
     'sd',
     [ 'ticket', 'list', '--regex', '.' ],
-    [   sort "$yatta_uuid YATTA new",
-        "$flyman_uuid Crash Man (no status)",    # XXX: or whatever status captured previously
+    [ sort  
+        "$yatta_id YATTA new",
+        "$flyman_id Crash Man (no status)"
+    
     ]
 );
 
@@ -82,7 +84,7 @@ ok( $task->load_by_cols( summary => 'YATTA' ) );
 run_output_matches(
     'sd',
     [ 'ticket',                     'list', '--regex', '.' ],
-    [ sort "$yatta_uuid YATTA new", "$flyman_uuid Crash Man (no status)", ]
+    [ sort "$yatta_id YATTA new", "$flyman_id Crash Man (no status)" ]
 );
 
 $task->set_summary('KILL');
@@ -92,5 +94,5 @@ $task->set_summary('KILL');
 run_output_matches(
     'sd',
     [ 'ticket',                    'list', '--regex', '.' ],
-    [ sort "$yatta_uuid KILL new", "$flyman_uuid Crash Man (no status)", ]
+    [ sort "$yatta_id KILL new", "$flyman_id Crash Man (no status)" ]
 );
