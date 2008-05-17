@@ -81,6 +81,22 @@ sub run {
     $self->SUPER::run(@_);
 }
 
+
+package App::SD::CLI::Command::Ticket::Attachment::Search;
+use base qw/App::SD::CLI::Command::Attachment Prophet::CLI::Command::Search/;
+# override args to feed in that ticket's uuid as an argument to the comment
+
+
+sub type {'attachment'}
+sub get_search_callback {
+    my $self = shift;
+    return sub {
+        shift->prop('ticket') eq $self->uuid ? 1 : 0;
+        }
+
+}
+
+
 package App::SD::CLI::Command::Attachment::Content;
 use base qw/App::SD::CLI::Command::Attachment App::SD::CLI::Command Prophet::CLI::Command::Show/;
 
@@ -122,9 +138,16 @@ sub run {
     print "\n=head1 METADATA\n\n"; 
     $self->App::SD::CLI::Command::Ticket::Show::run();
     print "\n=head1 ATTACHMENTS\n\n";
-    $self->App::SD::CLI::Command::Ticket::Attachments::run();
+    use Clone;
+    my $foo = Clone::clone($self);
+    $foo->type('attachment');
+    bless $foo, 'App::SD::CLI::Command::Ticket::Attachment::Search';
+    $foo->run;
     print "\n=head1 COMMENTS\n\n";
-    $self->App::SD::CLI::Command::Ticket::Comments::run();
+    my $bar = Clone::clone($self);
+    bless $bar, 'App::SD::CLI::Command::Ticket::Comments';
+    $bar->type('comment');
+    $bar->App::SD::CLI::Command::Ticket::Comments::run();
 }
 
 package App::SD::CLI::Command::Ticket;
@@ -137,8 +160,8 @@ use base qw/App::SD::CLI::Command::Ticket/;
 
 sub run {
     my $self = shift;
-    my $record = $self->_get_record();
-    $record->load( uuid => $self->cli->uuid );
+    my $record = App::SD::Model::Ticket->new( handle => $self->cli->app_handle->handle);
+    $record->load( uuid => $self->uuid );
     unless (@{$record->comments}) {
         print "No comments found\n";
     }
