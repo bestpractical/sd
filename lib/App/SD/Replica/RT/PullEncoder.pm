@@ -82,7 +82,7 @@ sub _recode_attachment_create {
     $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'attachment'}->{'Creator'}));
     $change->add_prop_change( name => 'content', old  => undef, new  => $args{'attachment'}->{'Content'});
     $change->add_prop_change( name => 'name', old  => undef, new  => $args{'attachment'}->{'Filename'});
-    $change->add_prop_change( name => 'ticket', old  => undef, new  => $args{ticket}->{uuid},);
+    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{'id'} ));
     $args{'changeset'}->add_change( { change => $change } );
 }
 
@@ -223,7 +223,7 @@ sub _recode_content_update {
     $change->add_prop_change( name => 'type', old  => undef, new  => $args{'txn'}->{'Type'});
     $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'txn'}->{'Creator'}));
     $change->add_prop_change( name => 'content', old  => undef, new  => $args{'txn'}->{'Content'});
-    $change->add_prop_change( name => 'ticket', old  => undef, new  => $args{ticket}->{uuid},);
+    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{'id'} ));
     $args{'changeset'}->add_change( { change => $change } );
 }
 
