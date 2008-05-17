@@ -144,7 +144,6 @@ diag("check to see if YATTA has an attachment");
 
 my $rt_attach_uuid;
 run_output_matches( sd => [qw/ticket attachment list --uuid/, $yatta_uuid], [qr/(.*?)(?{ $rt_attach_uuid = $1 }) bplogo.gif image\/gif/] ); 
-
 ok($rt_attach_uuid);
 
 diag("Check to see if YATTA's attachment is binary-identical to the original one");
