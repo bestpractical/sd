@@ -21,5 +21,6 @@ features(
         'Jifty' => 0,
     ],
 );
+install_script('bin/sd');
 auto_install();
 &WriteAll;
