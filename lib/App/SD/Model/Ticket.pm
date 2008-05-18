@@ -8,8 +8,8 @@ use constant collection_class => 'App::SD::Collection::Ticket';
 use constant record_type => 'ticket';
 
 
-use constant summary_format => '%l %s %s';
-use constant summary_props => qw(summary status);
+use constant summary_format => '%l %-7.7s %-60.60s';
+use constant summary_props => qw(status summary );
 
 sub validate_prop_status {
     my ($self, %args) = @_;
