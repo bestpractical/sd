@@ -7,6 +7,7 @@ version_from('lib/App/SD.pm');
 
 requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Path::Class Class::Accessor
 requires('Clone');
+requires('DateTime');
 features(
     'RT sync' => [
         -default => 1,

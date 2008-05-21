@@ -96,7 +96,6 @@ as_bob {
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
     diag($err) if ($err);
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $bob_flyman_id = $1 }) Fly Man new/] );
-    warn `sd ticket list --regex .`;
     diag("Bob pulling from alice");
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('alice') ] );
 
