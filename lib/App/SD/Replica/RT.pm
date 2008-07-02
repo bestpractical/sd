@@ -2,7 +2,8 @@ use warnings;
 use strict;
 
 package App::SD::Replica::RT;
-use base qw/Prophet::ForeignReplica/;
+use Moose; 
+extends qw/Prophet::ForeignReplica/;
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
     use File::Temp ();
@@ -12,7 +13,10 @@ use Prophet::ChangeSet;
 use Memoize;
 use constant scheme => 'rt';
 
-__PACKAGE__->mk_accessors(qw/rt rt_url rt_queue rt_query/);
+has rt => ( isa => 'Str', is => 'rw');
+has rt_url => ( isa => 'Str', is => 'rw');
+has rt_queue => ( isa => 'Str', is => 'rw');
+has rt_query => ( isa => 'Str', is => 'rw');
 
 =head1 NOTES ON PUSH
 

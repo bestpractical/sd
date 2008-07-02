@@ -2,15 +2,19 @@ use warnings;
 use strict;
 
 package App::SD::Replica::Hiveminder;
-use base qw/Prophet::ForeignReplica/;
+use Moose;
+extends qw/Prophet::ForeignReplica/;
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
 use URI;
 use Memoize;
 use Prophet::ChangeSet;
 
+has hm => ( isa => 'Str', is => 'rw');
+has hm_url => ( isa => 'Str', is => 'rw');
+has hm_username => ( isa => 'Str', is => 'rw');
 
-__PACKAGE__->mk_accessors(qw/hm_username hm hm_url/);
+
 use constant scheme => 'hm';
 
 

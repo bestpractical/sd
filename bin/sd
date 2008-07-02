@@ -11,7 +11,7 @@ $cli->run_one_command;
 
 
 package App::SD::CLI::Command;
-use base qw/Prophet::CLI::Command/;
+use Moose::Role;
 use Path::Class;
 
 sub get_content {
@@ -35,13 +35,28 @@ sub get_content {
     return $content;
 }
 
-package App::SD::CLI::Command::Ticket::Comment;
-use base qw/App::SD::CLI::Command::Ticket/;
+package App::SD::CLI::Model::Ticket;
+use Moose::Role;
+use constant record_class => 'App::SD::Model::Ticket';
 
+package App::SD::CLI::Model::TicketComment;
+use Moose::Role;
 use constant record_class => 'App::SD::Model::Comment';
 
-package App::SD::CLI::Command::Ticket::Comment::Create;
-use base qw/App::SD::CLI::Command::Ticket::Comment Prophet::CLI::Command::Create/;
+package App::SD::CLI::Model::Attachment;
+use Moose::Role;
+use constant record_class => 'App::SD::Model::Attachment';
+
+
+
+
+
+package App::SD::CLI::Model::TicketComment::Create;
+use Moose;
+
+extends 'Prophet::CLI::Command::Create';
+with 'App::SD::CLI::Model::TicketComment';
+
 
 sub run {
     my $self = shift;
@@ -53,12 +68,10 @@ sub run {
 
 
 
-package App::SD::CLI::Command::Attachment;
-use base qw/App::SD::CLI::Command/;
-use constant record_class => 'App::SD::Model::Attachment';
-
-package App::SD::CLI::Command::Attachment::Create;
-use base qw/App::SD::CLI::Command::Attachment Prophet::CLI::Command::Create/;
+package App::SD::CLI::Model::Attachment::Create;
+use Moose;
+extends 'Prophet::CLI::Command::Create';
+with 'App::SD::CLI::Model::Attachment';
 
 sub run {
     my $self = shift;
@@ -70,10 +83,9 @@ sub run {
 }
 
 package App::SD::CLI::Command::Ticket::Attachment::Create;
-use base qw/App::SD::CLI::Command::Attachment::Create/;
+use Moose;
+extends qw/App::SD::CLI::Model::Attachment::Create/;
 # override args to feed in that ticket's uuid as an argument to the comment
-#
-
 
 sub run {
     my $self = shift;
@@ -83,7 +95,10 @@ sub run {
 
 
 package App::SD::CLI::Command::Ticket::Attachment::Search;
-use base qw/App::SD::CLI::Command::Attachment Prophet::CLI::Command::Search/;
+use Moose;
+extends 'Prophet::CLI::Command::Search';
+with 'App::SD::CLI::Model::Attachment';
+
 # override args to feed in that ticket's uuid as an argument to the comment
 
 
@@ -97,8 +112,11 @@ sub get_search_callback {
 }
 
 
-package App::SD::CLI::Command::Attachment::Content;
-use base qw/App::SD::CLI::Command::Attachment App::SD::CLI::Command Prophet::CLI::Command::Show/;
+package App::SD::CLI::Model::Attachment::Content;
+use Moose;
+extends 'Prophet::CLI::Command::Show';
+with 'App::SD::CLI::Model::Attachment';
+with 'App::SD::CLI::Command';
 
 sub run {
     my $self = shift;
@@ -108,7 +126,8 @@ sub run {
 }
 
 package App::SD::CLI::Command::Help;
-use base qw/App::SD::CLI::Command/;
+use Moose; 
+extends 'App::SD::CLI::Command';
 
 sub run {
 
@@ -129,10 +148,16 @@ EOF
 }
 
 package App::SD::CLI::Command::Ticket::Show;
-use base qw/App::SD::CLI::Command Prophet::CLI::Command::Show/;
+use Moose;
+extends 'Prophet::CLI::Command::Show';
+with 'App::SD::CLI::Command';
+with 'App::SD::CLI::Model::Ticket';
 
 package App::SD::CLI::Command::Details;
-use base qw/App::SD::CLI::Command/;
+use Moose;
+with 'App::SD::CLI::Command';
+with 'App::SD::CLI::Model::Ticket';
+
 sub run {
     my $self = shift;
     print "\n=head1 METADATA\n\n"; 
@@ -150,13 +175,10 @@ sub run {
     $bar->App::SD::CLI::Command::Ticket::Comments::run();
 }
 
-package App::SD::CLI::Command::Ticket;
-use base qw/App::SD::CLI::Command/;
-
-use constant record_class => 'App::SD::Model::Ticket';
-
 package App::SD::CLI::Command::Ticket::Comments;
-use base qw/App::SD::CLI::Command::Ticket/;
+use Moose;
+extends 'Prophet::CLI::Command';
+with 'App::SD::CLI::Model::Ticket';
 
 sub run {
     my $self = shift;
@@ -176,10 +198,13 @@ sub run {
 
 
 package App::SD::CLI::Command::Merge;
-use base qw/App::SD::CLI::Command Prophet::CLI::Command::Merge/;
+use Moose;
+extends qw/Prophet::CLI::Command::Merge/;
+with 'App::SD::CLI::Command';
 
 package App::SD::CLI::Command::Push;
-use base qw/App::SD::CLI::Command::Merge/;
+use Moose;
+extends qw/App::SD::CLI::Command::Merge/;
 
 sub run {
     my $self = shift; 
@@ -190,7 +215,8 @@ sub run {
 }
 
 package App::SD::CLI::Command::Pull;
-use base qw/App::SD::CLI::Command::Merge/;
+use Moose; 
+extends qw/App::SD::CLI::Command::Merge/;
 
 sub run {
     my $self = shift; 
@@ -204,3 +230,4 @@ sub run {
     $self->run; 
 }
 
+1;
