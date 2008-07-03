@@ -127,7 +127,7 @@ sub run {
 
 package App::SD::CLI::Command::Help;
 use Moose; 
-extends 'App::SD::CLI::Command';
+with 'App::SD::CLI::Command';
 
 sub run {
 
