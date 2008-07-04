@@ -1,14 +1,12 @@
-use warnings;
-use strict;
-
 package App::SD::Replica::Hiveminder;
 use Moose;
-extends qw/Prophet::ForeignReplica/;
+extends 'Prophet::ForeignReplica';
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
 use URI;
 use Memoize;
 use Prophet::ChangeSet;
+use File::Temp 'tempdir';
 
 has hm => ( isa => 'Str', is => 'rw');
 has hm_url => ( isa => 'Str', is => 'rw');
@@ -25,13 +23,11 @@ Open a connection to the SVN source identified by C<$self->url>.
 
 =cut
 
-use File::Temp 'tempdir';
 
 sub setup {
     my $self = shift;
 
     require Net::Jifty;
-    require App::SD::Replica::Hiveminder::PullEncoder;
     my ($server) = $self->{url} =~ m/^(.*?)$/
         or die "Can't parse hiveminder server spec";
     my $uri = URI->new($server);
@@ -81,6 +77,7 @@ sub traverse_changesets {
 
     my $first_rev = ( $args{'after'} + 1 ) || 1;
 
+    require App::SD::Replica::Hiveminder::PullEncoder;
     my $recoder = App::SD::Replica::Hiveminder::PullEncoder->new( { sync_source => $self } );
     for my $task ( @{ $self->find_matching_tasks } ) {
         $args{callback}->($_)

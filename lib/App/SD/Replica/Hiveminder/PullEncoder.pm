@@ -1,14 +1,14 @@
-use warnings;
-use strict;
-
 package App::SD::Replica::Hiveminder::PullEncoder;
-use base qw/Class::Accessor/;
+use Moose;
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
 
 use Memoize;
 
-__PACKAGE__->mk_accessors(qw/sync_source/);
+has sync_source => (
+    isa => 'App::SD::Replica::Hiveminder',
+    is => 'rw',
+);
 
 our $DEBUG = $Prophet::Handle::DEBUG;
 
