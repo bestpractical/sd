@@ -6,9 +6,6 @@ $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.sd';
 
 use Prophet::CLI;
 use App::SD::Model::Ticket;
-my $cli = Prophet::CLI->new( { app_class => 'App::SD' } );
-$cli->run_one_command;
-
 
 package App::SD::CLI::Command;
 use Moose::Role;
@@ -226,8 +223,14 @@ sub run {
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
     bless $self, 'App::SD::CLI::Command::Merge';
     $self->args({  from => $self->args->{'from'}, 
-                   to => $self->cli->app_handle->default_replica_type.":file://".$cli->app_handle->handle->fs_root });
+                   to => $self->cli->app_handle->default_replica_type.":file://".$self->cli->app_handle->handle->fs_root });
     $self->run; 
 }
+
+package main;
+
+my $cli = Prophet::CLI->new( { app_class => 'App::SD' } );
+$cli->run_one_command;
+
 
 1;
