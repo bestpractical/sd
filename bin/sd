@@ -175,6 +175,7 @@ sub run {
 package App::SD::CLI::Command::Ticket::Comments;
 use Moose;
 extends 'Prophet::CLI::Command';
+with 'Prophet::CLI::RecordCommand';
 with 'App::SD::CLI::Model::Ticket';
 
 sub run {
