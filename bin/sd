@@ -94,8 +94,8 @@ override run => sub  {
 package App::SD::CLI::Command::Ticket::Attachment::Search;
 use Moose;
 extends 'Prophet::CLI::Command::Search';
+with 'Prophet::CLI::RecordCommand';
 with 'App::SD::CLI::Model::Attachment';
-
 # override args to feed in that ticket's uuid as an argument to the comment
 
 
