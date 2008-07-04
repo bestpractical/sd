@@ -68,30 +68,30 @@ sub run {
 
 
 
-package App::SD::CLI::Model::Attachment::Create;
+package App::SD::CLI::Command::Attachment::Create;
 use Moose;
 extends 'Prophet::CLI::Command::Create';
 with 'App::SD::CLI::Model::Attachment';
 
-sub run {
+override run => sub {
     my $self = shift;
-
+    warn "here";
     $self->args->{'content'} = $self->get_content('attachment');
+    super(@_);
 
-    $self->SUPER::run(@_);
-
-}
+};
 
 package App::SD::CLI::Command::Ticket::Attachment::Create;
 use Moose;
-extends qw/App::SD::CLI::Model::Attachment::Create/;
+extends 'App::SD::CLI::Command::Attachment::Create';
 # override args to feed in that ticket's uuid as an argument to the comment
 
-sub run {
+override run => sub  {
     my $self = shift;
-    $self->args->{'ticket'} = $self->uuid;
-    $self->SUPER::run(@_);
-}
+    warn YAML::Dump($self); use YAML;
+    #$self->args->{'ticket'} = $self->uuid;
+    super(@_);
+};
 
 
 package App::SD::CLI::Command::Ticket::Attachment::Search;
@@ -112,7 +112,7 @@ sub get_search_callback {
 }
 
 
-package App::SD::CLI::Model::Attachment::Content;
+package App::SD::CLI::Command::Attachment::Content;
 use Moose;
 extends 'Prophet::CLI::Command::Show';
 with 'App::SD::CLI::Model::Attachment';
