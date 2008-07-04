@@ -74,10 +74,8 @@ SD::Source::RT->recode_ticket
 
 around 'new' => sub {
     my ($next, $self, @args) = @_;
-    warn "around $self $next";
     my $ret = $self->$next(@args);
     $ret->setup;
-    warn "==> $ret";
     return $ret;
 };
 
