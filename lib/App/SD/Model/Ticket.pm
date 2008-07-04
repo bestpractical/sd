@@ -1,9 +1,6 @@
-use warnings;
-use strict;
-
 package App::SD::Model::Ticket;
-use base qw/App::SD::Record/;
-
+use Moose;
+extends 'App::SD::Record';
 use constant collection_class => 'App::SD::Collection::Ticket';
 use constant record_type => 'ticket';
 
