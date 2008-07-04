@@ -31,7 +31,7 @@ sub run {
     my @changesets;
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @{ $args{'transactions'} } ) {
             my $changeset = $self->txn_to_changeset($txn, $ticket, $create_state);
-            unshift @changesets, $changeset unless $changeset->is_empty;
+            unshift @changesets, $changeset if $changeset->has_changes;
         }
 
     return \@changesets;

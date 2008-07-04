@@ -13,7 +13,7 @@ use Prophet::ChangeSet;
 use Memoize;
 use constant scheme => 'rt';
 
-has rt => ( isa => 'Str', is => 'rw');
+has rt => ( isa => 'RT::Client::REST', is => 'rw');
 has rt_url => ( isa => 'Str', is => 'rw');
 has rt_queue => ( isa => 'Str', is => 'rw');
 has rt_query => ( isa => 'Str', is => 'rw');
@@ -70,6 +70,18 @@ SD::Source::RT->recode_ticket
 
 =cut
 
+# XXX: this should be called from superclass, or better, have individual attributes have their own builders.
+
+around 'new' => sub {
+    my ($next, $self, @args) = @_;
+    warn "around $self $next";
+    my $ret = $self->$next(@args);
+    $ret->setup;
+    warn "==> $ret";
+    return $ret;
+};
+
+
 use File::Temp 'tempdir';
 
 sub setup {
@@ -80,7 +92,7 @@ sub setup {
     require RT::Client::REST::User;
     require RT::Client::REST::Ticket;
 
-    my ( $server, $type, $query ) = $self->{url} =~ m/^(.*?)\|(.*?)\|(.*)$/
+    my ( $server, $type, $query ) = $self->{url} =~ m/^rt:(.*?)\|(.*?)\|(.*)$/
         or die "Can't parse rt server spec";
     my $uri = URI->new($server);
     my ( $username, $password );
@@ -97,8 +109,6 @@ sub setup {
         unless $password;
 
     $self->rt->login( username => $username, password => $password );
-
-    $self->SUPER::setup(@_);
 
 }
 

@@ -75,7 +75,7 @@ sub run {
         }
 
         $self->translate_props($changeset);
-        unshift @changesets, $changeset unless $changeset->is_empty;
+        unshift @changesets, $changeset if $changeset->has_changes;
     }
     return \@changesets;
 }
