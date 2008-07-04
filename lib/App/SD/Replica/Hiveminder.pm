@@ -8,13 +8,23 @@ use Memoize;
 use Prophet::ChangeSet;
 use File::Temp 'tempdir';
 
-has hm => ( isa => 'Str', is => 'rw');
+has hm => ( isa => 'Net::Jifty', is => 'rw');
 has hm_url => ( isa => 'Str', is => 'rw');
 has hm_username => ( isa => 'Str', is => 'rw');
 
 
 use constant scheme => 'hm';
 
+# XXX: this should be called from superclass, or better, have individual attributes have their own builders.
+
+around 'new' => sub {
+    my ($next, $self, @args) = @_;
+    warn "around $self $next";
+    my $ret = $self->$next(@args);
+    $ret->setup;
+    warn "==> $ret";
+    return $ret;
+};
 
 
 =head2 setup
@@ -28,8 +38,9 @@ sub setup {
     my $self = shift;
 
     require Net::Jifty;
-    my ($server) = $self->{url} =~ m/^(.*?)$/
+    my ($server) = $self->{url} =~ m/^hm:(.*?)$/
         or die "Can't parse hiveminder server spec";
+    $self->url($server);
     my $uri = URI->new($server);
     my ( $username, $password );
     if ( $uri->can('userinfo') && (my $auth = $uri->userinfo) ) {
@@ -51,8 +62,6 @@ sub setup {
     );
 
     $self->hm_username($username);
-
-    $self->SUPER::setup(@_);
 }
 
 =head2 uuid
