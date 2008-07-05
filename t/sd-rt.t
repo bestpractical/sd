@@ -143,14 +143,14 @@ run_output_matches_unordered(
 diag("check to see if YATTA has an attachment");
 
 
-my $rt_attach_uuid;
-run_output_matches( sd => [qw/ticket attachment list --id/, $yatta_id], [qr/(.*?)(?{ $rt_attach_uuid = $1 }) bplogo.gif image\/gif/] ); 
-ok($rt_attach_uuid);
+my $rt_attach_id;
+run_output_matches( sd => [qw/ticket attachment list --id/, $yatta_id], [qr/(.*?)(?{ $rt_attach_id = $1 }) bplogo.gif image\/gif/] ); 
+ok($rt_attach_id);
 
 diag("Check to see if YATTA's attachment is binary-identical to the original one");
 
 my $image_data = file($IMAGE_FILE)->slurp;
-my ($contentret, $stdout, $stderr) = run_script('sd', [qw/attachment content --uuid/, $rt_attach_uuid]);
+my ($contentret, $stdout, $stderr) = run_script('sd', [qw/attachment content --id/, $rt_attach_id]);
 ok($contentret, "Ran the script ok");
 is($stdout, $image_data, "We roundtripped some binary");
 is($stderr, '');

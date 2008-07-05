@@ -35,7 +35,7 @@ my $attachment_uuid;
 my $attachment_id;
 run_output_matches(
     'sd',
-    [ qw/ticket attachment create --ticket/, $yatta_uuid, '--file', $file ],
+    [ qw/ticket attachment create --uuid/, $yatta_uuid, '--file', $file ],
     [   qr/Created attachment (\d+)(?{$attachment_id = $1}) \((.*?)(?{ $attachment_uuid = $2})\)$/
     ],
     [],
@@ -44,8 +44,8 @@ run_output_matches(
 ok($attachment_uuid);
 run_output_matches(
     'sd',
-    [ qw/ticket attachment list --ticket/, $yatta_uuid ],
-    [ $attachment_uuid . " paper_order.doc text/plain" ],
+    [ qw/ticket attachment list --uuid/, $yatta_uuid ],
+    [ $attachment_id . " paper_order.doc text/plain" ],
     ,
     [],
     "Found the attachment, but doesn't show the content"
@@ -64,7 +64,7 @@ diag("Add a binary attachment");
 my $image_attach;
 my $image_file = 't/data/bplogo.gif';
 
-run_output_matches('sd', [qw/ticket attachment create --ticket/, $yatta_uuid, '--file', $image_file], [qr/Created attachment (\d+)(?{ $image_attach = $1})/], [], "Added a attachment");
+run_output_matches('sd', [qw/ticket attachment create --uuid/, $yatta_uuid, '--file', $image_file], [qr/Created attachment (\d+)(?{ $image_attach = $1})/], [], "Added a attachment");
 
 my $image_data = file($image_file)->slurp;
 my ($ret, $stdout, $stderr) = run_script('sd', [qw/attachment content --id/, $image_attach]);

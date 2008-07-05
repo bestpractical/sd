@@ -48,19 +48,19 @@ use constant record_class => 'App::SD::Model::Attachment';
 
 
 
-package App::SD::CLI::Model::TicketComment::Create;
+package App::SD::CLI::Command::Ticket::Comment::Create;
 use Moose;
 
 extends 'Prophet::CLI::Command::Create';
 with 'App::SD::CLI::Model::TicketComment';
+with 'App::SD::CLI::Command';
 
-
-sub run {
+override run => sub  {
     my $self = shift;
-    $self->args->{'ticket'} = $self->uuid;
+    $self->args->{'ticket'} = $self->cli->uuid;
     $self->args->{'content'} = $self->get_content('comment');
-    $self->SUPER::run(@_);
-}
+    super(@_);
+};
 # override args to feed in that ticket's uuid as an argument to the comment
 
 
@@ -69,10 +69,10 @@ package App::SD::CLI::Command::Attachment::Create;
 use Moose;
 extends 'Prophet::CLI::Command::Create';
 with 'App::SD::CLI::Model::Attachment';
+with 'App::SD::CLI::Command';
 
 override run => sub {
     my $self = shift;
-    warn "here";
     $self->args->{'content'} = $self->get_content('attachment');
     super(@_);
 
@@ -85,8 +85,7 @@ extends 'App::SD::CLI::Command::Attachment::Create';
 
 override run => sub  {
     my $self = shift;
-    warn YAML::Dump($self); use YAML;
-    #$self->args->{'ticket'} = $self->uuid;
+    $self->args->{'ticket'} = $self->cli->uuid;
     super(@_);
 };
 
@@ -117,7 +116,7 @@ with 'App::SD::CLI::Command';
 
 sub run {
     my $self = shift;
-    my $record =  $self->_get_record;
+    my $record =  $self->_get_record_class;
     $record->load(uuid => $self->cli->uuid);
     print $record->prop('content');
 }
@@ -180,7 +179,7 @@ with 'App::SD::CLI::Model::Ticket';
 
 sub run {
     my $self = shift;
-    my $record = App::SD::Model::Ticket->new( handle => $self->cli->app_handle->handle);
+    my $record = $self->_get_record_class();
     $record->load( uuid => $self->uuid );
     unless (@{$record->comments}) {
         print "No comments found\n";
