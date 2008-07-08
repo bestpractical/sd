@@ -3,8 +3,8 @@ use warnings;
 use strict;
 
 $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.sd';
-
 use Prophet::CLI;
+use App::SD;
 use App::SD::Model::Ticket;
 
 package App::SD::CLI::Command;
@@ -123,11 +123,13 @@ sub run {
 
 package App::SD::CLI::Command::Help;
 use Moose; 
+extends 'Prophet::CLI::Command';
 with 'App::SD::CLI::Command';
 
 sub run {
 
 print <<EOF
+$0 @{[$App::SD::VERSION]}
 
 $0 ticket create --summary "This is a summary" --status new --somekey value
 $0 ticket update --uuid <uuid> --status resolved

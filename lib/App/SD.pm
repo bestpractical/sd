@@ -1,8 +1,7 @@
-use warnings;
-use strict;
-
 package App::SD;
+use Moose;
 
-use base 'Prophet::App';
+extends 'Prophet::App';
+our $VERSION = '0.01';
 
 1;
