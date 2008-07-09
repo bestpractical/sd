@@ -5,7 +5,6 @@ package App::SD::Replica::RT;
 use Moose; 
 extends qw/Prophet::ForeignReplica/;
 use Params::Validate qw(:all);
-use UNIVERSAL::require;
     use File::Temp ();
     use Path::Class;
 use Prophet::ChangeSet;
@@ -98,9 +97,10 @@ sub setup {
         ( $username, $password ) = split /:/, $auth, 2;
         $uri->userinfo(undef);
     }
-    $self->rt_url("$uri");
+    $self->rt_url($uri->as_string);
     $self->rt_queue($type);
-    $self->rt_query( $query . " AND Queue = '$type'" );
+    $self->rt_query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
+    warn $self->rt_query;
     $self->rt( RT::Client::REST->new( server => $server ) );
 
     ( $username, $password ) = $self->prompt_for_login( $uri, $username )

@@ -2,13 +2,18 @@ use warnings;
 use strict;
 
 package App::SD::Replica::RT::PullEncoder;
+use Moose;
+
 use base qw/Class::Accessor/;
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
 
 use Memoize;
 
-__PACKAGE__->mk_accessors(qw/sync_source/);
+has sync_source => 
+    ( isa => 'Str',
+      is => 'rw');
+
 
 our $DEBUG = $Prophet::Handle::DEBUG;
 
@@ -40,7 +45,8 @@ sub run {
 
 sub txn_to_changeset {
     my ($self, $txn, $ticket, $create_state) = (@_);
-
+    
+        if ($ENV{'SD_DEBUG'}) {warn YAML::Dump($txn); use YAML;}
         if ( my $sub = $self->can( '_recode_txn_' . $txn->{'Type'} ) ) {
             my $changeset = Prophet::ChangeSet->new(
                 {   original_source_uuid => $self->sync_source->uuid,
@@ -52,6 +58,8 @@ sub txn_to_changeset {
                 warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'} . ' vs ' . $ticket->{$self->sync_source->uuid . '-id'};
                 next;
             }
+
+
 
             delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '');
             delete $txn->{'NewValue'} if ( $txn->{'NewValue'} eq '');
@@ -91,7 +99,7 @@ sub _recode_attachment_create {
     $args{'changeset'}->add_change( { change => $change } );
 }
 
-
+sub _recode_txn_Keyword {} # RT 2 - unused
 sub _recode_txn_CommentEmailRecord { return; }
 
 sub _recode_txn_EmailRecord     { return; }
@@ -315,7 +323,11 @@ sub resolve_user_id_to {
     my $id   = shift;
     return undef unless ($id);
 
-    my $user = RT::Client::REST::User->new( rt => $self->sync_source->rt, id => $id )->retrieve;
+    my $user = eval { RT::Client::REST::User->new( rt => $self->sync_source->rt, id => $id )->retrieve};
+    if (my $err = $@) {
+            warn $err;
+           return $attr eq 'name' ? 'Unknown user' : 'nobody@localhost';
+        }
     return $attr eq 'name' ? $user->name : $user->email_address;
 
 }
@@ -324,12 +336,12 @@ memoize 'resolve_user_id_to';
 
 sub warp_list_to_old_value {
     my $self         = shift;
-    my $ticket_value = shift || '';
+    my $ticket_value = shift ||'';
     my $add          = shift;
     my $del          = shift;
 
-    my @new = split( /\s*,\s*/, $ticket_value );
-    my @old = grep { $_ ne $add } @new, $del;
+    my @new = grep { defined } split( /\s*,\s*/, $ticket_value );
+    my @old = (grep { defined $_ && $_ ne $add } @new, $del ) || ();
     return join( ", ", @old );
 }
 
@@ -396,6 +408,12 @@ sub translate_prop_names {
         for my $prop ( $change->prop_changes ) {
             next if ( ( $PROP_MAP{ lc( $prop->name ) } || '' ) eq '_delete' );
             $prop->name( $PROP_MAP{ lc( $prop->name ) } ) if $PROP_MAP{ lc( $prop->name ) };
+            # Normalize away undef -> "" and vice-versa
+            for (qw/new_value old_value/) {
+                $prop->$_("") if !defined ($prop->$_());
+                }
+            next if ( $prop->old_value eq $prop->new_value);
+
 #
 #            if ( $prop->name eq 'id' || $prop->name eq 'queue') {
 #                $prop->old_value( $prop->old_value . '@' . $changeset->original_source_uuid ) if ( $prop->old_value);
