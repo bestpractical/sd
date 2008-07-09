@@ -203,13 +203,20 @@ sub _recode_props_for_integrate {
     return \%attr;
 }
 
-require App::SD::Replica::RT;
-
 sub _integrate_change {
+    my $self = shift;
+    my ( $change, $changeset ) = validate_pos(
+        @_,
+        { isa => 'Prophet::Change' },
+        { isa => 'Prophet::ChangeSet' }
+    );
 
-    goto \&App::SD::Replica::RT::_integrate_change;
-
+    require App::SD::Replica::Hiveminder::PushEncoder;
+    my $recoder = App::SD::Replica::Hiveminder::PushEncoder->new( { sync_source => $self } );
+    $recoder->integrate_change($change,$changeset);
 }
+
+
 
 {
 

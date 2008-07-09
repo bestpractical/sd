@@ -1,8 +1,6 @@
 package App::SD::Replica::Hiveminder::PullEncoder;
 use Moose;
 use Params::Validate qw(:all);
-use UNIVERSAL::require;
-
 use Memoize;
 
 has sync_source => (
