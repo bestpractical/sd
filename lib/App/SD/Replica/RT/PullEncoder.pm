@@ -4,7 +4,6 @@ use strict;
 package App::SD::Replica::RT::PullEncoder;
 use Moose;
 
-use base qw/Class::Accessor/;
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
 
@@ -16,6 +15,75 @@ has sync_source =>
 
 
 our $DEBUG = $Prophet::Handle::DEBUG;
+
+
+
+sub pull {
+    my $self = shift;
+    my %args = validate( @_,
+        {   after    => 1,
+            callback => 1,
+            query => 1
+        }
+    );
+
+    my $first_rev = ( $args{'after'} + 1 ) || 1;
+
+    for my $id ( $self->find_matching_tickets($args{'query'} )) {
+        # XXX: _recode_transactions should ignore txn-id <= $first_rev
+        $args{callback}->($_)
+            for @{
+            $self->run(
+                ticket => $self->sync_source->rt->show( type => 'ticket', id => $id ),
+                transactions => $self->find_matching_transactions(
+                    ticket               => $id,
+                    starting_transaction => $first_rev
+                ),
+
+            )
+            };
+    }
+}
+
+sub find_matching_tickets {
+    my $self = shift;
+    my ($query) = validate_pos(@_, 1);
+    return $self->sync_source->rt->search( type => 'ticket', query => $query );
+}
+
+sub find_matching_transactions {
+    my $self = shift;
+    my %args = validate( @_, { ticket => 1, starting_transaction => 1 } );
+    my @txns;
+
+    my $rt_handle = $self->sync_source->rt;
+
+    for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $args{ticket} ) ) {
+        next if $txn < $args{'starting_transaction'}; # Skip things we've pushed
+        next if $self->sync_source->prophet_has_seen_transaction($txn);
+        my $txn_hash = $rt_handle->get_transaction(
+            parent_id => $args{ticket},
+            id        => $txn,
+            type      => 'ticket'
+        );
+        if ( my $attachments = delete $txn_hash->{'Attachments'} ) {
+            foreach my $attach ( split( /\n/, $attachments ) ) {
+                next unless ( $attach =~ /^(\d+):/ );
+                my $id = $1;
+                my $a  = $rt_handle->get_attachment( parent_id => $args{'ticket'}, id        => $id);
+
+                push( @{ $txn_hash->{_attachments} }, $a )
+                    if ( $a->{Filename} );
+
+            }
+
+        }
+        push @txns, $txn_hash;
+    }
+    return \@txns;
+}
+
+
 
 sub run {
     my $self = shift;
