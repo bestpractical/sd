@@ -11,7 +11,7 @@ use UNIVERSAL::require;
 use Memoize;
 
 has sync_source => 
-    ( isa => 'Str',
+    ( isa => 'App::SD::Replica::RT',
       is => 'rw');
 
 
