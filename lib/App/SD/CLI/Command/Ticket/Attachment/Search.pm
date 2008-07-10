@@ -11,8 +11,7 @@ sub get_search_callback {
     my $self = shift;
     return sub {
         shift->prop('ticket') eq $self->uuid ? 1 : 0;
-        }
-
+    }
 }
 
 __PACKAGE__->meta->make_immutable;
