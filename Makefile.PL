@@ -9,7 +9,6 @@ requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Path::Class Class:
 requires('Clone');
 requires('Moose'); # Moose::Role
 requires('DateTime');
-requires('Term::ANSIColor');
 
 features(
     'RT sync' => [
