@@ -52,7 +52,6 @@ my $rt = RT::Client::REST->new( server => $url );
 $rt->login( username => 'root', password => 'password' );
 
 $url =~ s|http://|http://root:password@|;
-warn $url;
 my $sd_rt_url = "rt:$url|General|Status!='resolved'";
 
 my $ticket = RT::Client::REST::Ticket->new(

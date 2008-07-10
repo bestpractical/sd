@@ -152,57 +152,6 @@ sub find_matching_transactions {
 
 }
 
-sub integrate_ticket_create {
-    my $self = shift;
-    my ( $change, $changeset ) = validate_pos( @_, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' } );
-
-    # Build up a ticket object out of all the record's attributes
-
-    my $task = $self->hm->create(
-        'Task',
-        owner           => 'me',
-        group           => 0,
-        requestor       => 'me',
-        complete        => 0,
-        will_complete   => 1,
-        repeat_stacking => 0,
-        %{ $self->_recode_props_for_integrate($change) }
-
-    );
-
-    my $txns = $self->hm->search( 'TaskTransaction', task_id => $task->{content}->{id} );
-
-    # lalala
-    $self->record_pushed_transaction( transaction => $txns->[0]->{id}, changeset => $changeset );
-    return $task->{content}->{id};
-
-    #    return $ticket->id;
-
-}
-
-sub integrate_comment {
-    warn "comment not yet";
-}
-
-sub integrate_ticket_update {
-    warn "update not yet";
-}
-
-sub _recode_props_for_integrate {
-    my $self = shift;
-    my ($change) = validate_pos( @_, { isa => 'Prophet::Change' } );
-
-    my %props = map { $_->name => $_->new_value } $change->prop_changes;
-    my %attr;
-
-    for my $key ( keys %props ) {
-        # XXX: fill me in
-        #        next unless ( $key =~ /^(summary|queue|status|owner|custom)/ );
-        $attr{$key} = $props{$key};
-    }
-    return \%attr;
-}
-
 sub _integrate_change {
     my $self = shift;
     my ( $change, $changeset ) = validate_pos(
