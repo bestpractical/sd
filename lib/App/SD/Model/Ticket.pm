@@ -1,6 +1,9 @@
 package App::SD::Model::Ticket;
 use Moose;
 extends 'App::SD::Record';
+
+use Term::ANSIColor;
+
 use constant collection_class => 'App::SD::Collection::Ticket';
 use constant record_type => 'ticket';
 
@@ -27,6 +30,19 @@ sub validate_prop_status {
     $args{errors}{status} = "'".$args{props}->{status}."' is not a valid status";
     return 0;
 
+}
+
+sub color_prop_status {
+    my ($self, $value) = @_;
+
+    # these colors were picked out of a hat
+    my $color = $value eq 'new'     ? 'red'
+              : $value eq 'open'    ? 'yellow'
+              : $value eq 'closed'  ? 'green'
+              : $value eq 'stalled' ? 'blue'
+                                    : '';
+
+    return colored($value, $color);
 }
 
 __PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment', by => 'ticket');
