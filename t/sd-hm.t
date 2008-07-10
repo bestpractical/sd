@@ -55,7 +55,7 @@ $task->set_summary('Crash Man');
 run_output_matches_unordered( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_uuid Crash Man (no status)"] );
 
 
-( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'show', '--id', $flyman_uuid ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $flyman_uuid ] );
 if ($out =~ /^id: (\d+) /) {
     $flyman_id = $1;
 }

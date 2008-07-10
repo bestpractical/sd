@@ -32,7 +32,7 @@ run_output_matches(
 
 run_output_matches(
     'sd',
-    [ qw/ticket comment show --uuid/, $comment_uuid ],
+    [ qw/ticket comment show --batch --uuid/, $comment_uuid ],
     [   qr/id: (\d+) \($comment_uuid\)/,
         qr/date: /i,
         qr/This is a test/,
@@ -52,7 +52,7 @@ run_output_matches(
 );
 run_output_matches(
     'sd',
-    [ qw/ticket comment show --uuid/, $comment_uuid ],
+    [ qw/ticket comment show --batch --uuid/, $comment_uuid ],
     [ qr/id: (\d+) \($comment_uuid\)/, 
         qr/date: /i,
     qr/I hate you/, "ticket: $yatta_uuid" ],

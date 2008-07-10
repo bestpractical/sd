@@ -27,7 +27,7 @@ ok($attachment_id, " $attachment_id = $attachment_uuid");
 run_output_matches('sd', [qw/ticket attachment list --uuid/, $yatta_uuid], [qr/\d+ paper_order.doc text\/plain/,], [], "Found the attachment");
 run_output_matches(
     'sd',
-    [ qw/ticket attachment show --id/, $attachment_id ],
+    [ qw/ticket attachment show --batch --id/, $attachment_id ],
     [ 
     
         qr/id: $attachment_id \($attachment_uuid\)/, 
@@ -50,7 +50,7 @@ run_output_matches(
 );
 run_output_matches(
     'sd',
-    [ qw/ticket attachment show --uuid/, $attachment_uuid ],
+    [ qw/ticket attachment show --batch --uuid/, $attachment_uuid ],
     [  
         qr/id: (\d+) \($attachment_uuid\)/, 
         "content_type: text/plain",
