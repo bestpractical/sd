@@ -33,7 +33,7 @@ sub create_ticket_comment_ok {
 
 sub get_uuid_for_luid {
         my $luid = shift;
-    my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [ 'ticket', 'show', '--id', $luid ]);
+    my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $luid ]);
     if ($out =~ /^id: \d+ \((.*)\)/) {
             return $1;
     }
@@ -43,7 +43,7 @@ sub get_uuid_for_luid {
 
 sub get_luid_for_uuid {
         my $uuid = shift;
-    my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [ 'ticket', 'show', '--id', $uuid ]);
+    my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $uuid ]);
     if ($out =~ /^id: (\d+)/) {
             return $1;
     }
