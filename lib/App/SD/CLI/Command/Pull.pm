@@ -5,7 +5,7 @@ extends qw/App::SD::CLI::Command::Merge/;
 override run => sub {
     my $self = shift;
 
-    die "Please specify a --from.\n" if !defined($self->args->{'from'});
+    die "Please specify a --from.\n" if !$self->has_arg('from');
 
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
 

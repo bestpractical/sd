@@ -2,13 +2,17 @@ package App::SD::CLI::Command::Push;
 use Moose;
 extends qw/App::SD::CLI::Command::Merge/;
 
-sub run {
+override run => sub {
     my $self = shift;
+
+    die "Please specify a --to.\n" if !$self->has_arg('to');
+
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
-    bless $self, 'App::SD::CLI::Command::Merge';
-    $self->args( {to => $self->args->{'to'}, from => $self->app_handle->default_replica_type.":file://".$self->app_handle->handle->fs_root });
-    $self->run;
-}
+
+    $self->set_arg(from => $self->app_handle->default_replica_type.":file://".$self->app_handle->handle->fs_root);
+
+    super();
+};
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
