@@ -45,6 +45,10 @@ sub color_prop_status {
     return colored($value, $color);
 }
 
+sub props_to_show {
+    ('id', 'summary', 'status', 'owner', 'due', 'creator', 'reported_by', 'CF-Broken in', 'CF-Severity')
+}
+
 __PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment', by => 'ticket');
 __PACKAGE__->register_reference( attachments => 'App::SD::Collection::Attachment', by => 'ticket');
 
