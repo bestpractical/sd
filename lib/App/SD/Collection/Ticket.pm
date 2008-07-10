@@ -1,4 +1,3 @@
-
 use warnings;
 use strict;
 
@@ -8,3 +7,4 @@ use base 'Prophet::Collection';
 use constant record_class => 'App::SD::Model::Ticket';
 
 1;
+

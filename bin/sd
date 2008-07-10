@@ -1,13 +1,11 @@
 #!/usr/bin/env perl 
 use warnings;
 use strict;
-
-$ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.sd';
 use Prophet::CLI;
 use App::SD;
 
+$ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.sd';
+
 my $cli = Prophet::CLI->new({ app_class => 'App::SD' });
 $cli->run_one_command;
-
-1;
 

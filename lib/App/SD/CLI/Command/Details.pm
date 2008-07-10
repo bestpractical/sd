@@ -1,5 +1,6 @@
 package App::SD::CLI::Command::Details;
 use Moose;
+extends 'Prophet::CLI::Command';
 with 'App::SD::CLI::Command';
 with 'App::SD::CLI::Model::Ticket';
 
@@ -28,4 +29,6 @@ sub run {
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
+
+1;
 

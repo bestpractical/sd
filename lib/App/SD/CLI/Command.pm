@@ -23,5 +23,7 @@ sub get_content {
     return $content;
 }
 
+no Moose::Role;
+
 1;
 
