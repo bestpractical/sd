@@ -228,7 +228,7 @@ sub traverse_changesets {
 
     require App::SD::Replica::RT::PullEncoder;
     my $recoder = App::SD::Replica::RT::PullEncoder->new( { sync_source => $self } );
-    $recoder->pull( query => $self->rt_query, after => $args{'after'}, callback => $args{'callback'});
+    $recoder->run( query => $self->rt_query, after => $args{'after'}, callback => $args{'callback'});
 
 }
 
