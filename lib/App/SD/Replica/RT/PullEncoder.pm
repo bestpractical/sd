@@ -1,12 +1,7 @@
-use warnings;
-use strict;
-
 package App::SD::Replica::RT::PullEncoder;
 use Moose;
 
 use Params::Validate qw(:all);
-use UNIVERSAL::require;
-
 use Memoize;
 
 has sync_source => 
@@ -25,37 +20,41 @@ sub run {
 
     my $first_rev = ( $args{'after'} + 1 ) || 1;
 
-    for my $id ( $self->find_matching_tickets( $args{'query'} ) ) {
-        my $ticket
-            = $self->sync_source->rt->show( type => 'ticket', id => $id );
-        my $txns = $self->find_matching_transactions(
-            ticket               => $id,
-            starting_transaction => $first_rev
-        );
+    my $tickets = {};
+    my @transactions;
 
-        $ticket = $self->_translate_final_ticket_state($ticket);
-        my $changesets = $self->transcode(
-            ticket       => $ticket,
-            transactions => $txns
-        );
-        $args{callback}->($_) for (@$changesets);
+    my @tickets =  $self->find_matching_tickets( $args{'query'} ); 
+    my $counter = 0;
+    for my $id ( @tickets) {
+        $counter++;
+        $self->sync_source->log("Fetching ticket $id - $counter of ".scalar @tickets);
+        $tickets->{$id}->{ticket} = $self->_translate_final_ticket_state(
+            $self->sync_source->rt->show( type => 'ticket', id => $id ) );
+        push @transactions,
+            @{
+            $self->find_matching_transactions(
+                ticket               => $id,
+                starting_transaction => $first_rev
+            )
+            };
     }
+        my $txn_counter = 0;
+        my @changesets;
+        for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
+            $txn_counter++;
+            $self->sync_source->log("Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of ". scalar @transactions);
+            my $changeset = $self->transcode_one_txn( $txn, $tickets->{ $txn->{Ticket} }->{ticket} );
+            next unless $changeset->has_changes;
+            unshift @changesets, $changeset;
+        }
+
+    my $cs_counter = 0;
+            for ( @changesets ) {
+    $self->sync_source->log("Applying changeset ".++$cs_counter . " of ".scalar @changesets); 
+            $args{callback}->($_)
+        }
+
 }
-
-sub transcode {
-    my $self = shift;
-    my %args = validate( @_, { ticket => 1, transactions => 1, attachments => 0 } );
-    my $ticket_before = $args{'ticket'};
-    my @changesets;
-    for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @{ $args{'transactions'} } ) {
-        my $changeset = $self->txn_to_changeset( $txn,$ticket_before);
-        next unless $changeset->has_changes;
-        unshift @changesets, $changeset;
-    }
-
-    return \@changesets;
-}
-
 
 sub _translate_final_ticket_state {
     my $self   = shift;
@@ -125,10 +124,9 @@ sub find_matching_transactions {
     return \@txns;
 }
 
-sub txn_to_changeset {
-    my ($self, $txn, $ticket_before) = (@_);
+sub transcode_one_txn {
+    my ($self, $txn, $ticket) = (@_);
     
-        if ($ENV{'SD_DEBUG'}) {warn YAML::Dump($txn); use YAML;}
         if ( my $sub = $self->can( '_recode_txn_' . $txn->{'Type'} ) ) {
             my $changeset = Prophet::ChangeSet->new(
                 {   original_source_uuid => $self->sync_source->uuid,
@@ -136,8 +134,8 @@ sub txn_to_changeset {
                 }
             );
 
-            if ( ( $txn->{'Ticket'} ne $ticket_before->{$self->sync_source->uuid . '-id'} ) && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/ ) {
-                warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'} . ' vs ' . $ticket_before->{$self->sync_source->uuid . '-id'};
+            if ( ( $txn->{'Ticket'} ne $ticket->{$self->sync_source->uuid . '-id'} ) && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/ ) {
+                warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'} . ' vs ' . $ticket->{$self->sync_source->uuid . '-id'};
                 next;
             }
 
@@ -146,12 +144,12 @@ sub txn_to_changeset {
             delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '');
             delete $txn->{'NewValue'} if ( $txn->{'NewValue'} eq '');
 
-            $sub->( $self, ticket_before => $ticket_before, txn          => $txn, changeset    => $changeset);
+            $sub->( $self, ticket => $ticket, txn          => $txn, changeset    => $changeset);
             $self->translate_prop_names($changeset);
 
             if (my $attachments = delete $txn->{'_attachments'}) {
                foreach my $attach (@$attachments) { 
-                    $self->_recode_attachment_create( ticket_before => $ticket_before, txn => $txn, changeset =>$changeset, attachment => $attach); 
+                    $self->_recode_attachment_create( ticket => $ticket, txn => $txn, changeset =>$changeset, attachment => $attach); 
                }
             }
 
@@ -165,7 +163,7 @@ sub txn_to_changeset {
 
 sub _recode_attachment_create {
     my $self   = shift;
-    my %args   = validate( @_, { ticket_before => 1, txn => 1, changeset => 1, attachment => 1 } );
+    my %args   = validate( @_, { ticket => 1, txn => 1, changeset => 1, attachment => 1 } );
     my $change = Prophet::Change->new(
         {   record_type => 'attachment',
             record_uuid => $self->sync_source->uuid_for_url( $self->sync_source->rt_url . "/attachment/" . $args{'attachment'}->{'id'} ),
@@ -177,7 +175,7 @@ sub _recode_attachment_create {
     $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'attachment'}->{'Creator'}));
     $change->add_prop_change( name => 'content', old  => undef, new  => $args{'attachment'}->{'Content'});
     $change->add_prop_change( name => 'name', old  => undef, new  => $args{'attachment'}->{'Filename'});
-    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket_before'}->{ $self->sync_source->uuid . '-id'} ));
+    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{ $self->sync_source->uuid . '-id'} ));
     $args{'changeset'}->add_change( { change => $change } );
 }
 
@@ -191,7 +189,7 @@ sub _recode_txn_DeleteLink      { }
 
 sub _recode_txn_Status {
     my $self = shift;
-    my %args = validate( @_, { txn => 1, ticket_before => 1, changeset => 1 } );
+    my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
 
     $args{txn}->{'Type'} = 'Set';
         for my $type(qw(NewValue OldValue)) {
@@ -202,14 +200,14 @@ sub _recode_txn_Status {
 
 sub _recode_txn_Told {
     my $self = shift;
-    my %args = validate( @_, { txn => 1, ticket_before => 1, changeset => 1 } );
+    my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
     $args{txn}->{'Type'} = 'Set';
     return $self->_recode_txn_Set(%args);
 }
 
 sub _recode_txn_Set {
     my $self = shift;
-    my %args = validate( @_, { txn => 1, ticket_before => 1, changeset => 1 } );
+    my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
         
     
     
@@ -217,13 +215,13 @@ sub _recode_txn_Set {
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket_before'}->{$self->sync_source->uuid . '-id'} ),
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'update_file'
         }
     );
 
     if ( $args{txn}->{Field} eq 'Queue' ) {
-        my $current_queue = $args{'ticket_before'}->{$self->sync_source->uuid .'-queue'};
+        my $current_queue = $args{'ticket'}->{$self->sync_source->uuid .'-queue'};
         my $user          = $args{txn}->{Creator};
         if ( $args{txn}->{Description} =~ /Queue changed from (.*) to $current_queue by $user/ ) {
             $args{txn}->{OldValue} = $1;
@@ -236,11 +234,11 @@ sub _recode_txn_Set {
     }
 
     $args{'changeset'}->add_change( { change => $change } );
-    if ( $args{'ticket_before'}->{ $args{txn}->{Field} } eq $args{txn}->{'NewValue'} ) {
-        $args{'ticket_before'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
+    if ( $args{'ticket'}->{ $args{txn}->{Field} } eq $args{txn}->{'NewValue'} ) {
+        $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
     } else {
-        $args{'ticket_before'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
-        warn $args{'ticket_before'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'} . "\n\n" . YAML::Dump( \%args ); use YAML;
+        $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
+        warn $args{'ticket'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'} . "\n\n" . YAML::Dump( \%args ); use YAML;
     }
     $change->add_prop_change(
         name => $args{txn}->{'Field'},
@@ -257,22 +255,22 @@ sub _recode_txn_Set {
 
 sub _recode_txn_Create {
     my $self = shift;
-    my %args = validate( @_, {  txn => 1, ticket_before => 1, changeset => 1 } );
+    my %args = validate( @_, {  txn => 1, ticket => 1, changeset => 1 } );
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket_before'}->{$self->sync_source->uuid . '-id'} ),
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'add_file'
         }
     );
 
     $args{'changeset'}->add_change( { change => $change } );
-    for my $name ( keys %{ $args{'ticket_before'} } ) {
+    for my $name ( keys %{ $args{'ticket'} } ) {
 
         $change->add_prop_change(
             name => $name,
             old  => undef,
-            new  => $args{'ticket_before'}->{$name},
+            new  => $args{'ticket'}->{$name},
         );
 
     }
@@ -283,24 +281,24 @@ sub _recode_txn_Create {
 
 sub _recode_txn_AddLink {
     my $self      = shift;
-    my %args      = validate( @_, { txn => 1, ticket_before => 1, changeset => 1 } );
-    my $new_state = $args{'ticket_before'}->{ $args{'txn'}->{'Field'} };
-    $args{'ticket_before'}->{ $args{'txn'}->{'Field'} } = $self->warp_list_to_old_value(
-        $args{'ticket_before'}->{ $args{'txn'}->{'Field'} },
+    my %args      = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
+    my $new_state = $args{'ticket'}->{ $args{'txn'}->{'Field'} };
+    $args{'ticket'}->{ $args{'txn'}->{'Field'} } = $self->warp_list_to_old_value(
+        $args{'ticket'}->{ $args{'txn'}->{'Field'} },
         $args{'txn'}->{'NewValue'},
         $args{'txn'}->{'OldValue'}
     );
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket_before'}->{$self->sync_source->uuid . '-id'} ),
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'update_file'
         }
     );
     $args{'changeset'}->add_change( { change => $change } );
     $change->add_prop_change(
         name => $args{'txn'}->{'Field'},
-        old  => $args{'ticket_before'}->{ $args{'txn'}->{'Field'} },
+        old  => $args{'ticket'}->{ $args{'txn'}->{'Field'} },
         new  => $new_state
     );
 
@@ -308,7 +306,7 @@ sub _recode_txn_AddLink {
 
 sub _recode_content_update {
     my $self   = shift;
-    my %args   = validate( @_, { txn => 1, ticket_before => 1, changeset => 1 } );
+    my %args   = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
     my $change = Prophet::Change->new(
         {   record_type => 'comment',
             record_uuid => $self->sync_source->uuid_for_url( $self->sync_source->rt_url . "/transaction/" . $args{'txn'}->{'id'} ),
@@ -321,7 +319,7 @@ sub _recode_content_update {
     $change->add_prop_change( name => 'type', old  => undef, new  => $args{'txn'}->{'Type'});
     $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'txn'}->{'Creator'}));
     $change->add_prop_change( name => 'content', old  => undef, new  => $args{'txn'}->{'Content'});
-    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket_before'}->{ $self->sync_source->uuid . '-id'} ));
+    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{ $self->sync_source->uuid . '-id'} ));
     $args{'changeset'}->add_change( { change => $change } );
 }
 
@@ -330,12 +328,12 @@ sub _recode_content_update {
 
 sub _recode_txn_AddWatcher {
     my $self = shift;
-    my %args = validate( @_, { txn => 1, ticket_before => 1, changeset => 1 } );
+    my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
 
-    my $new_state = $args{'ticket_before'}->{ $args{'txn'}->{'Field'} };
+    my $new_state = $args{'ticket'}->{ $args{'txn'}->{'Field'} };
 
-    $args{'ticket_before'}->{ $args{'txn'}->{'Field'} } = $self->warp_list_to_old_value(
-        $args{'ticket_before'}->{ $args{'txn'}->{'Field'} },
+    $args{'ticket'}->{ $args{'txn'}->{'Field'} } = $self->warp_list_to_old_value(
+        $args{'ticket'}->{ $args{'txn'}->{'Field'} },
 
         $self->resolve_user_id_to( email => $args{'txn'}->{'NewValue'} ),
         $self->resolve_user_id_to( email => $args{'txn'}->{'OldValue'} )
@@ -344,14 +342,14 @@ sub _recode_txn_AddWatcher {
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket_before'}->{$self->sync_source->uuid . '-id'} ),
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'update_file'
         }
     );
     $args{'changeset'}->add_change( { change => $change } );
     $change->add_prop_change(
         name => $args{'txn'}->{'Field'},
-        old  => $args{'ticket_before'}->{ $args{'txn'}->{'Field'} },
+        old  => $args{'ticket'}->{ $args{'txn'}->{'Field'} },
         new  => $new_state
     );
 
@@ -361,15 +359,18 @@ sub _recode_txn_AddWatcher {
 
 sub _recode_txn_CustomField {
     my $self = shift;
-    my %args = validate( @_, { txn => 1, ticket_before => 1, changeset => 1 } );
+    my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
 
     my $new = $args{'txn'}->{'NewValue'};
     my $old = $args{'txn'}->{'OldValue'};
     my $name;
     if ( $args{'txn'}->{'Description'} =~ /^(.*) $new added by/ ) {
         $name = $1;
+    }
+    elsif ( $args{'txn'}->{'Description'} =~ /^(.*) changed to $new by/ ) {
+        $name = $1;
 
-    } elsif ( $args{'txn'}->{'Description'} =~ /^(.*) $old delete by/ ) {
+    } elsif ( $args{'txn'}->{'Description'} =~ /^(.*) $old deleted by/ ) {
         $name = $1;
     } else {
         die "Uh. what to do with txn descriotion " . $args{'txn'}->{'Description'};
@@ -377,16 +378,16 @@ sub _recode_txn_CustomField {
 
     $args{'txn'}->{'Field'} = "CF-" . $name;
 
-    my $new_state = $args{'ticket_before'}->{ $args{'txn'}->{'Field'} };
-    $args{'ticket_before'}->{ $args{'txn'}->{'Field'} } = $self->warp_list_to_old_value(
-        $args{'ticket_before'}->{ $args{'txn'}->{'Field'} },
+    my $new_state = $args{'ticket'}->{ $args{'txn'}->{'Field'} };
+    $args{'ticket'}->{ $args{'txn'}->{'Field'} } = $self->warp_list_to_old_value(
+        $args{'ticket'}->{ $args{'txn'}->{'Field'} },
         $args{'txn'}->{'NewValue'},
         $args{'txn'}->{'OldValue'}
     );
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket_before'}->{$self->sync_source->uuid . '-id'} ),
+            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'update_file'
         }
     );
@@ -394,7 +395,7 @@ sub _recode_txn_CustomField {
     $args{'changeset'}->add_change( { change => $change } );
     $change->add_prop_change(
         name => $args{'txn'}->{'Field'},
-        old  => $args{'ticket_before'}->{ $args{'txn'}->{'Field'} },
+        old  => $args{'ticket'}->{ $args{'txn'}->{'Field'} },
         new  => $new_state
     );
 }
