@@ -10,7 +10,7 @@ our @EXPORT = qw(create_ticket_ok create_ticket_comment_ok get_uuid_for_luid get
 sub create_ticket_ok {
     my @args = (@_);
     my ( $uuid, $luid );
-    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create', @args ],
+    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create', '--', @args ],
         [qr/Created ticket (.*?)(?{ $luid = $1})\s+\((.*)(?{ $uuid = $2 })\)/]
     );
 

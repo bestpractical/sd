@@ -7,12 +7,12 @@ sub get_content {
     my $type = shift;
 
     my $content;
-    if (my $file = file(delete $self->args->{'file'})) {
+    if (my $file = file($self->delete_arg('file'))) {
         $content = $file->slurp();
-        $self->args->{'name'} = $file->basename;
-    } elsif ($content = delete $self->args->{'content'}) {
+        $self->set_arg(name => $file->basename);
+    } elsif ($content = $self->delete_arg('content')) {
 
-    } elsif (exists $self->args->{'edit'}) {
+    } elsif ($self->has_arg('edit')) {
         $content = $self->edit_text('');
     } else {
         print "Please type your $type and press ctrl-d.\n";
