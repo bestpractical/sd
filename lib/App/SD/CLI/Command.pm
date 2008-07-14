@@ -9,7 +9,7 @@ sub get_content {
     my $content;
     if (my $file = file($self->delete_arg('file'))) {
         $content = $file->slurp();
-        $self->set_arg(name => $file->basename);
+        $self->set_prop(name => $file->basename);
     } elsif ($content = $self->delete_arg('content')) {
 
     } elsif ($self->has_arg('edit')) {
