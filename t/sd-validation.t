@@ -22,7 +22,7 @@ run_output_matches( 'sd', [ 'ticket',
 
 
 is_script_output( 'sd', [ 'ticket',  
-    'update', '--uuid', $yatta_uuid, '--status', 'super'
+    'update', '--uuid', $yatta_uuid, '--', '--status', 'super'
     ],
    [undef],  # stdout
     [qr/Validation error for 'status': 'super' is not a valid status/], # stderr
@@ -36,7 +36,7 @@ run_output_matches( 'sd', [ 'ticket',
 
 
 is_script_output( 'sd', [ 'ticket',  
-    'update', '--uuid', $yatta_uuid, '--status', 'stalled'
+    'update', '--uuid', $yatta_uuid, '--', '--status', 'stalled'
     ],
    [qr/ticket $yatta_uuid updated./], # stdout
    [], # stderr
@@ -52,7 +52,7 @@ run_output_matches( 'sd', [ 'ticket',
 
 my $sylar_uuid;
 is_script_output( 'sd', [ 'ticket',
-    'create', '--summary', 'Sylar!', '--status', 'evil' ],
+    'create', '--', '--summary', 'Sylar!', '--status', 'evil' ],
     [undef],
     [qr/Validation error for 'status': 'evil' is not a valid status/],
     "Sylar can't create an eeevil ticket"
@@ -65,7 +65,7 @@ run_output_matches( 'sd', [ 'ticket',
 
 
 is_script_output( 'sd', [ 'ticket',  
-    'update', '--uuid', $yatta_uuid, '--status', ''
+    'update', '--uuid', $yatta_uuid, '--', '--status', ''
     ],
    [], # stdout
     [qr/Validation error for 'status': '' is not a valid status/], #stderr

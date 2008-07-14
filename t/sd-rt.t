@@ -66,7 +66,7 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_id Fly
 
 run_output_matches(
     'sd',
-    [ 'ticket', 'create', '--summary', 'YATTA', '--status', 'new' ],
+    [ 'ticket', 'create', '--', '--summary', 'YATTA', '--status', 'new' ],
     [qr/Created ticket (\d+)(?{ $yatta_id = $1 })/]
 );
 
