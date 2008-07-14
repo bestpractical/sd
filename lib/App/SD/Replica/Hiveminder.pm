@@ -29,7 +29,7 @@ sub BUILD {
 
     require Net::Jifty;
     my ($server) = $self->{url} =~ m/^hm:(.*?)$/
-        or die "Can't parse hiveminder server spec";
+        or die "Can't parse Hiveminder server spec. Expected hm:http://hiveminder.com";
     $self->url($server);
     my $uri = URI->new($server);
     my ( $username, $password );
