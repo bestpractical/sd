@@ -38,7 +38,7 @@ sub setup {
     require RT::Client::REST::Ticket;
 
     my ( $server, $type, $query ) = $self->{url} =~ m/^rt:(.*?)\|(.*?)\|(.*)$/
-        or die "Can't parse rt server spec";
+        or die "Can't parse RT server spec. Expected rt:http://example.com|QUEUE|QUERY. Try: rt:http://example.com/|General|";
     my $uri = URI->new($server);
     my ( $username, $password );
     if ( my $auth = $uri->userinfo ) {
