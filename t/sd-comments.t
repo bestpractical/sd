@@ -44,6 +44,7 @@ run_output_matches(
 run_output_matches(
     'sd',
     [   qw/ticket comment update --uuid/, $comment_uuid,
+        '--',
         qw/--content/,                    "I hate you"
     ],
     [qr/comment $comment_uuid updated/],
