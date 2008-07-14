@@ -170,8 +170,7 @@ sub resolve_user_id_to_email {
     my $id   = shift;
     return undef unless ($id);
 
-    my $user = $self->sync_source->hm->read( 'User', 'id', $id );
-    return $user->{'email'};
+    return $self->sync_source->hm->email_of($id);
 }
 
 memoize 'resolve_user_id_to_email';
