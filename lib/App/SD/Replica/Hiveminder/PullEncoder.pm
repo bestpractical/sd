@@ -59,6 +59,16 @@ sub run {
                 $change->add_prop_change( { new => $previous_state->{$key}, old => undef, name => $key } );
             }
 
+            my $origin_display = $self->sync_source->hm_url
+                               . '/task/'
+                               . $previous_state->{record_locator};
+
+            $change->add_prop_change({
+                name => '_origin_display',
+                old  => undef,
+                new  => $origin_display,
+            });
+
         }
         $changeset->add_change( { change => $change } );
         foreach my $email ( @{ $txn->{email_entries} } ) {
