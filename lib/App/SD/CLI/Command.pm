@@ -4,7 +4,7 @@ use Path::Class;
 
 sub get_content {
     my $self = shift;
-    my $type = shift;
+    my %args = @_;
 
     my $content;
     if (my $file = file($self->delete_arg('file'))) {
@@ -12,10 +12,10 @@ sub get_content {
         $self->set_prop(name => $file->basename);
     } elsif ($content = $self->delete_arg('content')) {
 
-    } elsif ($self->has_arg('edit')) {
+    } elsif ($args{default_edit} || $self->has_arg('edit')) {
         $content = $self->edit_text('');
     } else {
-        print "Please type your $type and press ctrl-d.\n";
+        print "Please type your $args{type} and press ctrl-d.\n";
         $content = do { local $/; <> };
     }
 

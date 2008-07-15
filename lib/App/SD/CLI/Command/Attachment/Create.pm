@@ -6,7 +6,7 @@ with 'App::SD::CLI::Command';
 
 before run => sub {
     my $self = shift;
-    $self->set_prop(content => $self->get_content('attachment'));
+    $self->set_prop(content => $self->get_content(type => 'attachment'));
 };
 
 __PACKAGE__->meta->make_immutable;
