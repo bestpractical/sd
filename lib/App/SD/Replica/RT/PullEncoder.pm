@@ -71,7 +71,7 @@ sub _translate_final_ticket_state {
         (qw(Queue id));
     map { delete $ticket->{$_} if ( !defined $ticket->{$_} || $ticket->{$_} eq '' ) } keys %$ticket;
     map { $ticket->{$_} = $self->date_to_iso( $ticket->{$_} ) }
-        qw(Created Resolved Told LastUpdated Starts Started);
+        qw(Created Resolved Told LastUpdated Due Starts Started);
     map { $ticket->{$_} =~ s/ minutes$// if defined $ticket->{$_} }
         qw(TimeWorked TimeLeft TimeEstimated);
     $ticket->{'Status'} =~ s/^(resolved|rejected)$/closed/;
