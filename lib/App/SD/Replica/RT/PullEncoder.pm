@@ -243,7 +243,7 @@ sub _recode_txn_Set {
         $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
     } else {
         $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
-        warn $args{'ticket'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'} . "\n\n" . YAML::Dump( \%args ); use YAML;
+        warn "Update consistency problem: " . $args{'ticket'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'};
     }
     $change->add_prop_change(
         name => $args{txn}->{'Field'},
