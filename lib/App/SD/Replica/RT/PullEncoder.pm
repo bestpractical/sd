@@ -62,11 +62,6 @@ sub _translate_final_ticket_state {
 
     $ticket->{'id'} =~ s/^ticket\///g;
 
-    $ticket->{'_origin'} = $self->sync_source->rt_url;
-    $ticket->{'_origin_display'} = sprintf '%s/Ticket/Display.html?id=%d',
-                                   $self->sync_source->rt_url,
-                                   $ticket->{'id'};
-
     map { $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_} }
         (qw(Queue id));
     map { delete $ticket->{$_} if ( !defined $ticket->{$_} || $ticket->{$_} eq '' ) } keys %$ticket;
