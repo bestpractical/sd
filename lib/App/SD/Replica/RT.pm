@@ -48,7 +48,6 @@ sub setup {
     $self->rt_url($uri->as_string);
     $self->rt_queue($type);
     $self->rt_query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
-    warn $self->rt_query;
     $self->rt( RT::Client::REST->new( server => $server ) );
 
     ( $username, $password ) = $self->prompt_for_login( $uri, $username )

@@ -160,8 +160,7 @@ sub transcode_one_txn {
 
             return $changeset;
         } else {
-            warn "not handling txn type $txn->{Type} for $txn->{id} yet";
-            die YAML::Dump($txn);
+            die "not handling txn type $txn->{Type} for $txn->{id} yet";
         }
     }
 
