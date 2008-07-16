@@ -45,8 +45,43 @@ sub color_prop_status {
     return colored($value, $color);
 }
 
+sub color_prop_due {
+    my ($self, $due) = @_;
+
+    return colored($due, 'red') if $self->is_overdue($due);
+    return $due;
+}
+
 sub props_to_show {
     ('id', 'summary', 'status', 'owner', 'due', 'creator', 'reported_by', 'CF-Broken in', 'CF-Severity')
+}
+
+# this expects ISO dates. we should improve it in the future to require
+sub is_overdue {
+    my $self = shift;
+    my $date = shift || $self->prop('due');
+
+    return 0 if !$date;
+
+    if ($date !~ /^(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/) {
+        warn "Unknown date format '$date'";
+        return 0;
+    }
+
+    my $dt = eval { DateTime->new(
+            year      => $1,
+            month     => $2,
+            day       => $3,
+            hour      => $4,
+            minute    => $5,
+            second    => $6,
+            time_zone => 'UTC',
+    ) };
+    warn $@ if $@;
+    return 0 if !$dt;
+
+    my $now = DateTime->now(time_zone => 'UTC');
+    return $now > $dt;
 }
 
 __PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment', by => 'ticket');
