@@ -160,7 +160,7 @@ sub transcode_one_txn {
 
             return $changeset;
         } else {
-            die "not handling txn type $txn->{Type} for $txn->{id} yet";
+            die "Transaction type $txn->{Type} (for transaction $txn->{id}) not implemented yet";
         }
     }
 
@@ -377,7 +377,7 @@ sub _recode_txn_CustomField {
     } elsif ( $args{'txn'}->{'Description'} =~ /^(.*) $old deleted by/ ) {
         $name = $1;
     } else {
-        die "Uh. what to do with txn descriotion " . $args{'txn'}->{'Description'};
+        die "Unknown transaction description " . $args{'txn'}->{'Description'};
     }
 
     $args{'txn'}->{'Field'} = "CF-" . $name;
