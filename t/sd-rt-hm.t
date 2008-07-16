@@ -96,7 +96,7 @@ as_bob {
     diag($err) if ($err);
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $bob_flyman_id = $1 }) Fly Man new/] );
     diag("Bob pulling from alice");
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('alice') ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('alice'), '--force' ] );
 
     $flyman_uuid = get_uuid_for_luid($bob_flyman_id);
     my $bob_yatta_id = get_luid_for_uuid($yatta_uuid);
@@ -117,7 +117,7 @@ as_bob {
 
 as_alice {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('bob') ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('bob'), '--force' ] );
 
 
     $alice_flyman_id = get_luid_for_uuid($flyman_uuid);
