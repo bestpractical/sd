@@ -62,6 +62,7 @@ sub _translate_final_ticket_state {
 
     $ticket->{'id'} =~ s/^ticket\///g;
 
+    $ticket->{'_origin'} = $self->sync_source->rt_url;
     $ticket->{'_origin_display'} = sprintf '%s/Ticket/Display.html?id=%d',
                                    $self->sync_source->rt_url,
                                    $ticket->{'id'};

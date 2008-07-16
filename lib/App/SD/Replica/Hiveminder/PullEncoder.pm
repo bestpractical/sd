@@ -59,6 +59,12 @@ sub run {
                 $change->add_prop_change( { new => $previous_state->{$key}, old => undef, name => $key } );
             }
 
+            $change->add_prop_change({
+                name => '_origin',
+                old  => undef,
+                new  => $self->sync_source->hm_url,
+            });
+
             if ($previous_state->{record_locator}) {
                 my $origin_display = $self->sync_source->hm_url
                                 . '/task/'
