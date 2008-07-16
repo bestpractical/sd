@@ -72,6 +72,10 @@ sub run {
             }
 
         }
+        else {
+            die "Unknown change type $txn->{type}.";
+        }
+
         $changeset->add_change( { change => $change } );
         foreach my $email ( @{ $txn->{email_entries} } ) {
             if ( my $sub = $self->can( '_recode_email_' . 'blah' ) ) {
