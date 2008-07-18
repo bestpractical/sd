@@ -14,7 +14,8 @@ unless ($ENV{SD_VERBOSE_ERROR}) {
     $SIG{__DIE__} = sub {
         my $line = shift;
         $line =~ s/\n.*//s if ($line =~ /at line/s);
-        die $line."\n";
+        $line .= "\n"; $line =~ s/\n+$/\n/gs;
+        die $line;
     };
 }
 

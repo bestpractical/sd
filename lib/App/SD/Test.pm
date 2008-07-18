@@ -7,6 +7,8 @@ require Prophet::Test;
 use base qw/Exporter/;
 our @EXPORT = qw(create_ticket_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid);
 
+$ENV{'PROPHET_APP_CONFIG'} = "t/prophet_testing.conf";
+
 sub create_ticket_ok {
     my @args = (@_);
     my ( $uuid, $luid );
@@ -28,7 +30,6 @@ sub create_ticket_comment_ok {
 
     return ( $luid, $uuid );
 }
-
 
 
 sub get_uuid_for_luid {

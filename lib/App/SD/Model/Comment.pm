@@ -9,8 +9,8 @@ use DateTime;
 use constant collection_class => 'App::SD::Collection::Comment';
 use constant record_type => 'comment';
 
-use constant summary_format => '%u %s';
-use constant summary_props => qw(content);
+
+sub _default_summary_format { '%s,$uuid | %s,content'}
 
 use constant declared_props => qw(date content);
 
