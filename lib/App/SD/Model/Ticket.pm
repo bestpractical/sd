@@ -8,13 +8,13 @@ use constant collection_class => 'App::SD::Collection::Ticket';
 use constant record_type => 'ticket';
 
 sub summary_props {
-    #my @data = split(/\s+/, shift->handle->config('ticket_summary_props') || 'status summary');
+    #my @data = split(/\s+/, shift->app_handle->config('ticket_summary_props') || 'status summary');
     my @data = split(/\s+/, 'summary status');
     return @data;
 
 }
 sub summary_format {
-    #return shift->handle->config('ticket_summary_format')|| '%l %-7.7s %-60.60s';
+    #return shift->app_handle->config('ticket_summary_format')|| '%4l %-11.11s %-60.60s';
             return '%l %s %s';
 }
 

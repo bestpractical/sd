@@ -12,6 +12,7 @@ override run => sub {
     print "\n=head1 ATTACHMENTS\n\n";
     my $attachments = App::SD::Collection::Attachment->new(
         handle => $self->app_handle->handle,
+        app_handle => $self->app_handle,
     );
     $attachments->matching(sub {
         shift->prop('ticket') eq $self->uuid ? 1 : 0;
