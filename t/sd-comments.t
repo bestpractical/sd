@@ -47,7 +47,7 @@ run_output_matches(
         '--',
         qw/--content/,                    "I hate you"
     ],
-    [qr/comment $comment_uuid updated/],
+    [qr/comment \d+ \($comment_uuid\) updated/],
     [],
     "updated the comment"
 );

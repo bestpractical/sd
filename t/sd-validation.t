@@ -38,7 +38,7 @@ run_output_matches( 'sd', [ 'ticket',
 is_script_output( 'sd', [ 'ticket',  
     'update', '--uuid', $yatta_uuid, '--', '--status', 'stalled'
     ],
-   [qr/ticket $yatta_uuid updated./], # stdout
+   [qr/ticket \d+ \($yatta_uuid\) updated./], # stdout
    [], # stderr
    "Setting the status to stalled went ok"
 

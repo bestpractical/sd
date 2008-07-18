@@ -45,7 +45,7 @@ run_output_matches(
         '--',
         qw/--name/,                          "plague_recipe.doc"
     ],
-    [qr/attachment $attachment_uuid updated/],
+    [qr/attachment \d+ \($attachment_uuid\) updated/],
     [],
     "updated the attachment"
 );
