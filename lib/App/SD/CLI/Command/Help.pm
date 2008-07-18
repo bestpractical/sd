@@ -9,7 +9,8 @@ print <<EOF
 $0 @{[$App::SD::VERSION]}
 
 $0 ticket create --summary "This is a summary" --status new --somekey value
-$0 ticket update --uuid <uuid> --status resolved
+$0 ticket update --uuid <uuid> --status closed
+$0 ticket resolve --uuid <uuid>
 $0 ticket search --regex .
 $0 ticket delete --uuid <uuid>
 $0 ticket show --uuid <uuid>
