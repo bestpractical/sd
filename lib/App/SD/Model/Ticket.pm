@@ -7,6 +7,8 @@ use Term::ANSIColor;
 use constant collection_class => 'App::SD::Collection::Ticket';
 use constant record_type => 'ticket';
 
+sub default_prop_status { 'new' }
+
 sub summary_props {
     #my @data = split(/\s+/, shift->app_handle->config('ticket_summary_props') || 'status summary');
     my @data = split(/\s+/, 'summary status');
