@@ -10,7 +10,7 @@ $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.sd';
 # anything more than the root cause of the failure. Developers and the curious
 # can set environment variable SD_VERBOSE_ERROR to retain the backtraces.
 # When Moose's error throwing is more malleable we should switch to using that.
-unless ($ENV{SD_VERBOSE_ERROR}) {
+unless ($ENV{SD_VERBOSE_ERROR} || $ENV{'TEST_VERBOSE'}) {
     $SIG{__DIE__} = sub {
         my $line = shift;
         $line =~ s/\n.*//s if ($line =~ /at line/s);

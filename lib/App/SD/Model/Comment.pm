@@ -7,7 +7,7 @@ use Params::Validate;
 use DateTime;
 
 use constant collection_class => 'App::SD::Collection::Comment';
-use constant record_type => 'comment';
+use constant type => 'comment';
 
 
 sub _default_summary_format { '%s,$uuid | %s,content'}

@@ -6,7 +6,7 @@ use base qw/App::SD::Record/;
 use Params::Validate qw/validate/;
 
 use constant collection_class => 'App::SD::Collection::Attachment';
-use constant record_type => 'attachment';
+use constant type => 'attachment';
 
 
 sub _default_summary_format { '%s,$luid | %s,name | %s,content_type'}

@@ -5,7 +5,7 @@ extends 'App::SD::Record';
 use Term::ANSIColor;
 
 use constant collection_class => 'App::SD::Collection::Ticket';
-use constant record_type => 'ticket';
+use constant type => 'ticket';
 
 sub default_prop_status { 'new' }
 
