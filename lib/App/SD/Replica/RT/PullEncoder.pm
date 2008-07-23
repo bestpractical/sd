@@ -171,7 +171,7 @@ sub _recode_attachment_create {
         }
     );
     $change->add_prop_change( name => 'content_type', old  => undef, new  => $args{'attachment'}->{'ContentType'});
-    $change->add_prop_change( name => 'date', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
+    $change->add_prop_change( name => 'created', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
     $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'attachment'}->{'Creator'}));
     $change->add_prop_change( name => 'content', old  => undef, new  => $args{'attachment'}->{'Content'});
     $change->add_prop_change( name => 'name', old  => undef, new  => $args{'attachment'}->{'Filename'});
@@ -314,7 +314,7 @@ sub _recode_content_update {
         }
     );
 
-        $change->add_prop_change( name => 'date', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
+        $change->add_prop_change( name => 'created', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
 
     $change->add_prop_change( name => 'type', old  => undef, new  => $args{'txn'}->{'Type'});
     $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'txn'}->{'Creator'}));
@@ -476,7 +476,7 @@ our %PROP_MAP = (
     timeworked      => 'time_worked',
     timeleft        => 'time_left',
     lastupdated     => '_delete',
-    created         => '_delete',            # we should be porting the create date as a metaproperty
+    created         => 'created',
     Queue           => 'queue',
 );
 
