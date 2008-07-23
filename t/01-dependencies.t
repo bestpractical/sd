@@ -13,7 +13,12 @@ Makefile.PL as dependencies.
 use Test::More;
 use File::Find;
 eval 'use Module::CoreList';
-if ($@) { plan skip_all => 'Module::CoreList not installed' }
+if ($@) {
+    plan skip_all => 'Module::CoreList not installed'
+}
+elsif ( ! -e 'inc/.author' ) {
+    plan skip_all => 'no inc/.author, and it is on purpose ;)'
+}
 
 plan 'no_plan';
 
