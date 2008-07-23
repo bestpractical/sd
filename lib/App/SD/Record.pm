@@ -7,17 +7,32 @@ use Params::Validate;
 use DateTime;
 
 
-sub declared_props { 'date', inner() }
+sub declared_props { 'created', inner() }
 
 extends 'Prophet::Record';
 
-sub canonicalize_prop_date {
+sub get_props {
+    my $self = shift;
+    my $props = $self->SUPER::get_props(@_);
+
+    $self->set_props(props => { created => $props->{date} })
+      if !$props->{created} && $props->{date};
+
+    $self->set_props(props => {date => undef})
+      if $props->{date};
+
+    return $self->SUPER::get_props(@_);
+}
+
+sub canonicalize_prop_created {
     my $self = shift;
     my %args = validate(@_, { props => 1, errors => 1});
     my $props = shift;
-    if (!$args{props}->{date} ) {
+    my $created =    $args{props}->{created}
+                  || $args{props}->{date};
+    if (!$created ) {
         my $date = DateTime->now;
-        $args{props}->{date} = $date->ymd." ".$date->hms;
+        $args{props}->{created} = $date->ymd." ".$date->hms;
     }
     return 1;
 }

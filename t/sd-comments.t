@@ -26,7 +26,7 @@ ok($comment_uuid);
 run_output_matches(
     'sd',
     [ qw/ticket comments --uuid/, $yatta_uuid ],
-    [ qr/^id: \d+ \($comment_uuid\)/, qr/^date: /, "'This is a test'" ],
+    [ qr/^id: \d+ \($comment_uuid\)/, qr/^created: /, "'This is a test'" ],
     [], "Found the comment"
 );
 
@@ -34,7 +34,7 @@ run_output_matches(
     'sd',
     [ qw/ticket comment show --batch --uuid/, $comment_uuid ],
     [   qr/id: (\d+) \($comment_uuid\)/,
-        qr/date: /i,
+        qr/created: /i,
         qr/This is a test/,
         "ticket: $yatta_uuid"
     ],
@@ -55,7 +55,7 @@ run_output_matches(
     'sd',
     [ qw/ticket comment show --batch --uuid/, $comment_uuid ],
     [ qr/id: (\d+) \($comment_uuid\)/, 
-        qr/date: /i,
+        qr/created: /i,
     qr/I hate you/, "ticket: $yatta_uuid" ],
     [],
     "Found the comment new version"

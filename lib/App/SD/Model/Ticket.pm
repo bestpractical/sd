@@ -46,7 +46,7 @@ sub color_prop_due {
 }
 
 sub props_to_show {
-    ('id', 'summary', 'status', 'owner', 'date', 'due', 'creator', 'reported_by', 'CF-Broken in', 'CF-Severity')
+    ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by', 'CF-Broken in', 'CF-Severity')
 }
 
 # this expects ISO dates. we should improve it in the future to require

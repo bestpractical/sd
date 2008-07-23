@@ -30,7 +30,7 @@ run_output_matches( 'sd', [ 'ticket',
         qr/id:\s+$yatta_id\s+\($yatta_uuid\)/,
         qr/summary:\s+YATTA/,
         qr/status:.+new/,
-        qr/date:\s+\d{4}-\d{2}-\d{2}.+/,
+        qr/created:\s+\d{4}-\d{2}-\d{2}.+/,
     ]
 );
 
