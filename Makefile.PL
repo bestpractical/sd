@@ -12,16 +12,15 @@ requires('DateTime');
 
 features(
     'RT sync' => [
-        -default => 1,
+        -default => 0,
         'RT::Client::REST' => 0, # RT::Client::REST::Ticket
         'DateTime::Format::HTTP' => 0,
 
     ],
 
     'Hiveminder sync' => [
-        -default => 1,
+        -default => 0,
         'Net::Jifty' => 0,
-        'Jifty' => 0,
     ],
 );
 install_script('bin/sd');
