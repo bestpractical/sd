@@ -2,7 +2,8 @@ use warnings;
 use strict;
 
 package App::SD::Model::Attachment;
-use base qw/App::SD::Record/;
+use Moose;
+extends 'App::SD::Record';
 use Params::Validate qw/validate/;
 
 use constant collection_class => 'App::SD::Collection::Attachment';
