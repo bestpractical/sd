@@ -3,18 +3,18 @@ use warnings;
 use strict;
 use Prophet::Test;
 use App::SD::Test;
-use Test::More;
 
 BEGIN {
-    unless ( $ENV{'JIFTY_APP_ROOT'} ) {
+    if ( $ENV{'JIFTY_APP_ROOT'} ) {
+        plan tests => 10;
+        require File::Temp;
+        $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+        warn $ENV{'PROPHET_REPO'};
+        eval "use Jifty";
+        push @INC, File::Spec->catdir( Jifty::Util->app_root, "lib" );
+    } else {
         plan skip_all => "You must define a JIFTY_APP_ROOT environment variable which points to your hiveminder source tree";
     }
-    plan tests => 10;
-    require File::Temp;
-    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
-    warn $ENV{'PROPHET_REPO'};
-    use Jifty;
-    push @INC, File::Spec->catdir( Jifty::Util->app_root, "lib" );
 }
 
 eval 'use BTDT::Test; 1;' or die "$@";
