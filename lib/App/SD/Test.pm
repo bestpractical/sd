@@ -12,6 +12,7 @@ $ENV{'PROPHET_APP_CONFIG'} = "t/prophet_testing.conf";
 sub create_ticket_ok {
     my @args = (@_);
     my ( $uuid, $luid );
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
     Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create', '--', @args ],
         [qr/Created ticket (.*?)(?{ $luid = $1})\s+\((.*)(?{ $uuid = $2 })\)/]
     );
@@ -22,6 +23,7 @@ sub create_ticket_ok {
 sub create_ticket_comment_ok {
     my @args = (@_);
     my ( $uuid, $luid );
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
     Prophet::Test::run_output_matches(
         'sd',
         [ 'ticket', 'comment', 'create', @args ],
