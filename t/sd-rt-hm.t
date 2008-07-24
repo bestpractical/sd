@@ -21,7 +21,7 @@ BEGIN {
         plan skip_all => "You must define a JIFTY_APP_ROOT environment variable which points to your hiveminder source tree";
     }
     require File::Temp;
-    use Jifty;
+    eval "use Jifty;";
     push @INC, File::Spec->catdir( Jifty::Util->app_root, "lib" );
 }
 
