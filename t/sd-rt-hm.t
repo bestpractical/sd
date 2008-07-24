@@ -18,7 +18,7 @@ BEGIN {
 
 BEGIN {
     unless ( $ENV{'JIFTY_APP_ROOT'} ) {
-        die "You must define a JIFTY_APP_ROOT environment variable which points to your hiveminder source tree";
+        plan skip_all => "You must define a JIFTY_APP_ROOT environment variable which points to your hiveminder source tree";
     }
     require File::Temp;
     use Jifty;
