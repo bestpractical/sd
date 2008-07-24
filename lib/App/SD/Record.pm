@@ -11,9 +11,9 @@ sub declared_props { 'created', inner() }
 
 extends 'Prophet::Record';
 
-sub get_props {
-    my $self = shift;
-    my $props = $self->SUPER::get_props(@_);
+around get_props => sub {
+    my ($next, $self, @args) = @_;
+    my $props = $self->$next(@args);
 
     $self->set_props(props => { created => $props->{date} })
       if !$props->{created} && $props->{date};
@@ -21,8 +21,8 @@ sub get_props {
     $self->set_props(props => {date => undef})
       if $props->{date};
 
-    return $self->SUPER::get_props(@_);
-}
+    return $self->$next(@args);
+};
 
 sub canonicalize_prop_created {
     my $self = shift;
