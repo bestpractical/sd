@@ -27,9 +27,14 @@ around get_props => sub {
 sub canonicalize_prop_created {
     my $self = shift;
     my %args = validate(@_, { props => 1, errors => 1});
-    my $props = shift;
-    my $created =    $args{props}->{created}
-                  || $args{props}->{date};
+
+    my $props = $self->get_props;
+
+    my $created = $args{props}->{created}
+               || $args{props}->{date}
+               || $props->{created}
+               || $props->{date};
+
     if (!$created ) {
         my $date = DateTime->now;
         $args{props}->{created} = $date->ymd." ".$date->hms;
