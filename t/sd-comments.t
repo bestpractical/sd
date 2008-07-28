@@ -10,7 +10,7 @@ BEGIN {
     require File::Temp;
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'}
         = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
-    warn $ENV{'PROPHET_REPO'};
+    diag $ENV{'PROPHET_REPO'};
 }
 
 # create from sd and push
