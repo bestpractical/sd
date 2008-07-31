@@ -12,14 +12,21 @@ override run => sub {
     my $record = $self->_get_record_class;
     my @prop_set = $self->prop_set;
 
-    # only invoke editor if no props specified on the commandline
-    if (!@prop_set) {
+    # only invoke editor if no props specified on the commandline or edit arg
+    # specified
+    if (!@prop_set || $self->has_arg('edit')) {
         my @props = grep {!/^id$/} $record->props_to_show;
+
         my %prefill_props;
         # these props must exist in the hash, even if they have no value
-        foreach my $prop (@props) { $prefill_props{$prop} = undef; }
+        map { $prefill_props{$_} = undef } @props;
         # set default props
         $record->default_props(\%prefill_props);
+        if ($self->has_arg('edit')) {
+            # override with props specified on the commandline
+            map { $prefill_props{$_} = $self->prop($_) if $self->has_prop($_) } @props;
+            $self->delete_arg('edit');
+        }
         # undef values are noisy later when we want to interpolate the hash
         map { $prefill_props{$_} = '' if !defined($prefill_props{$_}) } @props;
 
