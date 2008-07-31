@@ -7,6 +7,12 @@ use Term::ANSIColor;
 use constant collection_class => 'App::SD::Collection::Ticket';
 use constant type => 'ticket';
 
+=head2 default_prop_status
+
+The default value of the status prop. Returns a string.
+
+=cut
+
 sub default_prop_status { 'new' }
 
 sub _default_summary_format { '%s,$luid | %s,summary | %s,status' }
@@ -44,6 +50,13 @@ sub color_prop_due {
     return colored($due, 'red') if $self->is_overdue($due);
     return $due;
 }
+
+=head2 props_to_show
+
+A list of which properties to display for the C<show> command (in order
+from first to last).
+
+=cut
 
 sub props_to_show {
     ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by', 'CF-Broken in', 'CF-Severity')
