@@ -53,13 +53,13 @@ override run => sub {
         $record = $self->record();
 
         if ($comment) {
-            my $props = { content => $comment };
+            my $props = [ {prop => 'content', cmp => '=', value => $comment} ];
             my $args = { uuid => $record->uuid() };
-            my @primary_commands = qw/ticket comment create/;
+            my $primary_commands = [ qw/ticket comment create/ ];
             $self->cli->run_another_command( type => 'comment',
                                              props => $props,
                                              args => $args,
-                                             primary_commands => \@primary_commands,
+                                             primary_commands => $primary_commands,
                                             );
         }
     } else {
