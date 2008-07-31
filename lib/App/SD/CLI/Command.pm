@@ -2,6 +2,16 @@ package App::SD::CLI::Command;
 use Moose::Role;
 use Path::Class;
 
+=head2 get_content %args
+
+This is a helper routine for use in SD commands to enable getting records
+in different ways, such as from a file, on the commandline, or from an
+editor. Returns the record content.
+
+Valid keys in %args are type and default_edit => bool.
+
+=cut
+
 sub get_content {
     my $self = shift;
     my %args = @_;
