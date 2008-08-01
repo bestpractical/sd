@@ -32,7 +32,7 @@ sub get_content {
     if (my $file = file($self->delete_arg('file'))) {
         $content = $file->slurp();
         $self->set_prop(name => $file->basename);
-    } elsif ($content = $self->delete_prop('content')) {
+    } elsif ($content = $self->delete_arg('content')) {
 
     } elsif ($args{default_edit} || $self->has_arg('edit')) {
         my $text = '';
