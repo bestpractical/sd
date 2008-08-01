@@ -1,7 +1,7 @@
 package App::SD::CLI::Command::Ticket::Create;
 use Moose;
 
-use App::SD::CLI::Command::Ticket::Comment::Create qw(new);
+use App::SD::CLI::Command::Ticket::Comment::Create;
 
 extends 'Prophet::CLI::Command::Create';
 with 'App::SD::CLI::Model::Ticket';
