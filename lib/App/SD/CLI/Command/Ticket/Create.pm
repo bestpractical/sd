@@ -1,6 +1,8 @@
 package App::SD::CLI::Command::Ticket::Create;
 use Moose;
 
+use App::SD::CLI::Command::Ticket::Comment::Create qw(new);
+
 extends 'Prophet::CLI::Command::Create';
 with 'App::SD::CLI::Model::Ticket';
 with 'App::SD::CLI::Command';
@@ -32,10 +34,11 @@ override run => sub {
 
         my $footer = comment_separator();
 
-        my $ticket = $self->get_content(type => 'ticket', default_edit => 1,
-                                        prefill_props => \%prefill_props,
-                                        props_order => \@props,
-                                        footer => $footer);
+        my $ticket = $self->get_content( type => 'ticket', default_edit => 1,
+                                         prefill_props => \%prefill_props,
+                                         props_order => \@props,
+                                         footer => $footer,
+                                       );
 
         die "Aborted.\n"
             if length($ticket) == 0;
@@ -53,14 +56,15 @@ override run => sub {
         $record = $self->record();
 
         if ($comment) {
-            my $props = [ {prop => 'content', cmp => '=', value => $comment} ];
-            my $args = { uuid => $record->uuid() };
-            my $primary_commands = [ qw/ticket comment create/ ];
-            $self->cli->run_another_command( type => 'comment',
-                                             props => $props,
-                                             args => $args,
-                                             primary_commands => $primary_commands,
-                                            );
+            my $args = { uuid => $record->uuid(),
+                         content => $comment,
+                       };
+            $self->cli->change_attributes( args => $args );
+            my $command = App::SD::CLI::Command::Ticket::Comment::Create->new(
+                cli => $self->cli,
+                type => 'comment',
+            );
+            $command->run();
         }
     } else {
         super();
