@@ -428,30 +428,14 @@ sub warp_list_to_old_value {
     return join( ", ", @old );
 }
 
-our $MONNUM = {
-    Jan => 1,
-    Feb => 2,
-    Mar => 3,
-    Apr => 4,
-    May => 5,
-    Jun => 6,
-    Jul => 7,
-    Aug => 8,
-    Sep => 9,
-    Oct => 10,
-    Nov => 11,
-    Dec => 12
-};
-
-use DateTime::Format::HTTP;
+use HTTP::Date;
 
 sub date_to_iso {
     my $self = shift;
     my $date = shift;
 
     return undef if $date eq 'Not set';
-    my $t = DateTime::Format::HTTP->parse_datetime($date);
-    return $t->ymd . " " . $t->hms;
+    return HTTP::Date::time2iso($date);
 }
 
 our %PROP_MAP = (

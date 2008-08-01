@@ -6,15 +6,13 @@ license('MIT');
 version_from('lib/App/SD.pm');
 
 requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Path::Class Class::Accessor
-requires('Clone');
 requires('Moose'); # Moose::Role
-requires('DateTime');
 
 features(
     'RT sync' => [
         -default => 0,
         'RT::Client::REST' => 0, # RT::Client::REST::Ticket
-        'DateTime::Format::HTTP' => 0,
+        'HTTP::Date' => 0,
 
     ],
 
