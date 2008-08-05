@@ -8,15 +8,16 @@ sub run {
 print <<EOF
 $0 @{[$App::SD::VERSION]}
 
-$0 ticket create --summary "This is a summary" --status new --somekey value
-$0 ticket update --uuid <uuid> --status closed
-$0 ticket resolve --uuid <uuid>
+$0 ticket create -- summary "This is a summary" status new somekey value
+$0 ticket update --id <id> -- status closed
+$0 ticket resolve --id <id>
 $0 ticket search --regex .
 $0 ticket search -- status!=closed summary =~ http 
-$0 ticket delete --uuid <uuid>
-$0 ticket show --uuid <uuid>
+$0 ticket delete --id <id>
+$0 ticket show --id <id>
+$0 ticket details --id <id>
 $0 pull --from remote-url
-
+$0 publish --to remote-url
 
 $0 help
     Show this file
