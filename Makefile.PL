@@ -7,12 +7,12 @@ version_from('lib/App/SD.pm');
 
 requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Path::Class Class::Accessor
 requires('Moose'); # Moose::Role
+requires('HTTP::Date');
 
 features(
     'RT sync' => [
         -default => 0,
         'RT::Client::REST' => 0, # RT::Client::REST::Ticket
-        'HTTP::Date' => 0,
 
     ],
 
