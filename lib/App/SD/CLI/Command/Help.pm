@@ -17,6 +17,7 @@ $0 ticket delete --id <id>
 $0 ticket show --id <id>
 $0 ticket details --id <id>
 $0 pull --from remote-url
+$0 pull --all
 $0 publish --to remote-url
 
 $0 help
