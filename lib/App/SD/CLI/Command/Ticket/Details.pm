@@ -20,6 +20,9 @@ override run => sub {
     print "\n=head1 COMMENTS\n\n";
     my @comments = sort by_creation_date @{$record->comments};
     print $_->prop('created') . "\n" . $_->prop('content') . "\n\n" for @comments;
+
+    print "\n=head1 HISTORY\n\n";
+    print $record->history_as_string;
 };
 
 __PACKAGE__->meta->make_immutable;
