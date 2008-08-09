@@ -19,6 +19,21 @@ before run => sub {
     }
 };
 
+# implicit status != closed
+before get_search_callback => sub {
+    my $self = shift;
+
+    # if they specify a specific status then don't limit on status
+    # or, if they specify --all, then don't limit on status
+    unless ($self->has_prop('status') || $self->has_arg('all')) {
+        $self->add_to_prop_set({
+            prop  => 'status',
+            cmp   => '!=',
+            value => 'closed',
+        });
+    }
+};
+
 __PACKAGE__->meta->make_immutable;
 no Moose;
 
