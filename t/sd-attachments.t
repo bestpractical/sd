@@ -29,13 +29,13 @@ run_output_matches(
     'sd',
     [ qw/ticket attachment show --batch --id/, $attachment_id ],
     [ 
-    
         qr/id: $attachment_id \($attachment_uuid\)/, 
-        qr/created:\s+\d{4}-\d{2}-\d{2}.+/,
-        "content_type: text/plain",
-        qr/paper_order.doc/,
         "content: stub",
-        "ticket: $yatta_uuid"
+        "content_type: text/plain",
+        qr/created: \d{4}-\d{2}-\d{2}.+/,
+        qr/creator: .+@.+$/,
+        qr/paper_order.doc/,
+        "ticket: $yatta_uuid",
     ],
     [],
     "Found the attachment"
@@ -55,10 +55,11 @@ run_output_matches(
     [ qw/ticket attachment show --batch --uuid/, $attachment_uuid ],
     [  
         qr/id: (\d+) \($attachment_uuid\)/, 
-        qr/created:\s+\d{4}-\d{2}-\d{2}.+/,
-        "content_type: text/plain",
-        qr/plague_recipe.doc/,
         "content: stub",
+        "content_type: text/plain",
+        qr/created: \d{4}-\d{2}-\d{2}.+/,
+        qr/creator: .+@.+$/,
+        qr/plague_recipe.doc/,
         "ticket: $yatta_uuid"
     ],
     [],
