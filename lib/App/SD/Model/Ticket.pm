@@ -90,7 +90,7 @@ from first to last).
 =cut
 
 sub props_to_show {
-    ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by', 'CF-Broken in', 'CF-Severity')
+    ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by')
 }
 
 =head2 is_overdue [$date]
@@ -124,4 +124,6 @@ sub is_overdue {
 __PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment', by => 'ticket');
 __PACKAGE__->register_reference( attachments => 'App::SD::Collection::Attachment', by => 'ticket');
 
+__PACKAGE__->meta->make_immutable;
+no Moose;
 1;

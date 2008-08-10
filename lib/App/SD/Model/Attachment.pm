@@ -27,6 +27,7 @@ sub create {
     $self->SUPER::create(%args);
 }
 
-
+__PACKAGE__->meta->make_immutable;
+no Moose;
 
 1;

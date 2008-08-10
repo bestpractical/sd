@@ -209,4 +209,6 @@ sub record_pushed_ticket {
     $self->_set_remote_id(%args);
 }
 
+__PACKAGE__->meta->make_immutable;
+no Moose;
 1;

@@ -152,4 +152,9 @@ sub _recode_props_for_integrate {
     }
     return \%attr;
 }
+
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
+
 1;
