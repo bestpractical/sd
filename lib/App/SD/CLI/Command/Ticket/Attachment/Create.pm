@@ -5,7 +5,7 @@ extends 'App::SD::CLI::Command::Attachment::Create';
 
 before run => sub {
     my $self = shift;
-    $self->args->{'ticket'} = $self->cli->uuid;
+    $self->set_prop(ticket => $self->cli->uuid);
 };
 
 __PACKAGE__->meta->make_immutable;

@@ -12,10 +12,10 @@ sub run {
         print "No comments found\n";
     }
 
-    for (sort { $a->prop('date') cmp $b->prop('date') } @{$record->comments}) {
-        print "id: ".$_->luid." (".$_->uuid.")\n";
-        print "date: ".$_->prop('date')."\n";
-        print $_->prop('content')."\n";
+    for my $entry (sort { $a->prop('date') cmp $b->prop('date') } @{$record->comments}) {
+         print "id: ".$entry->luid." (".$entry->uuid.")\n";
+        print "date: ".$entry->prop('date')."\n";
+        print $entry->prop('content')."\n";
     }
 
 }

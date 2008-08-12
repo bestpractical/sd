@@ -9,8 +9,6 @@ use Params::Validate qw/validate/;
 use constant collection_class => 'App::SD::Collection::Attachment';
 use constant type => 'attachment';
 
-use constant summary_format => '%l %s %s';
-use constant summary_props => qw(name content_type);
 
 sub _default_summary_format { '%s,$luid | %s,name | %s,content_type'}
 

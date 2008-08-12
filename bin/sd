@@ -6,6 +6,19 @@ use App::SD;
 
 $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.sd';
 
+# Moose likes generating very noisy backtraces. Most users don't need to see
+# anything more than the root cause of the failure. Developers and the curious
+# can set environment variable SD_VERBOSE_ERROR to retain the backtraces.
+# When Moose's error throwing is more malleable we should switch to using that.
+unless ($ENV{SD_VERBOSE_ERROR} || $ENV{'TEST_VERBOSE'}) {
+    $SIG{__DIE__} = sub {
+        my $line = shift;
+        $line =~ s/\n.*//s if ($line =~ /at line/s);
+        $line .= "\n"; $line =~ s/\n+$/\n/gs;
+        die $line;
+    };
+}
+
 my $cli = Prophet::CLI->new({ app_class => 'App::SD' });
 $cli->run_one_command;
 

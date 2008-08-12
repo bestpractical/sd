@@ -83,11 +83,11 @@ sub integrate_ticket_create {
 }
 
 sub integrate_comment {
-    warn "comment not yet";
+    warn "comment not implemented yet";
 }
 
 sub integrate_ticket_update {
-    warn "update not yet";
+    warn "update not implemented yet";
 }
 
 sub _recode_props_for_integrate {

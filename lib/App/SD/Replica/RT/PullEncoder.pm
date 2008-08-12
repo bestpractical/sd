@@ -61,11 +61,12 @@ sub _translate_final_ticket_state {
     my $ticket = shift;
 
     $ticket->{'id'} =~ s/^ticket\///g;
+
     map { $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_} }
         (qw(Queue id));
     map { delete $ticket->{$_} if ( !defined $ticket->{$_} || $ticket->{$_} eq '' ) } keys %$ticket;
     map { $ticket->{$_} = $self->date_to_iso( $ticket->{$_} ) }
-        qw(Created Resolved Told LastUpdated Starts Started);
+        qw(Created Resolved Told LastUpdated Due Starts Started);
     map { $ticket->{$_} =~ s/ minutes$// if defined $ticket->{$_} }
         qw(TimeWorked TimeLeft TimeEstimated);
     $ticket->{'Status'} =~ s/^(resolved|rejected)$/closed/;
@@ -237,7 +238,7 @@ sub _recode_txn_Set {
         $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
     } else {
         $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
-        warn $args{'ticket'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'} . "\n\n" . YAML::Dump( \%args ); use YAML;
+        warn "Update consistency problem: " . $args{'ticket'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'};
     }
     $change->add_prop_change(
         name => $args{txn}->{'Field'},

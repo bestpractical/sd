@@ -15,17 +15,6 @@ has hm_username => ( isa => 'Str', is => 'rw');
 
 use constant scheme => 'hm';
 
-# XXX: this should be called from superclass, or better, have individual attributes have their own builders.
-
-around 'new' => sub {
-    my ($next, $self, @args) = @_;
-    warn "around $self $next";
-    my $ret = $self->$next(@args);
-    $ret->setup;
-    warn "==> $ret";
-    return $ret;
-};
-
 
 =head2 setup
 
@@ -33,13 +22,14 @@ Open a connection to the SVN source identified by C<$self->url>.
 
 =cut
 
+# XXX: this should be called from superclass, or better, have individual attributes have their own builders.
 
 sub BUILD {
     my $self = shift;
 
     require Net::Jifty;
     my ($server) = $self->{url} =~ m/^hm:(.*?)$/
-        or die "Can't parse hiveminder server spec";
+        or die "Can't parse Hiveminder server spec. Expected hm:http://hiveminder.com";
     $self->url($server);
     my $uri = URI->new($server);
     my ( $username, $password );
