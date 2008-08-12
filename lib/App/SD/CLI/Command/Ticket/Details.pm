@@ -2,6 +2,8 @@ package App::SD::CLI::Command::Ticket::Details;
 use Moose;
 extends 'App::SD::CLI::Command::Ticket::Show';
 
+sub by_creation_date { $a->prop('created') cmp $b->prop('created') };
+
 override run => sub {
     my $self = shift;
     my $record = $self->_load_record;
@@ -10,25 +12,12 @@ override run => sub {
     super();
 
     print "\n=head1 ATTACHMENTS\n\n";
-    my $attachments = App::SD::Collection::Attachment->new(
-        handle => $self->app_handle->handle,
-        app_handle => $self->app_handle,
-    );
-    $attachments->matching(sub {
-        shift->prop('ticket') eq $self->uuid ? 1 : 0;
-    });
-    print $_->format_summary . "\n" for $attachments->items;
+    my @attachments = sort by_creation_date @{$record->attachments};
+    print $_->format_summary . "\n" for @attachments;
 
     print "\n=head1 COMMENTS\n\n";
-    my $comments = App::SD::Collection::Comment->new(
-        handle => $self->app_handle->handle,
-    );
-    $comments->matching(sub {
-        shift->prop('ticket') eq $self->uuid ? 1 : 0;
-    });
-    my @items = sort { $a->prop('created') cmp $b->prop('created') }
-                    $comments->items;
-    print $_->prop('created') . "\n" . $_->prop('content') . "\n\n" for @items;
+    my @comments = sort by_creation_date @{$record->comments};
+    print $_->prop('created') . "\n" . $_->prop('content') . "\n\n" for @comments;
 };
 
 __PACKAGE__->meta->make_immutable;
