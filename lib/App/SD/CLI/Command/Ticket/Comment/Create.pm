@@ -8,8 +8,14 @@ with 'App::SD::CLI::Command';
 # override args to feed in that ticket's uuid as an argument to the comment
 before run => sub {
     my $self = shift;
+
+    my $content = $self->get_content(type => 'comment', default_edit => 1);
+
+    die "Aborted.\n"
+        if length($content) == 0;
+
     $self->set_prop(ticket => $self->cli->uuid);
-    $self->set_prop(content => $self->get_content(type => 'comment', default_edit => 1));
+    $self->set_prop(content => $content);
 };
 
 __PACKAGE__->meta->make_immutable;

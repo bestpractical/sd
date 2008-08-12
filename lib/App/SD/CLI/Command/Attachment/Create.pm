@@ -6,7 +6,13 @@ with 'App::SD::CLI::Command';
 
 before run => sub {
     my $self = shift;
-    $self->set_prop(content => $self->get_content(type => 'attachment'));
+
+    my $content = $self->get_content(type => 'attachment');
+
+    die "Aborted.\n"
+        if length($content) == 0;
+
+    $self->set_prop(content => $content);
 };
 
 __PACKAGE__->meta->make_immutable;
