@@ -9,7 +9,7 @@ sub run {
     my $record = $self->_get_record_class();
 
     $self->require_uuid;
-    $record->load( uuid => $uuid );
+    $record->load( uuid => $self->uuid );
     unless (@{$record->comments}) {
         print "No comments found\n";
     }
