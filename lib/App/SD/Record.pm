@@ -7,17 +7,26 @@ use Params::Validate;
 use DateTime;
 
 
-sub declared_props { 'date', inner() }
+sub declared_props { 'created', inner() }
 
 extends 'Prophet::Record';
 
-sub canonicalize_prop_date {
+sub canonicalize_prop_created {
     my $self = shift;
     my %args = validate(@_, { props => 1, errors => 1});
-    my $props = shift;
-    if (!$args{props}->{date} ) {
+
+    # has the record been created yet? if so, we don't want to try to
+    # get its properties
+    my $props = $self->uuid ? $self->get_props : {};
+
+    my $created = $args{props}->{created}
+               || $args{props}->{date}
+               || $props->{created}
+               || $props->{date};
+
+    if (!$created ) {
         my $date = DateTime->now;
-        $args{props}->{date} = $date->ymd." ".$date->hms;
+        $args{props}->{created} = $date->ymd." ".$date->hms;
     }
     return 1;
 }

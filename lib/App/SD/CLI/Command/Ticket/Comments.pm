@@ -14,7 +14,7 @@ sub run {
 
     for my $entry (sort { $a->prop('date') cmp $b->prop('date') } @{$record->comments}) {
          print "id: ".$entry->luid." (".$entry->uuid.")\n";
-        print "date: ".$entry->prop('date')."\n";
+        print "created: ".$entry->prop('created')."\n";
         print $entry->prop('content')."\n";
     }
 

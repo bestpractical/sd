@@ -13,7 +13,7 @@ no warnings 'once';
 BEGIN {
     require File::Temp;
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
-    diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
+    warn "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
 }
 # create from sd and push
 my ($yatta_id, $yatta_uuid) = create_ticket_ok( '--summary', 'YATTA');
@@ -24,13 +24,13 @@ run_output_matches( 'sd', [ 'ticket',
    
 );
 
-run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $yatta_id ],
+run_output_matches( 'sd', [ 'ticket',  
+    'show', '--id', $yatta_id ],
     [
-        "id: $yatta_id ($yatta_uuid)",
-        'summary: YATTA',
-        'status: new',
-        qr/^created: \d{4}-\d{2}-\d{2}.+$/,
-        qr/^creator: .+@.+$/,
+        qr/id:\s+$yatta_id\s+\($yatta_uuid\)/,
+        qr/summary:\s+YATTA/,
+        qr/status:.+new/,
+        qr/created:\s+\d{4}-\d{2}-\d{2}.+/,
     ]
 );
 

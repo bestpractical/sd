@@ -10,6 +10,7 @@ override run => sub {
     local $ENV{PROPHET_RESOLVER} = 'Prompt';
 
     $self->set_arg(from => $self->app_handle->default_replica_type.":file://".$self->app_handle->handle->fs_root);
+    $self->set_arg(db_uuid => $self->app_handle->handle->db_uuid);
 
     super();
 };

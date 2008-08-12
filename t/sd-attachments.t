@@ -30,9 +30,8 @@ run_output_matches(
     [ qw/ticket attachment show --batch --id/, $attachment_id ],
     [ 
         qr/id: $attachment_id \($attachment_uuid\)/, 
-        "content: stub",
+        qr/created:\s+\d{4}-\d{2}-\d{2}.+/,
         "content_type: text/plain",
-        qr/date:\s+\d{4}-\d{2}-\d{2}.+/,
         qr/paper_order.doc/,
         "ticket: $yatta_uuid",
     ],
@@ -54,9 +53,8 @@ run_output_matches(
     [ qw/ticket attachment show --batch --uuid/, $attachment_uuid ],
     [  
         qr/id: (\d+) \($attachment_uuid\)/, 
-        "content: stub",
+        qr/created:\s+\d{4}-\d{2}-\d{2}.+/,
         "content_type: text/plain",
-        qr/date:\s+\d{4}-\d{2}-\d{2}.+/,
         qr/plague_recipe.doc/,
         "ticket: $yatta_uuid"
     ],
