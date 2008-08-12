@@ -10,9 +10,10 @@ sub title {
 
 sub _get_cmd_name {
     my $self = shift;
-my $cmd = $0;
-$cmd =~ s{^(.*)/}{}g;
-return $cmd;
+    return '' if $self->cli->interactive_shell;
+    my $cmd = $0;
+    $cmd =~ s{^(.*)/}{}g;
+    return $cmd;
 }
 
 
