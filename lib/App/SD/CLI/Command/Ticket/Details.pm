@@ -6,6 +6,8 @@ sub by_creation_date { $a->prop('created') cmp $b->prop('created') };
 
 override run => sub {
     my $self = shift;
+
+    $self->require_uuid;
     my $record = $self->_load_record;
 
     print "\n=head1 METADATA\n\n";
