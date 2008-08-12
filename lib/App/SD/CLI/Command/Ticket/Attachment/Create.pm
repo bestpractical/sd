@@ -5,8 +5,6 @@ extends 'App::SD::CLI::Command::Attachment::Create';
 
 before run => sub {
     my $self = shift;
-    $self->require_uuid;
-
     $self->set_prop(ticket => $self->cli->uuid);
 };
 
