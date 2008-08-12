@@ -26,7 +26,9 @@ override run => sub {
     $comments->matching(sub {
         shift->prop('ticket') eq $self->uuid ? 1 : 0;
     });
-    print $_->prop('content') . "\n" for $comments->items;
+    my @items = sort { $a->prop('created') cmp $b->prop('created') }
+                    $comments->items;
+    print $_->prop('created') . "\n" . $_->prop('content') . "\n\n" for @items;
 };
 
 __PACKAGE__->meta->make_immutable;
