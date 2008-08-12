@@ -1,16 +1,15 @@
-use warnings;
-use strict;
-
 package App::SD::Replica::RT;
-use Moose; 
+use Moose;
 extends qw/Prophet::ForeignReplica/;
-use Params::Validate qw(:all);
-    use File::Temp ();
-    use Path::Class;
-use Prophet::ChangeSet;
 
+use Params::Validate qw(:all);
+use Path::Class;
+use File::Temp 'tempdir';
 use Memoize;
+
 use constant scheme => 'rt';
+
+use Prophet::ChangeSet;
 
 has rt => ( isa => 'RT::Client::REST', is => 'rw');
 has rt_url => ( isa => 'Str', is => 'rw');
@@ -25,9 +24,6 @@ around 'new' => sub {
     $ret->setup;
     return $ret;
 };
-
-
-use File::Temp 'tempdir';
 
 sub setup {
     my $self = shift;
@@ -54,7 +50,6 @@ sub setup {
         unless $password;
 
     $self->rt->login( username => $username, password => $password );
-
 }
 
 sub record_pushed_transactions {
