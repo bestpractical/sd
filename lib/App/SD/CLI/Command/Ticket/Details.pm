@@ -13,13 +13,22 @@ override run => sub {
     print "\n=head1 METADATA\n\n";
     super();
 
-    print "\n=head1 ATTACHMENTS\n\n";
     my @attachments = sort by_creation_date @{$record->attachments};
-    print $_->format_summary . "\n" for @attachments;
+    if (@attachments) {
+        print "\n=head1 ATTACHMENTS\n\n";
+        print $_->format_summary . "\n"
+            for @attachments;
+    }
 
-    print "\n=head1 COMMENTS\n\n";
     my @comments = sort by_creation_date @{$record->comments};
-    print $_->prop('created') . "\n" . $_->prop('content') . "\n\n" for @comments;
+    if (@comments) {
+        print "\n=head1 COMMENTS\n\n";
+        print $_->prop('created') . "\n" . $_->prop('content') . "\n\n"
+            for @comments;
+    }
+
+    print "\n=head1 HISTORY\n\n";
+    print $record->history_as_string;
 };
 
 __PACKAGE__->meta->make_immutable;
