@@ -6,9 +6,9 @@ license('MIT');
 version_from('lib/App/SD.pm');
 
 requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Path::Class Class::Accessor
+requires('Clone');
 requires('Moose'); # Moose::Role
-requires('HTTP::Date');
-
+requires('DateTime');
 features(
     'RT sync' => [
         -default => 0,

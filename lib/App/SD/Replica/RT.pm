@@ -27,6 +27,16 @@ around 'new' => sub {
 };
 
 
+# XXX: this should be called from superclass, or better, have individual attributes have their own builders.
+
+around 'new' => sub {
+    my ($next, $self, @args) = @_;
+    my $ret = $self->$next(@args);
+    $ret->setup;
+    return $ret;
+};
+
+
 use File::Temp 'tempdir';
 
 sub setup {
@@ -38,7 +48,7 @@ sub setup {
     require RT::Client::REST::Ticket;
 
     my ( $server, $type, $query ) = $self->{url} =~ m/^rt:(.*?)\|(.*?)\|(.*)$/
-        or die "Can't parse RT server spec. Expected rt:http://example.com|QUEUE|QUERY. Try: rt:http://example.com/|General|";
+        or die "Can't parse rt server spec";
     my $uri = URI->new($server);
     my ( $username, $password );
     if ( my $auth = $uri->userinfo ) {

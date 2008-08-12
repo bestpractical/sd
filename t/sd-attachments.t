@@ -21,7 +21,7 @@ run_output_matches( 'sd', [ 'ticket',
 
 my $attachment_id;
 my $attachment_uuid;
-run_output_matches('sd', [qw/ticket attachment create --uuid/, $yatta_uuid, '--content', 'stub', '--', '--name', "paper_order.doc"], [qr/Created attachment (\d+)(?{ $attachment_id = $1}) \((.*)(?{ $attachment_uuid = $2})\)/], [], "Added a attachment");
+run_output_matches('sd', [qw/ticket attachment create --uuid/, $yatta_uuid, '--content', 'stub', '--name', "paper_order.doc"], [qr/Created attachment (\d+)(?{ $attachment_id = $1}) \((.*)(?{ $attachment_uuid = $2})\)/], [], "Added a attachment");
 ok($attachment_id, " $attachment_id = $attachment_uuid");
 
 run_output_matches('sd', [qw/ticket attachment list --uuid/, $yatta_uuid], [qr/\d+ paper_order.doc text\/plain/,], [], "Found the attachment");
@@ -43,7 +43,6 @@ run_output_matches(
 run_output_matches(
     'sd',
     [   qw/ticket attachment update --uuid/, $attachment_uuid,
-        '--',
         qw/--name/,                          "plague_recipe.doc"
     ],
     [qr/attachment \d+ \($attachment_uuid\) updated/],
@@ -52,7 +51,7 @@ run_output_matches(
 );
 run_output_matches(
     'sd',
-    [ qw/ticket attachment show --batch --uuid/, $attachment_uuid ],
+    [ qw/ticket attachment show --uuid/, $attachment_uuid ],
     [  
         qr/id: (\d+) \($attachment_uuid\)/, 
         "content: stub",

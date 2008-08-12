@@ -1,7 +1,6 @@
 package App::SD::Model::Ticket;
 use Moose;
 extends 'App::SD::Record';
-
 use Term::ANSIColor;
 use HTTP::Date;
 

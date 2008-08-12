@@ -6,19 +6,233 @@ use App::SD;
 
 $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.sd';
 
-# Moose likes generating very noisy backtraces. Most users don't need to see
-# anything more than the root cause of the failure. Developers and the curious
-# can set environment variable SD_VERBOSE_ERROR to retain the backtraces.
-# When Moose's error throwing is more malleable we should switch to using that.
-unless ($ENV{SD_VERBOSE_ERROR} || $ENV{'TEST_VERBOSE'}) {
-    $SIG{__DIE__} = sub {
-        my $line = shift;
-        $line =~ s/\n.*//s if ($line =~ /at line/s);
-        $line .= "\n"; $line =~ s/\n+$/\n/gs;
-        die $line;
-    };
+use Prophet::CLI;
+use App::SD::Model::Ticket;
+
+package App::SD::CLI::Command;
+use Moose::Role;
+use Path::Class;
+
+sub get_content {
+    my $self = shift;
+    my $type = shift;
+
+    my $content;
+    if (my $file = file(delete $self->args->{'file'})) {
+        $content = $file->slurp();
+        $self->args->{'name'} = $file->basename;
+    } elsif ($content = delete $self->args->{'content'}) {
+
+    } elsif (exists $self->args->{'edit'}) {
+        $content = $self->edit_text('');
+    } else {
+        print "Please type your $type and press ctrl-d.\n";
+        $content = do { local $/; <> };
+    }
+
+    chomp $content;
+    return $content;
 }
 
-my $cli = Prophet::CLI->new({ app_class => 'App::SD' });
+package App::SD::CLI::Model::Ticket;
+use Moose::Role;
+use constant record_class => 'App::SD::Model::Ticket';
+
+package App::SD::CLI::Model::TicketComment;
+use Moose::Role;
+use constant record_class => 'App::SD::Model::Comment';
+
+package App::SD::CLI::Model::Attachment;
+use Moose::Role;
+use constant record_class => 'App::SD::Model::Attachment';
+
+
+
+
+
+package App::SD::CLI::Command::Ticket::Comment::Create;
+use Moose;
+
+extends 'Prophet::CLI::Command::Create';
+with 'App::SD::CLI::Model::TicketComment';
+with 'App::SD::CLI::Command';
+
+override run => sub  {
+    my $self = shift;
+    $self->args->{'ticket'} = $self->cli->uuid;
+    $self->args->{'content'} = $self->get_content('comment');
+    super(@_);
+};
+# override args to feed in that ticket's uuid as an argument to the comment
+
+
+
+package App::SD::CLI::Command::Attachment::Create;
+use Moose;
+extends 'Prophet::CLI::Command::Create';
+with 'App::SD::CLI::Model::Attachment';
+with 'App::SD::CLI::Command';
+
+override run => sub {
+    my $self = shift;
+    $self->args->{'content'} = $self->get_content('attachment');
+    super(@_);
+
+};
+
+package App::SD::CLI::Command::Ticket::Attachment::Create;
+use Moose;
+extends 'App::SD::CLI::Command::Attachment::Create';
+# override args to feed in that ticket's uuid as an argument to the comment
+
+override run => sub  {
+    my $self = shift;
+    $self->args->{'ticket'} = $self->cli->uuid;
+    super(@_);
+};
+
+
+package App::SD::CLI::Command::Ticket::Attachment::Search;
+use Moose;
+extends 'Prophet::CLI::Command::Search';
+with 'Prophet::CLI::RecordCommand';
+with 'App::SD::CLI::Model::Attachment';
+# override args to feed in that ticket's uuid as an argument to the comment
+
+
+sub type {'attachment'}
+sub get_search_callback {
+    my $self = shift;
+    return sub {
+        shift->prop('ticket') eq $self->uuid ? 1 : 0;
+        }
+
+}
+
+
+package App::SD::CLI::Command::Attachment::Content;
+use Moose;
+extends 'Prophet::CLI::Command::Show';
+with 'App::SD::CLI::Model::Attachment';
+with 'App::SD::CLI::Command';
+
+sub run {
+    my $self = shift;
+    my $record =  $self->_get_record_class;
+    $record->load(uuid => $self->cli->uuid);
+    print $record->prop('content');
+}
+
+package App::SD::CLI::Command::Help;
+use Moose; 
+with 'App::SD::CLI::Command';
+
+sub run {
+
+print <<EOF
+
+$0 ticket create --summary "This is a summary" --status new --somekey value
+$0 ticket update --uuid <uuid> --status resolved
+$0 ticket search --regex .
+$0 ticket delete --uuid <uuid>
+$0 ticket show --uuid <uuid>
+$0 pull --from remote-url
+
+$0 help  
+    Show this file
+
+EOF
+
+}
+
+package App::SD::CLI::Command::Ticket::Show;
+use Moose;
+extends 'Prophet::CLI::Command::Show';
+with 'App::SD::CLI::Command';
+with 'App::SD::CLI::Model::Ticket';
+
+package App::SD::CLI::Command::Details;
+use Moose;
+with 'App::SD::CLI::Command';
+with 'App::SD::CLI::Model::Ticket';
+
+sub run {
+    my $self = shift;
+    print "\n=head1 METADATA\n\n"; 
+    $self->App::SD::CLI::Command::Ticket::Show::run();
+    print "\n=head1 ATTACHMENTS\n\n";
+    use Clone;
+    my $foo = Clone::clone($self);
+    $foo->type('attachment');
+    bless $foo, 'App::SD::CLI::Command::Ticket::Attachment::Search';
+    $foo->run;
+    print "\n=head1 COMMENTS\n\n";
+    my $bar = Clone::clone($self);
+    bless $bar, 'App::SD::CLI::Command::Ticket::Comments';
+    $bar->type('comment');
+    $bar->App::SD::CLI::Command::Ticket::Comments::run();
+}
+
+package App::SD::CLI::Command::Ticket::Comments;
+use Moose;
+extends 'Prophet::CLI::Command';
+with 'Prophet::CLI::RecordCommand';
+with 'App::SD::CLI::Model::Ticket';
+
+sub run {
+    my $self = shift;
+    my $record = $self->_get_record_class();
+    $record->load( uuid => $self->uuid );
+    unless (@{$record->comments}) {
+        print "No comments found\n";
+    }
+
+    for (sort { $a->prop('date') cmp $b->prop('date') } @{$record->comments}) {
+        print "id: ".$_->luid." (".$_->uuid.")\n";
+        print "date: ".$_->prop('date')."\n";
+        print $_->prop('content')."\n";
+    }
+
+}
+
+
+package App::SD::CLI::Command::Merge;
+use Moose;
+extends qw/Prophet::CLI::Command::Merge/;
+with 'App::SD::CLI::Command';
+
+package App::SD::CLI::Command::Push;
+use Moose;
+extends qw/App::SD::CLI::Command::Merge/;
+
+sub run {
+    my $self = shift; 
+    local $ENV{PROPHET_RESOLVER} = 'Prompt';
+    bless $self, 'App::SD::CLI::Command::Merge';
+    $self->args( {to => $self->args->{'to'}, from => $self->app_handle->default_replica_type.":file://".$self->app_handle->handle->fs_root });
+    $self->run; 
+}
+
+package App::SD::CLI::Command::Pull;
+use Moose; 
+extends qw/App::SD::CLI::Command::Merge/;
+
+sub run {
+    my $self = shift; 
+
+    die "Please specify a --from.\n" if !defined($self->args->{'from'});
+
+    local $ENV{PROPHET_RESOLVER} = 'Prompt';
+    bless $self, 'App::SD::CLI::Command::Merge';
+    $self->args({  from => $self->args->{'from'}, 
+                   to => $self->cli->app_handle->default_replica_type.":file://".$self->cli->app_handle->handle->fs_root });
+    $self->run; 
+}
+
+package main;
+
+my $cli = Prophet::CLI->new( { app_class => 'App::SD' } );
 $cli->run_one_command;
 
+
+1;

@@ -73,7 +73,11 @@ sub _translate_final_ticket_state {
     return $ticket;
 }
 
-=head2 find_matching_tickets QUERY
+    my @changesets;
+    for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @{ $args{'transactions'} } ) {
+            my $changeset = $self->txn_to_changeset($txn, $ticket, $create_state);
+            unshift @changesets, $changeset if $changeset->has_changes;
+        }
 
 Returns an RT::Client ticket collection for all tickets found matching your QUERY string.
 
