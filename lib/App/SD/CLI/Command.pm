@@ -40,7 +40,8 @@ sub get_content {
             $text .= $header;
         }
         if (my $props = $args{prefill_props}) {
-            my @ordering = (my $props_order = $args{props_order}) ?
+            my $props_order;
+            my @ordering = ($props_order = $args{props_order}) ?
                                 @$props_order : keys %$props;
             $text .= join "\n", map { "$_: $props->{$_}" } @ordering;
         }
