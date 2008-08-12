@@ -34,7 +34,7 @@ print <<EOF
     replica browsable and pullable by anyone with remote access to your 
     computer.
 
- $comd server --rest --port 9876
+ $comd server --writable --port 9876
     Start an sd replica server on port 9876, with UNAUTHENTICATED,
     PUBLIC WRITE ACCESS via HTTP POST.  This command will make your
     replica modifiable, browsable and pullable by ANYONE with remote
