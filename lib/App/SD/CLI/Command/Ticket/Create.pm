@@ -56,11 +56,10 @@ override run => sub {
         $record = $self->record();
 
         if ($comment) {
-            my $args = { uuid => $record->uuid(),
-                         content => $comment,
-                       };
+            my $args = { content => $comment };
             $self->cli->change_attributes( args => $args );
             my $command = App::SD::CLI::Command::Ticket::Comment::Create->new(
+                uuid => $record->uuid,
                 cli => $self->cli,
                 type => 'comment',
             );
