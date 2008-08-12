@@ -10,13 +10,7 @@ use constant type => 'ticket';
 
 =head2 default_prop_status
 
-The default value of the status prop. Returns a string.
-
-=cut
-
-sub default_prop_status { 'new' }
-
-sub _default_summary_format { '%s,$luid | %s,summary | %s,status' }
+Returns a string of the default value of the status prop.
 
 =cut
 
@@ -54,6 +48,13 @@ sub validate_prop_status {
 
 }
 
+=head2 color_prop_status $value
+
+Returns the stats prop value C<$value> wrapped in colorization escape
+codes (from L<Term::ANSIColor>).
+
+=cut
+
 sub color_prop_status {
     my ($self, $value) = @_;
 
@@ -66,6 +67,13 @@ sub color_prop_status {
 
     return colored($value, $color);
 }
+
+=head2 color_prop_due $due
+
+Returns the due prop value C<$due> wrapped in colorization escape
+codes if it is overdue.
+
+=cut
 
 sub color_prop_due {
     my ($self, $due) = @_;
@@ -84,6 +92,15 @@ from first to last).
 sub props_to_show {
     ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by', 'CF-Broken in', 'CF-Severity')
 }
+
+=head2 is_overdue [$date]
+
+Takes an ISO date (or uses the C<date> prop value if no date is given).
+
+Returns false if the date is not a valid ISO date or its due date is
+in the future. Returns true if the due date has passed.
+
+=cut
 
 # this expects ISO dates. we should improve it in the future to require
 sub is_overdue {
