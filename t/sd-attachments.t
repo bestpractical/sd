@@ -51,7 +51,7 @@ run_output_matches(
 );
 run_output_matches(
     'sd',
-    [ qw/ticket attachment show --uuid/, $attachment_uuid ],
+    [ qw/ticket attachment show --batch --uuid/, $attachment_uuid ],
     [  
         qr/id: (\d+) \($attachment_uuid\)/, 
         "content: stub",

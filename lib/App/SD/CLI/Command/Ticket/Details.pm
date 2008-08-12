@@ -2,33 +2,30 @@ package App::SD::CLI::Command::Ticket::Details;
 use Moose;
 extends 'App::SD::CLI::Command::Ticket::Show';
 
-sub by_creation_date { $a->prop('created') cmp $b->prop('created') };
-
 override run => sub {
     my $self = shift;
-
-    $self->require_uuid;
     my $record = $self->_load_record;
 
     print "\n=head1 METADATA\n\n";
     super();
 
-    my @attachments = sort by_creation_date @{$record->attachments};
-    if (@attachments) {
-        print "\n=head1 ATTACHMENTS\n\n";
-        print $_->format_summary . "\n"
-            for @attachments;
-    }
+    print "\n=head1 ATTACHMENTS\n\n";
+    my $attachments = App::SD::Collection::Attachment->new(
+        handle => $self->app_handle->handle,
+    );
+    $attachments->matching(sub {
+        shift->prop('ticket') eq $self->uuid ? 1 : 0;
+    });
+    print $_->format_summary . "\n" for $attachments->items;
 
-    my @comments = sort by_creation_date @{$record->comments};
-    if (@comments) {
-        print "\n=head1 COMMENTS\n\n";
-        print $_->prop('created') . "\n" . $_->prop('content') . "\n\n"
-            for @comments;
-    }
-
-    print "\n=head1 HISTORY\n\n";
-    print $record->history_as_string;
+    print "\n=head1 COMMENTS\n\n";
+    my $comments = App::SD::Collection::Comment->new(
+        handle => $self->app_handle->handle,
+    );
+    $comments->matching(sub {
+        shift->prop('ticket') eq $self->uuid ? 1 : 0;
+    });
+    print $_->prop('content') . "\n" for $comments->items;
 };
 
 __PACKAGE__->meta->make_immutable;

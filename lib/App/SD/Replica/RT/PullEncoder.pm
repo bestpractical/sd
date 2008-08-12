@@ -61,23 +61,18 @@ sub _translate_final_ticket_state {
     my $ticket = shift;
 
     $ticket->{'id'} =~ s/^ticket\///g;
-
     map { $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_} }
         (qw(Queue id));
     map { delete $ticket->{$_} if ( !defined $ticket->{$_} || $ticket->{$_} eq '' ) } keys %$ticket;
     map { $ticket->{$_} = $self->date_to_iso( $ticket->{$_} ) }
-        qw(Created Resolved Told LastUpdated Due Starts Started);
+        qw(Created Resolved Told LastUpdated Starts Started);
     map { $ticket->{$_} =~ s/ minutes$// if defined $ticket->{$_} }
         qw(TimeWorked TimeLeft TimeEstimated);
     $ticket->{'Status'} =~ s/^(resolved|rejected)$/closed/;
     return $ticket;
 }
 
-    my @changesets;
-    for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @{ $args{'transactions'} } ) {
-            my $changeset = $self->txn_to_changeset($txn, $ticket, $create_state);
-            unshift @changesets, $changeset if $changeset->has_changes;
-        }
+=head2 find_matching_tickets QUERY
 
 Returns an RT::Client ticket collection for all tickets found matching your QUERY string.
 
@@ -242,7 +237,7 @@ sub _recode_txn_Set {
         $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
     } else {
         $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
-        warn "Update consistency problem: " . $args{'ticket'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'};
+        warn $args{'ticket'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'} . "\n\n" . YAML::Dump( \%args ); use YAML;
     }
     $change->add_prop_change(
         name => $args{txn}->{'Field'},

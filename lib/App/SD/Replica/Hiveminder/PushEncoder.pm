@@ -83,11 +83,11 @@ sub integrate_ticket_create {
 }
 
 sub integrate_comment {
-    warn "comment not implemented yet";
+    warn "comment not yet";
 }
 
 sub integrate_ticket_update {
-    warn "update not implemented yet";
+    warn "update not yet";
 }
 
 sub _recode_props_for_integrate {
@@ -105,8 +105,6 @@ sub _recode_props_for_integrate {
     return \%attr;
 }
 
-__PACKAGE__->meta->make_immutable;
-no Moose;
 
 1;
 

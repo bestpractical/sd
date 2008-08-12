@@ -27,16 +27,6 @@ around 'new' => sub {
 };
 
 
-# XXX: this should be called from superclass, or better, have individual attributes have their own builders.
-
-around 'new' => sub {
-    my ($next, $self, @args) = @_;
-    my $ret = $self->$next(@args);
-    $ret->setup;
-    return $ret;
-};
-
-
 use File::Temp 'tempdir';
 
 sub setup {
@@ -58,6 +48,7 @@ sub setup {
     $self->rt_url($uri->as_string);
     $self->rt_queue($type);
     $self->rt_query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
+    warn $self->rt_query;
     $self->rt( RT::Client::REST->new( server => $server ) );
 
     ( $username, $password ) = $self->prompt_for_login( $uri, $username )
@@ -287,8 +278,5 @@ SD::Source::RT->recode_ticket
 
 
 =cut
-
-__PACKAGE__->meta->make_immutable;
-no Moose;
 
 1;
