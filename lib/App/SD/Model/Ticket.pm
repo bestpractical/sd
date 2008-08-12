@@ -3,6 +3,7 @@ use Moose;
 extends 'App::SD::Record';
 
 use Term::ANSIColor;
+use HTTP::Date;
 
 use constant collection_class => 'App::SD::Collection::Ticket';
 use constant type => 'ticket';
@@ -96,20 +97,11 @@ sub is_overdue {
         return 0;
     }
 
-    my $dt = eval { DateTime->new(
-            year      => $1,
-            month     => $2,
-            day       => $3,
-            hour      => $4,
-            minute    => $5,
-            second    => $6,
-            time_zone => 'UTC',
-    ) };
-    warn $@ if $@;
-    return 0 if !$dt;
+    my $then = HTTP::Date::str2time($date, 'GMT');
+    return 0 if !$then;
 
-    my $now = DateTime->now(time_zone => 'UTC');
-    return $now > $dt;
+    my $now = time();
+    return $now > $then;
 }
 
 __PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment', by => 'ticket');

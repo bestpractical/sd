@@ -4,7 +4,6 @@ use strict;
 package App::SD::Record; # should probably be Prophet::App::Record
 use Moose;
 use Params::Validate;
-use DateTime;
 
 
 sub declared_props { 'created', inner() }
@@ -25,8 +24,15 @@ sub canonicalize_prop_created {
                || $props->{date};
 
     if (!$created ) {
-        my $date = DateTime->now;
-        $args{props}->{created} = $date->ymd." ".$date->hms;
+        my @now = gmtime();
+
+        $args{props}->{created} = sprintf(
+            "%04d-%02d-%02d %02d:%02d:%02d",
+            ( $now[5] + 1900 ),
+            ( $now[4] + 1 ),
+            $now[3], $now[2], $now[1], $now[0]
+        );
+
     }
     return 1;
 }
