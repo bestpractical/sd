@@ -28,6 +28,18 @@ print <<EOF
  $cmd publish --html --replica --to jesse\@server:path/to/destination
     Publish a copy of this replica, including a static html representation,
     to a remote server using rsync over ssh.
+
+ $comd server --port 9876
+    Start an sd replica server on port 9876. This command will make your 
+    replica browsable and pullable by anyone with remote access to your 
+    computer.
+
+ $comd server --rest --port 9876
+    Start an sd replica server on port 9876, with UNAUTHENTICATED,
+    PUBLIC WRITE ACCESS via HTTP POST.  This command will make your
+    replica modifiable, browsable and pullable by ANYONE with remote
+    access to your computer.
+
 EOF
 
 }
