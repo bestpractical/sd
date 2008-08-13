@@ -9,6 +9,15 @@ our @EXPORT = qw(create_ticket_ok create_ticket_comment_ok get_uuid_for_luid get
 
 $ENV{'PROPHET_APP_CONFIG'} = "t/prophet_testing.conf";
 
+=head2 create_ticket_ok ARGS
+
+Creates a new ticket, passing ARGS along to the creation command (after the
+props separator).
+
+Returns a list of the luid and uuid of the newly created ticket.
+
+=cut
+
 sub create_ticket_ok {
     my @args = (@_);
     my ( $uuid, $luid );
@@ -19,6 +28,14 @@ sub create_ticket_ok {
 
     return ( $luid, $uuid );
 }
+
+=head2 create_ticket_ok ARGS
+
+Creates a new ticket comment, passing ARGS along to the creation command.
+
+Returns a list of the luid and uuid of the newly created comment.
+
+=cut
 
 sub create_ticket_comment_ok {
     my @args = (@_);
@@ -33,6 +50,13 @@ sub create_ticket_comment_ok {
     return ( $luid, $uuid );
 }
 
+=head2 create_ticket_ok luid
+
+Takes a LUID and returns the corresponding UUID.
+
+Returns undef if none can be found.
+
+=cut
 
 sub get_uuid_for_luid {
         my $luid = shift;
@@ -43,6 +67,13 @@ sub get_uuid_for_luid {
     return undef;
 }
 
+=head2 get_luid_for_uuid UUID
+
+Takes a UUID and returns the corresponding LUID.
+
+Returns undef if none can be found.
+
+=cut
 
 sub get_luid_for_uuid {
         my $uuid = shift;
@@ -55,9 +86,11 @@ sub get_luid_for_uuid {
 
 =head2 create_ticket_with_editor_ok
 
-Creates a ticket and comment at the same time using a spawned editor.
-It's expected that C<$ENV{VISUAL}> has been frobbed into something
-non-interactive, or this test will just hang forever.
+Creates a ticket and comment at the same time using a spawned editor.  It's
+expected that C<$ENV{VISUAL}> has been frobbed into something non-interactive,
+or this test will just hang forever.
+
+Returns a list of the ticket luid, ticket uuid, comment luid, and comment uuid.
 
 =cut
 
