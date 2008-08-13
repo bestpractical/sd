@@ -53,3 +53,20 @@ sub get_luid_for_uuid {
     return undef;
 }
 
+=head2 create_ticket_with_editor_ok
+
+Creates a ticket and comment at the same time using a spawned editor.
+It's expected that C<$ENV{VISUAL}> has been frobbed into something
+non-interactive, or this test will just hang forever.
+
+=cut
+
+sub create_ticket_with_editor_ok {
+    my ( $ticket_uuid, $ticket_luid, $comment_uuid, $comment_luid );
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create' ],
+        [qr/Created ticket (.*?)(?{ $ticket_luid = $1})\s+\((.*)(?{ $ticket_uuid = $2 })\)/, qr/Created comment (.*?)(?{ $comment_luid = $1})\s+\((.*)(?{ $comment_uuid = $2 })\)/]
+    );
+
+    return ( $ticket_luid, $ticket_uuid, $comment_luid, $comment_uuid );
+}
