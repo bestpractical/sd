@@ -93,6 +93,16 @@ sub props_to_show {
     ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by')
 }
 
+=head2 props_not_to_edit
+
+A pattern of props not to show in an editor (when creating or updating a
+ticket, for example). Could also be used to determine which props shouldn't be
+user-modifiable.
+
+=cut
+
+sub props_not_to_edit { qr/^(id|created|creator)$/ }
+
 =head2 is_overdue [$date]
 
 Takes an ISO date (or uses the C<date> prop value if no date is given).

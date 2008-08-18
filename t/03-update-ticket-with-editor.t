@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
-use Prophet::Test tests => 4;
+use Prophet::Test tests => 5;
 use App::SD::Test;
 use Cwd;
 
@@ -10,21 +10,34 @@ BEGIN {
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
     diag 'export SD_REPO=' . $ENV{'PROPHET_REPO'} . "\n";
     # frob the editor to use a perl script instead of spawning vi/emacs/etc.
-    $ENV{'VISUAL'} = File::Spec->catfile(getcwd(), 't', 'scripts', 'ticket-create-editor.pl');
+    $ENV{'VISUAL'} = File::Spec->catfile(getcwd(), 't', 'scripts', 'ticket-update-editor.pl');
     diag 'export VISUAL=' . $ENV{'VISUAL'} . "\n";
 }
 
-my ($ticket_id, $ticket_uuid, $comment_id, $comment_uuid) = App::SD::Test::create_ticket_with_editor_ok();
+# create ticket
+my ($ticket_id, $ticket_uuid) = create_ticket_ok( '--summary', 'zomg!',
+    '--owner', 'foo@bar.com');
 
-run_output_matches( 'sd', [ 'ticket',
-    'list', '--regex', '.' ],
-    [ qr/(\d+) creating tickets with an editor is totally awesome new/]
-);
-
+# verify that it's correct (test prop won't be shown)
 run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $ticket_id ],
     [
         "id: $ticket_id ($ticket_uuid)",
-        'summary: creating tickets with an editor is totally awesome',
+        'summary: zomg!',
+        'status: new',
+        'owner: foo@bar.com',
+        qr/^created: \d{4}-\d{2}-\d{2}.+$/,
+        qr/^creator: .+@.+$/,
+    ]
+);
+
+# update it
+my ($comment_id, $comment_uuid) = App::SD::Test->update_ticket_with_editor_ok($ticket_id, $ticket_uuid);
+
+# check output
+run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $ticket_id ],
+    [
+        "id: $ticket_id ($ticket_uuid)",
+        'summary: summary changed',
         'status: new',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: .+@.+$/,

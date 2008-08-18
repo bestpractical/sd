@@ -11,7 +11,7 @@ arbitrary newlines.
 
 =cut
 
-sub comment_separator { "\n\n=== add ticket comment below ===\n"; }
+sub comment_separator { "\n\n=== add new ticket comment below ===\n"; }
 
 =head2 parse_record $str
 
@@ -32,7 +32,7 @@ sub parse_record {
     my @lines = split "\n", $new_props;
     foreach my $line (@lines) {
         # match prop: value pairs. whitespace in between is ignored.
-        if ($line =~ m/^(.+):\s*(.*)$/) {
+        if ($line =~ m/^([^:]+):\s*(.*)$/) {
             my $prop = $1;
             my $val = $2;
             $props{$prop} = $val unless !($val);

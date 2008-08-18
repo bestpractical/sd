@@ -103,3 +103,48 @@ sub create_ticket_with_editor_ok {
 
     return ( $ticket_luid, $ticket_uuid, $comment_luid, $comment_uuid );
 }
+
+=head2 update_ticket_with_editor_ok TICKET_LUID, TICKET_UUID
+
+Updates the ticket given by TICKET_UUID using a spawned editor. It's
+expected that C<$ENV{VISUAL}> has been frobbed into something non-interactive,
+or this test will just hang forever.
+
+Returns the luid and uuid of the comment created during the update (both will
+be undef if none is created).
+
+=cut
+
+sub update_ticket_with_editor_ok {
+    my $self = shift;
+    my $ticket_luid = shift;
+    my $ticket_uuid = shift;
+    my ($comment_luid, $comment_uuid);
+
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'update', $ticket_uuid ],
+        [ qr/Updated ticket (.*?)(?{ $ticket_luid })\s+\((.*)(?{ $ticket_uuid })\)/,
+          qr/Created comment (.*?)(?{ $comment_luid = $1 })\s+\((.*)(?{ $comment_uuid = $2 })\)/ ]
+    );
+
+    return ( $comment_luid, $comment_uuid );
+}
+
+=head2 update_ticket_comment_with_editor_ok COMMENT_LUID, COMMENT_UUID
+
+Updates the ticket comment given by COMMENT_UUID using a spawned editor. It's
+expected that C<$ENV{VISUAL}> has been frobbed into something non-interactive,
+or this test will just hang forever.
+
+=cut
+
+sub update_ticket_comment_with_editor_ok {
+    my $self = shift;
+    my ($comment_luid, $comment_uuid) = @_;
+
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    Prophet::Test::run_output_matches( 'sd',
+        [ 'ticket', 'comment', 'update', $comment_uuid ],
+        [ qr/Updated comment (.*?)(?{ $comment_luid })\s+\((.*)(?{ $comment_uuid })\)/]
+    );
+}

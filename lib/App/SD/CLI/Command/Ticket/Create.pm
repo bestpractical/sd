@@ -1,8 +1,6 @@
 package App::SD::CLI::Command::Ticket::Create;
 use Moose;
 
-use App::SD::CLI::Command::Ticket::Comment::Create;
-
 extends 'Prophet::CLI::Command::Create';
 with 'App::SD::CLI::Model::Ticket';
 with 'App::SD::CLI::Command';
@@ -17,7 +15,8 @@ override run => sub {
     # only invoke editor if no props specified on the commandline or edit arg
     # specified
     if (!@prop_set || $self->has_arg('edit')) {
-        my @props = grep {!/^id$/} $record->props_to_show;
+        my $do_not_edit = $record->props_not_to_edit;
+        my @props = grep {!/$do_not_edit/} $record->props_to_show;
 
         my %prefill_props;
         # these props must exist in the hash, even if they have no value
@@ -47,7 +46,7 @@ override run => sub {
 
         foreach my $prop (keys %$props_ref) {
             $self->set_prop($prop => $props_ref->{$prop})
-                unless $prop eq 'id'; # don't let users create ids
+                unless $prop =~ /$do_not_edit/; # don't let users create ids
         }
 
         super();
@@ -55,16 +54,9 @@ override run => sub {
         # retrieve the created record from the superclass
         $record = $self->record();
 
-        if ($comment) {
-            my $args = { content => $comment };
-            $self->cli->change_attributes( args => $args );
-            my $command = App::SD::CLI::Command::Ticket::Comment::Create->new(
-                uuid => $record->uuid,
-                cli => $self->cli,
-                type => 'comment',
-            );
-            $command->run();
-        }
+        $self->create_new_comment( content => $comment, uuid => $record->uuid )
+            if $comment;
+
     } else {
         super();
     }
