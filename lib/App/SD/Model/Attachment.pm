@@ -12,7 +12,7 @@ use constant type => 'attachment';
 
 sub _default_summary_format { '%s,$luid | %s,name | %s,content_type'}
 
-__PACKAGE__->register_reference( ticket => 'App::SD::Model::Ticket');
+#__PACKAGE__->register_reference( ticket => 'App::SD::Model::Ticket');
 
 sub create {
     my $self = shift;

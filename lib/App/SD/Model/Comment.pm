@@ -16,7 +16,7 @@ augment declared_props => sub {'content'};
 
 #has SVK::Model::Ticket;
 
-__PACKAGE__->register_reference( ticket => 'App::SD::Model::Comment');
+#__PACKAGE__->register_reference( ticket => 'App::SD::Model::Comment');
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
