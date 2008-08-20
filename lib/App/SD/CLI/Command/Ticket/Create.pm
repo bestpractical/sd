@@ -9,7 +9,7 @@ with 'App::SD::CLI::Command';
 # props are specified on the commandline
 override run => sub {
     my $self = shift;
-    my $record = $self->_get_record_class;
+    my $record = $self->_get_record_object;
     my @prop_set = $self->prop_set;
 
     # only invoke editor if no props specified on the commandline or edit arg
