@@ -23,7 +23,7 @@ override run => sub {
     my @comments = sort by_creation_date @{$record->comments};
     if (@comments) {
         print "\n=head1 COMMENTS\n\n";
-        print $_->prop('created') . "\n" . $_->prop('content') . "\n\n"
+        print $_->prop('creator') . ': ' . $_->prop('created') . "\n" . $_->prop('content') . "\n\n"
             for @comments;
     }
 
