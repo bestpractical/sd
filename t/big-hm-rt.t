@@ -11,14 +11,8 @@ use App::SD::Test;
 # dramatis personae {{{
 our (%USERS, @USERS, $CURRENT_USER_DATA);
 BEGIN {
-    %USERS = map { $_ => {} } qw(
-        alex
-        clkao
-        jesse
-        kevin
-        shawn
-    );
-    @USERS = sort keys %USERS;
+    @USERS = qw(alex clkao jesse kevin shawn);
+    %USERS = map { $_ => {} } @USERS;
 
     # generate "as_person" methods which will perform acts on behalf of that
     # person, such as pull from HM or push to RT
