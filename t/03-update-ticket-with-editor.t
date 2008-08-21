@@ -3,16 +3,12 @@ use strict;
 
 use Prophet::Test tests => 5;
 use App::SD::Test;
-use Cwd;
 
 BEGIN {
     require File::Temp;
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
     diag 'export SD_REPO=' . $ENV{'PROPHET_REPO'} . "\n";
-    # frob the editor to use a perl script instead of spawning vi/emacs/etc.
-    undef $ENV{'VISUAL'};       # Proc::InvokeEditor checks this first
-    $ENV{'EDITOR'} = File::Spec->catfile(getcwd(), 't', 'scripts', 'ticket-update-editor.pl');
-    diag 'export EDITOR=' . $ENV{'EDITOR'} . "\n";
+    App::SD::Test->set_editor('ticket-update-editor.pl');
 }
 
 # create ticket

@@ -4,6 +4,9 @@ use warnings;
 use strict;
 
 require Prophet::Test;
+use Test::More;
+use File::Spec;
+use Cwd qw/getcwd/;
 use base qw/Exporter/;
 our @EXPORT = qw(create_ticket_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid);
 
@@ -147,4 +150,21 @@ sub update_ticket_comment_with_editor_ok {
         [ 'ticket', 'comment', 'update', $comment_uuid ],
         [ qr/Updated comment (.*?)(?{ $comment_luid })\s+\((.*)(?{ $comment_uuid })\)/]
     );
+}
+
+=head2 set_editor SCRIPT
+
+Sets the editor that Proc::InvokeEditor uses (which is used for nicer ticket
+and comment creation / update, etc.).
+
+This should be a non-interactive script found in F<t/scripts>.
+
+=cut
+
+sub set_editor {
+    my ($self, $script) = @_;
+
+    undef $ENV{'VISUAL'};       # Proc::InvokeEditor checks this first
+    $ENV{'EDITOR'} = File::Spec->catfile(getcwd(), 't', 'scripts', $script);
+    diag 'export EDITOR=' . $ENV{'EDITOR'} . "\n";
 }
