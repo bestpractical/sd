@@ -10,8 +10,9 @@ BEGIN {
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
     diag 'export SD_REPO=' . $ENV{'PROPHET_REPO'} . "\n";
     # frob the editor to use a perl script instead of spawning vi/emacs/etc.
-    $ENV{'VISUAL'} = File::Spec->catfile(getcwd(), 't', 'scripts', 'ticket-create-editor.pl');
-    diag 'export VISUAL=' . $ENV{'VISUAL'} . "\n";
+    undef $ENV{'VISUAL'};       # Proc::InvokeEditor checks this first
+    $ENV{'EDITOR'} = File::Spec->catfile(getcwd(), 't', 'scripts', 'ticket-create-editor.pl');
+    diag 'export EDITOR=' . $ENV{'EDITOR'} . "\n";
 }
 
 my ($ticket_id, $ticket_uuid, $comment_id, $comment_uuid) = App::SD::Test::create_ticket_with_editor_ok();
