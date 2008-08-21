@@ -1,4 +1,4 @@
-package App::SD::Replica::Hiveminder;
+package App::SD::Replica::hm;
 use Moose;
 extends 'Prophet::ForeignReplica';
 use Params::Validate qw(:all);
@@ -76,8 +76,8 @@ sub traverse_changesets {
 
     my $first_rev = ( $args{'after'} + 1 ) || 1;
 
-    require App::SD::Replica::Hiveminder::PullEncoder;
-    my $recoder = App::SD::Replica::Hiveminder::PullEncoder->new( { sync_source => $self } );
+    require App::SD::Replica::hm::PullEncoder;
+    my $recoder = App::SD::Replica::hm::PullEncoder->new( { sync_source => $self } );
     for my $task ( @{ $self->find_matching_tasks } ) {
         $args{callback}->($_)
             for @{
@@ -150,8 +150,8 @@ sub _integrate_change {
         { isa => 'Prophet::ChangeSet' }
     );
 
-    require App::SD::Replica::Hiveminder::PushEncoder;
-    my $recoder = App::SD::Replica::Hiveminder::PushEncoder->new( { sync_source => $self } );
+    require App::SD::Replica::hm::PushEncoder;
+    my $recoder = App::SD::Replica::hm::PushEncoder->new( { sync_source => $self } );
     $recoder->integrate_change($change,$changeset);
 }
 

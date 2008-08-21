@@ -1,11 +1,11 @@
-package App::SD::Replica::RT::PullEncoder;
+package App::SD::Replica::rt::PullEncoder;
 use Moose;
 
 use Params::Validate qw(:all);
 use Memoize;
 
 has sync_source => 
-    ( isa => 'App::SD::Replica::RT',
+    ( isa => 'App::SD::Replica::rt',
       is => 'rw');
 
 sub run {

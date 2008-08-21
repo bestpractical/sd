@@ -1,9 +1,9 @@
-package App::SD::Replica::RT::PushEncoder;
+package App::SD::Replica::rt::PushEncoder;
 use Moose; 
 use Params::Validate;
 use Path::Class;
 has sync_source => 
-    ( isa => 'App::SD::Replica::RT',
+    ( isa => 'App::SD::Replica::rt',
       is => 'rw');
 
 
@@ -112,7 +112,7 @@ sub integrate_comment {
 } 
 
 sub integrate_attachment {
-    my ($self, $change, $changeset ) = validate_pos( @_, { isa => 'App::SD::Replica::RT::PushEncoder'}, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' });
+    my ($self, $change, $changeset ) = validate_pos( @_, { isa => 'App::SD::Replica::rt::PushEncoder'}, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' });
 
 
     my %props = map { $_->name => $_->new_value } $change->prop_changes;

@@ -1,10 +1,10 @@
-package App::SD::Replica::Hiveminder::PullEncoder;
+package App::SD::Replica::hm::PullEncoder;
 use Moose;
 use Params::Validate qw(:all);
 use Memoize;
 
 has sync_source => (
-    isa => 'App::SD::Replica::Hiveminder',
+    isa => 'App::SD::Replica::hm',
     is => 'rw',
 );
 
