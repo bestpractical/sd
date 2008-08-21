@@ -1,4 +1,4 @@
-package App::SD::Replica::RT;
+package App::SD::Replica::rt;
 use Moose;
 extends qw/Prophet::ForeignReplica/;
 
@@ -195,8 +195,8 @@ sub _integrate_change {
         { isa => 'Prophet::ChangeSet' }
     );
 
-    require App::SD::Replica::RT::PushEncoder;
-    my $recoder = App::SD::Replica::RT::PushEncoder->new( { sync_source => $self } );
+    require App::SD::Replica::rt::PushEncoder;
+    my $recoder = App::SD::Replica::rt::PushEncoder->new( { sync_source => $self } );
     $recoder->integrate_change($change,$changeset);
 }
 
@@ -220,8 +220,8 @@ sub traverse_changesets {
         }
     );
 
-    require App::SD::Replica::RT::PullEncoder;
-    my $recoder = App::SD::Replica::RT::PullEncoder->new( { sync_source => $self } );
+    require App::SD::Replica::rt::PullEncoder;
+    my $recoder = App::SD::Replica::rt::PullEncoder->new( { sync_source => $self } );
     $recoder->run( query => $self->rt_query, after => $args{'after'}, callback => $args{'callback'});
 
 }

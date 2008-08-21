@@ -12,8 +12,8 @@ has hm => ( isa => 'Net::Jifty', is => 'rw');
 has hm_url => ( isa => 'Str', is => 'rw');
 has hm_username => ( isa => 'Str', is => 'rw');
 
-
 use constant scheme => 'hm';
+use App::SD::Replica::rt;
 
 
 =head2 setup
@@ -104,11 +104,11 @@ sub find_matching_tasks {
 }
 
 sub prophet_has_seen_transaction {
-    goto \&App::SD::Replica::RT::prophet_has_seen_transaction;
+    goto \&App::SD::Replica::rt::prophet_has_seen_transaction;
 }
 
 sub record_pushed_transaction {
-    goto \&App::SD::Replica::RT::record_pushed_transaction;
+    goto \&App::SD::Replica::rt::record_pushed_transaction;
 }
 
 sub record_pushed_transactions {
@@ -117,7 +117,7 @@ sub record_pushed_transactions {
 }
 
 sub _txn_storage {
-    goto \&App::SD::Replica::RT::_txn_storage;
+    goto \&App::SD::Replica::rt::_txn_storage;
 }
 
 # hiveminder transaction ~= prophet changeset
