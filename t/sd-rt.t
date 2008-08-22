@@ -7,12 +7,15 @@ use strict;
 
 use Test::More;
 use Path::Class;
-unless (eval 'use RT::Test; 1') {
-    diag $@;
-    plan skip_all => 'requires 3.7 or newer to run tests.';
+
+BEGIN {
+    unless (eval 'use RT::Test; 1') {
+        diag $@;
+        plan skip_all => 'requires 3.7 or newer to run tests.';
+    }
 }
 
-eval 'use Prophet::Test tests => 27';
+use Prophet::Test tests => 27;
 use App::SD::Test;
 
 no warnings 'once';
