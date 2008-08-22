@@ -1,5 +1,6 @@
 package App::SD::Replica::rt::PullEncoder;
 use Moose;
+extends 'App::SD::ForeignReplica::PullEncoder';
 
 use Params::Validate qw(:all);
 use Memoize;
@@ -166,7 +167,7 @@ sub _recode_attachment_create {
     my %args   = validate( @_, { ticket => 1, txn => 1, changeset => 1, attachment => 1 } );
     my $change = Prophet::Change->new(
         {   record_type => 'attachment',
-            record_uuid => $self->sync_source->uuid_for_url( $self->sync_source->rt_url . "/attachment/" . $args{'attachment'}->{'id'} ),
+            record_uuid => $self->sync_source->uuid_for_url( $self->sync_source->remote_url . "/attachment/" . $args{'attachment'}->{'id'} ),
             change_type => 'add_file'
         }
     );
@@ -309,7 +310,7 @@ sub _recode_content_update {
     my %args   = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
     my $change = Prophet::Change->new(
         {   record_type => 'comment',
-            record_uuid => $self->sync_source->uuid_for_url( $self->sync_source->rt_url . "/transaction/" . $args{'txn'}->{'id'} ),
+            record_uuid => $self->sync_source->uuid_for_url( $self->sync_source->remote_url . "/transaction/" . $args{'txn'}->{'id'} ),
             change_type => 'add_file'
         }
     );
@@ -417,17 +418,6 @@ sub resolve_user_id_to {
 
 memoize 'resolve_user_id_to';
 
-sub warp_list_to_old_value {
-    my $self         = shift;
-    my $current_value = shift ||'';
-    my $add          = shift;
-    my $del          = shift;
-
-    my @new = grep { defined } split( /\s*,\s*/, $current_value );
-    my @old = (grep { defined $_ && $_ ne $add } @new, $del ) || ();
-    return join( ", ", @old );
-}
-
 use HTTP::Date;
 
 sub date_to_iso {
@@ -480,12 +470,6 @@ sub translate_prop_names {
                 $prop->$_("") if !defined ($prop->$_());
                 }
             next if ( $prop->old_value eq $prop->new_value);
-
-#
-#            if ( $prop->name eq 'id' || $prop->name eq 'queue') {
-#                $prop->old_value( $prop->old_value . '@' . $changeset->original_source_uuid ) if ( $prop->old_value);
-#                $prop->old_value( $prop->new_value . '@' . $changeset->original_source_uuid ) if ( $prop->new_value);
-#            }
 
             if ( $prop->name =~ /^cf-(.*)$/ ) {
                 $prop->name( 'custom-' . $1 );
