@@ -1,6 +1,5 @@
 package App::SD::CLI::Command;
 use Moose::Role;
-use Path::Class;
 use Params::Validate qw(validate);
 
 =head2 get_content %args
@@ -30,6 +29,8 @@ sub get_content {
     my %args = @_;
 
     my $content;
+    ### XXX Extract to a common "slurp" routine
+    require Path::Class; Path::Class->import('file'); # instead of use to get runtime loading
     if (my $file = file($self->delete_arg('file'))) {
         $content = $file->slurp();
         $self->set_prop(name => $file->basename);
@@ -75,7 +76,7 @@ sub create_new_comment {
     validate(@_, { content => 1, uuid => 1 } );
     my %args = @_;
 
-    use App::SD::CLI::Command::Ticket::Comment::Create;
+    require App::SD::CLI::Command::Ticket::Comment::Create;
 
     $self->cli->change_attributes( args => \%args );
     my $command = App::SD::CLI::Command::Ticket::Comment::Create->new(
