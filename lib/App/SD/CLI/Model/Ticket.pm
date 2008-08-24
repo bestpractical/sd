@@ -19,10 +19,11 @@ sub add_comment {
 
     require App::SD::CLI::Command::Ticket::Comment::Create;
 
-    $self->cli->mutate_attributes( args => \%args );
+    $self->context->mutate_attributes( args => \%args );
     my $command = App::SD::CLI::Command::Ticket::Comment::Create->new(
         uuid => $args{uuid},
         cli => $self->cli,
+        context => $self->context,
         type => 'comment',
     );
     $command->run();

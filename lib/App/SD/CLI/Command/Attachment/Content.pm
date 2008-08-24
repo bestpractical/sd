@@ -7,7 +7,7 @@ with 'App::SD::CLI::Command';
 sub run {
     my $self = shift;
     my $record =  $self->_get_record_object;
-    $record->load(uuid => $self->cli->uuid);
+    $record->load(uuid => $self->uuid);
     print $record->prop('content');
 }
 

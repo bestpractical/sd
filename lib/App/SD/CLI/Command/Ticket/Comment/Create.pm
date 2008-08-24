@@ -15,7 +15,7 @@ before run => sub {
     die "Aborted.\n"
         if length($content) == 0;
 
-    $self->set_prop(ticket => $self->cli->uuid);
+    $self->set_prop(ticket => $self->uuid);
     $self->set_prop(content => $content);
 };
 
