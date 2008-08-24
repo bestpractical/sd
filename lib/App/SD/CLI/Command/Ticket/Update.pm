@@ -63,7 +63,7 @@ override run => sub {
 
         print 'Updated ticket ' . $record->luid . ' (' . $record->uuid . ")\n";
 
-        $self->create_new_comment( content => $comment, uuid => $record->uuid )
+        $self->add_comment( content => $comment, uuid => $record->uuid )
             if $comment;
 
     } else {

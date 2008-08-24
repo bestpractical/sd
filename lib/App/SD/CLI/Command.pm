@@ -63,30 +63,6 @@ sub get_content {
     return $content;
 }
 
-=head2 create_new_comment content => str, uuid => str
-
-A convenience method that takes a content string and a ticket uuid and creates
-a new comment record, for use in other commands (such as ticket create
-and ticket update).
-
-=cut
-
-sub create_new_comment {
-    my $self = shift;
-    validate(@_, { content => 1, uuid => 1 } );
-    my %args = @_;
-
-    require App::SD::CLI::Command::Ticket::Comment::Create;
-
-    $self->cli->change_attributes( args => \%args );
-    my $command = App::SD::CLI::Command::Ticket::Comment::Create->new(
-        uuid => $args{uuid},
-        cli => $self->cli,
-        type => 'comment',
-    );
-    $command->run();
-}
-
 no Moose::Role;
 
 1;

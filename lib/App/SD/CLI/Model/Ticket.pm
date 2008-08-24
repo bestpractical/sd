@@ -1,7 +1,33 @@
 package App::SD::CLI::Model::Ticket;
 use Moose::Role;
-
+use Params::Validate qw(:all);
 use constant record_class => 'App::SD::Model::Ticket';
+
+
+=head2 add_comment content => str, uuid => str
+
+A convenience method that takes a content string and a ticket uuid and creates
+a new comment record, for use in other commands (such as ticket create
+and ticket update).
+
+=cut
+
+sub add_comment {
+    my $self = shift;
+    validate(@_, { content => 1, uuid => 1 } );
+    my %args = @_;
+
+    require App::SD::CLI::Command::Ticket::Comment::Create;
+
+    $self->cli->mutate_attributes( args => \%args );
+    my $command = App::SD::CLI::Command::Ticket::Comment::Create->new(
+        uuid => $args{uuid},
+        cli => $self->cli,
+        type => 'comment',
+    );
+    $command->run();
+}
+
 
 =head2 comment_separator
 

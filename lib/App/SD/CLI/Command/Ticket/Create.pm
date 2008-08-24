@@ -54,7 +54,7 @@ override run => sub {
         # retrieve the created record from the superclass
         $record = $self->record();
 
-        $self->create_new_comment( content => $comment, uuid => $record->uuid )
+        $self->add_comment( content => $comment, uuid => $record->uuid )
             if $comment;
 
     } else {
