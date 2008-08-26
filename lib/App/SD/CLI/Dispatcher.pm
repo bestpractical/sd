@@ -14,12 +14,12 @@ on qr{.} => sub {
     my $cli = shift;
     my %args = @_;
 
-    my @pieces = @{ $args{dispatching_on} };
+    my @pieces = map { ucfirst lc $_ } __PACKAGE__->resolve_builtin_aliases(@{ $args{dispatching_on} });
 
     my @possible_classes;
     while (@pieces) {
         push @possible_classes, "App::SD::CLI::Command::"
-                              . join '::', map { ucfirst lc $_ } @pieces;
+                              . join '::', @pieces;
         shift @pieces;
     }
 
