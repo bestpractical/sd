@@ -19,6 +19,15 @@ before run => sub {
     }
 };
 
+# implicit status != closed
+sub default_match {
+    my $self = shift;
+    my $ticket = shift;
+
+    return 0 if $ticket->prop('status') eq 'closed';
+    return 1;
+}
+
 __PACKAGE__->meta->make_immutable;
 no Moose;
 

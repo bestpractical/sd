@@ -1,9 +1,9 @@
-package App::SD::Replica::Hiveminder::PushEncoder;
+package App::SD::Replica::hm::PushEncoder;
 use Moose; 
 use Params::Validate;
 use Path::Class;
 has sync_source => 
-    ( isa => 'App::SD::Replica::Hiveminder',
+    ( isa => 'App::SD::Replica::hm',
       is => 'rw');
 
 
@@ -105,6 +105,8 @@ sub _recode_props_for_integrate {
     return \%attr;
 }
 
+__PACKAGE__->meta->make_immutable;
+no Moose;
 
 1;
 

@@ -34,8 +34,9 @@ run_output_matches(
     'sd',
     [ qw/ticket comment show --batch --uuid/, $comment_uuid ],
     [   qr/id: (\d+) \($comment_uuid\)/,
-        qr/created: /i,
         qr/This is a test/,
+        qr/created: /,
+        qr/creator: /,
         "ticket: $yatta_uuid"
     ],
     [],
@@ -55,8 +56,11 @@ run_output_matches(
     'sd',
     [ qw/ticket comment show --batch --uuid/, $comment_uuid ],
     [ qr/id: (\d+) \($comment_uuid\)/, 
+        qr/I hate you/,
         qr/created: /i,
-    qr/I hate you/, "ticket: $yatta_uuid" ],
+        qr/creator: /i,
+        "ticket: $yatta_uuid"
+    ],
     [],
     "Found the comment new version"
 );

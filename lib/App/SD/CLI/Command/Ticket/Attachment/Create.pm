@@ -7,7 +7,7 @@ before run => sub {
     my $self = shift;
     $self->require_uuid;
 
-    $self->set_prop(ticket => $self->cli->uuid);
+    $self->set_prop(ticket => $self->uuid);
 };
 
 __PACKAGE__->meta->make_immutable;

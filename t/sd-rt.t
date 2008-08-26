@@ -7,12 +7,15 @@ use strict;
 
 use Test::More;
 use Path::Class;
-unless (eval 'use RT::Test; 1') {
-    diag $@;
-    plan skip_all => 'requires 3.7 or newer to run tests.';
+
+BEGIN {
+    unless (eval 'use RT::Test; 1') {
+        diag $@;
+        plan skip_all => 'requires 3.7 or newer to run tests.';
+    }
 }
 
-eval 'use Prophet::Test tests => 23';
+use Prophet::Test tests => 27;
 use App::SD::Test;
 
 no warnings 'once';
@@ -188,9 +191,27 @@ is($logo->content, file($IMAGE_FILE)->slurp, " The image's content was ropundtri
 
 
 #diag $uuid;
+# testing adding CCs to tickets
+
+$tick->add_cc('hiro@example.com'); # stored
+my ($tval,$tmsg) = $tick->store;
+ok($tval, $tmsg);
+
+my $fetched_tick = RT::Client::REST::Ticket->new(
+    rt => $rt,
+    id => $tick->id)->retrieve;
 
 
-exit();
+diag($fetched_tick->subject);
+my (@x) = $fetched_tick->cc;
+is_deeply (\@x,  [ 'hiro@example.com']);
+( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from',  $sd_rt_url ] );
+ok($ret, $out);
+
+( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'show', '--verbose','--id',$yatta_id ] );
+
+like($out, qr/Cc:\s*hiro\@example.com/);
+
 
 
 sub get_rt_ticket_attachments {

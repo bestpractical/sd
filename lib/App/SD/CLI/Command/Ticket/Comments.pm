@@ -6,7 +6,7 @@ with 'App::SD::CLI::Model::Ticket';
 
 sub run {
     my $self = shift;
-    my $record = $self->_get_record_class();
+    my $record = $self->_get_record_object;
 
     $self->require_uuid;
     $record->load( uuid => $self->uuid );

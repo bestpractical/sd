@@ -1,10 +1,10 @@
-package App::SD::Replica::Hiveminder::PullEncoder;
+package App::SD::Replica::hm::PullEncoder;
 use Moose;
 use Params::Validate qw(:all);
 use Memoize;
 
 has sync_source => (
-    isa => 'App::SD::Replica::Hiveminder',
+    isa => 'App::SD::Replica::hm',
     is => 'rw',
 );
 
@@ -140,7 +140,7 @@ sub _recode_content_update {
     my $change = Prophet::Change->new(
         {   record_type => 'comment',
             record_uuid =>
-                $self->sync_source->uuid_for_url( $self->sync_source->rt_url . "/transaction/" . $args{'txn'}->{'id'} ),
+                $self->sync_source->uuid_for_url( $self->sync_source->remote_url . "/transaction/" . $args{'txn'}->{'id'} ),
             change_type => 'add_file'
         }
     );
@@ -260,4 +260,6 @@ sub translate_props {
 }
 
 
+__PACKAGE__->meta->make_immutable;
+no Moose;
 1;

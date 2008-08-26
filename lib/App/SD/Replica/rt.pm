@@ -1,19 +1,18 @@
-use warnings;
-use strict;
+package App::SD::Replica::rt;
+use Moose;
+extends qw/App::SD::ForeignReplica/;
 
-package App::SD::Replica::RT;
-use Moose; 
-extends qw/Prophet::ForeignReplica/;
 use Params::Validate qw(:all);
-    use File::Temp ();
-    use Path::Class;
-use Prophet::ChangeSet;
-
+use Path::Class;
+use File::Temp 'tempdir';
 use Memoize;
+
 use constant scheme => 'rt';
 
+use Prophet::ChangeSet;
+
 has rt => ( isa => 'RT::Client::REST', is => 'rw');
-has rt_url => ( isa => 'Str', is => 'rw');
+has remote_url => ( isa => 'Str', is => 'rw');
 has rt_queue => ( isa => 'Str', is => 'rw');
 has rt_query => ( isa => 'Str', is => 'rw');
 
@@ -25,9 +24,6 @@ around 'new' => sub {
     $ret->setup;
     return $ret;
 };
-
-
-use File::Temp 'tempdir';
 
 sub setup {
     my $self = shift;
@@ -45,7 +41,7 @@ sub setup {
         ( $username, $password ) = split /:/, $auth, 2;
         $uri->userinfo(undef);
     }
-    $self->rt_url($uri->as_string);
+    $self->remote_url($uri->as_string);
     $self->rt_queue($type);
     $self->rt_query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
     $self->rt( RT::Client::REST->new( server => $server ) );
@@ -54,7 +50,6 @@ sub setup {
         unless $password;
 
     $self->rt->login( username => $username, password => $password );
-
 }
 
 sub record_pushed_transactions {
@@ -79,107 +74,6 @@ sub record_pushed_transactions {
         );
     }
 }
-
-=head2 prophet_has_seen_transaction $transaction_id
-
-Given an transaction id, will return true if this transaction originated in Prophet 
-and was pushed to RT or originated in RT and has already been pulled to the prophet replica.
-
-=cut
-
-# This is a mapping of all the transactions we have pushed to the
-# remote replica we'll only ever care about remote sequence #s greater
-# than the last transaction # we've pulled from the remote replica
-# once we've done a pull from the remote replica, we can safely expire
-# all records of this type for the remote replica (they'll be
-# obsolete)
-
-# we use this cache to avoid integrating changesets we've pushed to the remote replica when doing a subsequent pull
-
-my $TXN_METATYPE = 'txn-source';
-
-sub _txn_storage {
-    my $self = shift;
-    return $self->state_handle->metadata_storage( $TXN_METATYPE,
-        'prophet-txn-source' );
-}
-
-sub prophet_has_seen_transaction {
-    my $self = shift;
-    my ($id) = validate_pos( @_, 1 );
-    return $self->_txn_storage->( $self->uuid . '-txn-' . $id );
-}
-
-sub record_pushed_transaction {
-    my $self = shift;
-    my %args = validate( @_,
-        { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
-
-    $self->_txn_storage->(
-        $self->uuid . '-txn-' . $args{transaction},
-        join( ':',
-            $args{changeset}->original_source_uuid,
-            $args{changeset}->original_sequence_no )
-    );
-}
-
-# This cache stores uuids for tickets we've synced from a remote RT
-# Basically, if we created the ticket to begin with, then we'll know its uuid
-# if we pulled the ticket from RT then its uuid will be generated based on a UUID-from-ticket-url scheme
-# This cache is PERMANENT. - aka not a cache but a mapping table
-
-sub remote_id_for_uuid {
-    my ( $self, $uuid_for_remote_id ) = @_;
-
-
-    # XXX: should not access CLI handle
-    my $ticket = Prophet::Record->new(
-        handle => Prophet::CLI->new->app_handle->handle,
-        type   => 'ticket'
-    );
-    $ticket->load( uuid => $uuid_for_remote_id );
-    my $id =  $ticket->prop( $self->uuid . '-id' );
-    return $id;
-}
-
-sub _set_remote_id_for_uuid {
-    my $self = shift;
-    my %args = validate(
-        @_,
-        {   uuid      => 1,
-            remote_id => 1
-        }
-    );
-
-    # XXX: should not access CLI handle
-    my $ticket = Prophet::Record->new(
-        handle => Prophet::CLI->new->app_handle->handle,
-        type   => 'ticket'
-    );
-    $ticket->load( uuid => $args{'uuid'});
-    $ticket->set_props( props => {  $self->uuid.'-id' => $args{'remote_id'}});
-
-}
-
-
-sub uuid_for_remote_id {
-    my ( $self, $id ) = @_;
-    return $self->_lookup_uuid_for_remote_id($id) || $self->uuid_for_url( $self->rt_url . "/ticket/$id" );
-}
-
-sub _lookup_uuid_for_remote_id {
-    my $self = shift;
-    my ($id) = validate_pos( @_, 1 );
-
-    return $self->_remote_id_storage( $self->uuid_for_url( $self->rt_url . "/ticket/$id" ) );
-}
-
-sub _set_uuid_for_remote_id {
-    my $self = shift;
-    my %args = validate( @_, {   uuid      => 1, remote_id => 1 });
-    return $self->_remote_id_storage( $self->uuid_for_url( $self->rt_url . "/ticket/" . $args{'remote_id'} ), $args{uuid});
-}
-
 sub record_pushed_ticket {
     my $self = shift;
     my %args = validate(
@@ -200,8 +94,8 @@ sub _integrate_change {
         { isa => 'Prophet::ChangeSet' }
     );
 
-    require App::SD::Replica::RT::PushEncoder;
-    my $recoder = App::SD::Replica::RT::PushEncoder->new( { sync_source => $self } );
+    require App::SD::Replica::rt::PushEncoder;
+    my $recoder = App::SD::Replica::rt::PushEncoder->new( { sync_source => $self } );
     $recoder->integrate_change($change,$changeset);
 }
 
@@ -213,7 +107,7 @@ Return the replica SVN repository's UUID
 
 sub uuid {
     my $self = shift;
-    return $self->uuid_for_url( join( '/', $self->rt_url, $self->rt_query ) );
+    return $self->uuid_for_url( join( '/', $self->remote_url, $self->rt_query ) );
 
 }
 
@@ -225,10 +119,16 @@ sub traverse_changesets {
         }
     );
 
-    require App::SD::Replica::RT::PullEncoder;
-    my $recoder = App::SD::Replica::RT::PullEncoder->new( { sync_source => $self } );
+    require App::SD::Replica::rt::PullEncoder;
+    my $recoder = App::SD::Replica::rt::PullEncoder->new( { sync_source => $self } );
     $recoder->run( query => $self->rt_query, after => $args{'after'}, callback => $args{'callback'});
 
+}
+
+sub remote_uri_path_for_id {
+    my $self = shift;
+    my $id = shift;
+    return "/ticket/".$id;
 }
 
 
@@ -277,5 +177,8 @@ SD::Source::RT->recode_ticket
 
 
 =cut
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
 
 1;
