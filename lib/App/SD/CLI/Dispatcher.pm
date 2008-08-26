@@ -19,7 +19,7 @@ on qr{.} => sub {
     my @possible_classes;
     while (@pieces) {
         push @possible_classes, "App::SD::CLI::Command::"
-                              . join '::', @pieces;
+                              . join '::', map { ucfirst lc $_ } @pieces;
         shift @pieces;
     }
 
