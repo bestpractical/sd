@@ -5,13 +5,12 @@ use warnings;
 use Prophet::CLI::Dispatcher -base;
 
 on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
-    my $cli = shift;
-    $cli->set_arg(type => $1);
-    run($2, $cli, @_);
+    my %args = @_;
+    $args{context}->set_arg(type => $1);
+    run($2, %args);
 };
 
 on qr{.} => sub {
-    my $cli = shift;
     my %args = @_;
 
     my @pieces = map { ucfirst lc $_ } __PACKAGE__->resolve_builtin_aliases(@{ $args{dispatching_on} });
@@ -22,6 +21,8 @@ on qr{.} => sub {
                               . join '::', @pieces;
         shift @pieces;
     }
+
+    my $cli = $args{cli};
 
     for my $class (@possible_classes) {
         if ($cli->_try_to_load_cmd_class($class)) {
