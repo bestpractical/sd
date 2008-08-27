@@ -257,8 +257,8 @@ sub get_rt_ticket_attachments {
     my @attachments;
     while (my $att = &$iterator) { 
         if ( $att->file_name ) {
-        push @attachments, $att ;
-    }
+            push @attachments, $att ;
+        }
     }
     return @attachments
 }
