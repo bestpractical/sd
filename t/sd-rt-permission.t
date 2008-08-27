@@ -21,7 +21,7 @@ BEGIN {
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
 }
 
-use Prophet::Test tests => 11;
+use Prophet::Test tests => 15;
 use App::SD::Test;
 use RT::Client::REST;
 use RT::Client::REST::Ticket;
@@ -42,10 +42,11 @@ $root->login( username => 'root', password => 'password' );
 diag("create a ticket as root, then try to pull it as someone who doesn't have the rights to see it");
 
 my $ticket = RT::Client::REST::Ticket->new(
-    rt      => $root,
-    queue   => 'General',
-    status  => 'new',
-    subject => 'Fly Man',
+    rt       => $root,
+    queue    => 'General',
+    status   => 'new',
+    subject  => 'Fly Man',
+    priority => 10,
 )->store(text => "Ticket Comment");
 my $ticket_id = $ticket->id;
 
@@ -103,3 +104,32 @@ as_alice {
     }
 };
 
+$ticket = RT::Client::REST::Ticket->new(
+    rt      => $root,
+    id      => $ticket_id,
+)->retrieve;
+
+is($ticket->priority, 10, "ticket not updated");
+
+diag("give write rights, try to push again");
+
+$alice->PrincipalObj->GrantRight(Right => 'ModifyTicket', Object => $queue);
+
+as_alice {
+    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $sd_alice_url]);
+    ok($ret);
+    TODO: {
+        local $TODO = "Prophet thinks it already merged this changeset!";
+        like($out, qr/Merged one changeset/);
+    }
+};
+
+$ticket = RT::Client::REST::Ticket->new(
+    rt      => $root,
+    id      => $ticket_id,
+)->retrieve;
+
+TODO: {
+    local $TODO = "ticket is NOT updated!";
+    is($ticket->priority, 20, "ticket updated");
+}
