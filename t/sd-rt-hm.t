@@ -114,7 +114,7 @@ as_bob {
 
     my @ids = $rt->search(
         type => 'ticket',
-        query => "Subject LIKE 'Yatta'",
+        query => "Subject LIKE 'YATTA'",
     );
     is(@ids, 1, "pushed YATTA ticket to RT");
 };

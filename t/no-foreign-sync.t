@@ -183,7 +183,7 @@ as_alice {
 
 my @ids = $rt->search(
     type => 'ticket',
-    query => "Subject LIKE 'Yatta'",
+    query => "Subject LIKE 'YATTA'",
 );
 is(@ids, 0, "no YATTA ticket (from HM) in RT");
 
