@@ -15,7 +15,7 @@ BEGIN {
     }
 }
 
-use Prophet::Test tests => 27;
+use Prophet::Test tests => 37;
 use App::SD::Test;
 
 no warnings 'once';
@@ -212,7 +212,42 @@ ok($ret, $out);
 
 like($out, qr/Cc:\s*hiro\@example.com/);
 
+diag("resolve and comment on a ticket");
 
+$ticket = RT::Client::REST::Ticket->new(
+    rt      => $rt,
+    queue   => 'General',
+    status  => 'new',
+    subject => 'helium',
+)->store( text => "Ticket Comment" );
+
+( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from',  $sd_rt_url ] );
+ok($ret, $out);
+
+my $helium_id;
+run_output_matches( 'sd', [ 'ticket', 'list', '--regex', 'helium' ],
+    [qr/(.*?)(?{ $helium_id = $1 }) helium new/] );
+
+( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'comment', $helium_id, '--content', 'helium is a noble gas' ] );
+ok($ret, $out);
+like($out, qr/Created comment/);
+
+( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'resolve', $helium_id ]);
+ok($ret, $out);
+like($out, qr/ticket .* updated/);
+
+( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
+ok($ret, $out);
+
+( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from',  $sd_rt_url ] );
+ok($ret, $out);
+like($out, qr/No new changesets/);
+
+my $fetched_ticket = RT::Client::REST::Ticket->new(
+    rt => $rt,
+    id => $ticket->id)->retrieve;
+
+is($fetched_ticket->status, "resolved");
 
 sub get_rt_ticket_attachments {
     my $ticket = shift;
