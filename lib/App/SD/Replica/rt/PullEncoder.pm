@@ -25,6 +25,9 @@ sub run {
     my @transactions;
 
     my @tickets =  $self->find_matching_tickets( $args{'query'} ); 
+
+    $self->sync_source->log("No tickets found.") if @tickets == 0;
+
     my $counter = 0;
     for my $id ( @tickets) {
         $counter++;
