@@ -13,7 +13,7 @@ on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
 on qr{.} => sub {
     my %args = @_;
 
-    my @pieces = map { ucfirst lc $_ } __PACKAGE__->resolve_builtin_aliases(@{ $args{dispatching_on} });
+    my @pieces = __PACKAGE__->resolve_builtin_aliases(@{ $args{dispatching_on} });
 
     my @possible_classes;
     while (@pieces) {
