@@ -21,7 +21,7 @@ BEGIN {
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
 }
 
-use Prophet::Test tests => 15;
+use Prophet::Test tests => 22;
 use App::SD::Test;
 use RT::Client::REST;
 use RT::Client::REST::Ticket;
@@ -34,6 +34,10 @@ my ( $url, $m ) = RT::Test->started_ok;
 my $alice = RT::Test->load_or_create_user(
     Name     => 'alice',
     Password => 'AlicesPassword',
+);
+
+my $refuge = RT::Test->load_or_create_queue(
+    Name => 'Ticket Refuge',
 );
 
 my $root = RT::Client::REST->new( server => $url );
@@ -133,3 +137,43 @@ TODO: {
     local $TODO = "ticket is NOT updated!";
     is($ticket->priority, 20, "ticket updated");
 }
+
+diag("move the ticket, ensure it doesn't just disappear");
+$ticket = RT::Client::REST::Ticket->new(
+    rt       => $root,
+    id       => $ticket_id,
+    queue    => $refuge->Id,
+    status   => 'stalled',
+)->store;
+
+as_alice {
+    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url]);
+    ok($ret);
+    like($out, qr/No new changesets/);
+
+    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ],
+        [qr/Fly Man new/] );
+};
+
+diag("update the moved ticket");
+$alice->PrincipalObj->GrantRight(Right => 'ModifyTicket', Object => $refuge);
+$alice->PrincipalObj->GrantRight(Right => 'SeeQueue',     Object => $refuge);
+$alice->PrincipalObj->GrantRight(Right => 'ShowTicket',   Object => $refuge);
+
+as_alice {
+    run_output_matches('sd', ['ticket', 'resolve', $flyman_id],
+        [qr/ticket .*$flyman_id.* updated/],
+    );
+
+    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $sd_alice_url]);
+    ok($ret);
+    like($out, qr/Merged one changeset/, "pushed the 'resolve' changeset");
+};
+
+$ticket = RT::Client::REST::Ticket->new(
+    rt       => $root,
+    id       => $ticket_id,
+)->retrieve;
+
+is($ticket->status, 'resolved', "ticket is updated");
+
