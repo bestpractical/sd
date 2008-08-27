@@ -25,7 +25,7 @@ BEGIN {
     push @INC, File::Spec->catdir( Jifty::Util->app_root, "lib" );
 }
 
-plan tests => 10;
+plan tests => 11;
 
 RT::Test->import();
 
@@ -112,7 +112,11 @@ as_bob {
     ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
     diag($err) if ($err);
 
-    # XXX: to check YATTA ticket created in RT.
+    my @ids = $rt->search(
+        type => 'ticket',
+        query => "Subject LIKE 'Yatta'",
+    );
+    is(@ids, 1, "pushed YATTA ticket to RT");
 };
 
 as_alice {
