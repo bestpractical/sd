@@ -164,7 +164,7 @@ This should be a non-interactive script found in F<t/scripts>.
 sub set_editor {
     my ($self, $script) = @_;
 
-    undef $ENV{'VISUAL'};       # Proc::InvokeEditor checks this first
+    delete $ENV{'VISUAL'};       # Proc::InvokeEditor checks this first
     $ENV{'EDITOR'} = File::Spec->catfile(getcwd(), 't', 'scripts', $script);
     diag 'export EDITOR=' . $ENV{'EDITOR'} . "\n";
 }
