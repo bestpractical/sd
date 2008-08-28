@@ -1,9 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # to run:
 #
 # RT_DBA_USER=root RT_DBA_PASSWORD= prove -lv -I/Users/clkao/work/bps/rt-3.7/lib t/sd-rt.t
 use strict;
+use warnings;
+no warnings 'once';
 
 # setup for rt
 use Prophet::Test;
@@ -27,9 +29,9 @@ BEGIN {
 
 plan tests => 11;
 
-RT::Test->import();
-
-no warnings 'once';
+RT::Test->import;
+use RT::Client::REST;
+use RT::Client::REST::Ticket;
 
 RT::Handle->InsertData( $RT::EtcPath . '/initialdata' );
 
@@ -46,8 +48,20 @@ ok( 1, "Loaded the test script" );
 my ( $url, $m ) = RT::Test->started_ok;
 diag("RT server started at $url");
 
-use RT::Client::REST;
-use RT::Client::REST::Ticket;
+my $CF = RT::Test->load_or_create_custom_field(
+    Name  => 'sd:no-foreign-sync',
+    Queue => 'General',
+    Type  => 'SelectSingle',
+);
+$CF->AddValue(
+    Name        => 'ForbidForeignSync',
+    Description => 'Using this flag will forbid syncing the ticket to other foreign replicas',
+);
+$CF->AddValue(
+    Name        => 'AllowForeignSync',
+    Description => 'Using this flag will allow syncing the ticket to other foreign replicas',
+);
+
 my $rt = RT::Client::REST->new( server => $url );
 $rt->login( username => 'root', password => 'password' );
 
@@ -59,6 +73,9 @@ my $ticket = RT::Client::REST::Ticket->new(
     queue   => 'General',
     status  => 'new',
     subject => 'Fly Man',
+    cf      => {
+        'sd:no-foreign-sync' => 'ForbidForeignSync',
+    },
 )->store( text => "Ticket Comment" );
 
 # setup for hm
@@ -73,6 +90,7 @@ my $task = BTDT::Model::Task->new( current_user => $GOODUSER );
 $task->create(
     summary     => "YATTA",
     description => '',
+    tags        => 'sd:no-foreign-sync',
 );
 
 my ( $bob_yatta_id, $bob_flyman_id, $flyman_uuid, $yatta_uuid, $alice_yatta_id, $alice_flyman_id );
@@ -95,7 +113,7 @@ as_bob {
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
     diag($err) if ($err);
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $bob_flyman_id = $1 }) Fly Man new/] );
-    diag("Bob pulling from alice");
+
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('alice'), '--force' ] );
 
     $flyman_uuid = get_uuid_for_luid($bob_flyman_id);
@@ -111,12 +129,6 @@ as_bob {
     diag("Bob pushing to RT");
     ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
     diag($err) if ($err);
-
-    my @ids = $rt->search(
-        type => 'ticket',
-        query => "Subject LIKE 'YATTA'",
-    );
-    is(@ids, 1, "pushed YATTA ticket to RT");
 };
 
 as_alice {
@@ -131,118 +143,47 @@ as_alice {
         [ 'ticket',                             'list', '--regex', '.' ],
         [ sort "$alice_yatta_id YATTA (no status)", "$alice_flyman_id Fly Man new" ]
     );
-
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
-
-    ok( $task->load_by_cols( summary => 'Fly Man' ) );
 };
 
-exit(0);
+# try pushing Fly Man to Hiveminder
+as_bob {
+    local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
 
-__END__
+    diag("Bob pushing to Hiveminder");
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_hm_url ] );
+    diag($err) if ($err);
+};
 
+as_alice {
+    local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
 
+    diag("Alice pushing to Hiveminder");
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_hm_url ] );
+    diag($err) if ($err);
+};
 
-use Test::More;
+ok(!$task->load_by_cols(summary => "Fly Man"), "no 'Fly Man' ticket on HM because RT had the no-foreign-sync custom field");
 
-my ($url, $m) = RT::Test->started_ok;
+# try pushing YATTA to RT
+as_bob {
+    local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
 
-use RT::Client::REST;
-use RT::Client::REST::Ticket;
-my $rt = RT::Client::REST->new( server => $url );
-$rt->login( username => 'root', password => 'password' );
+    diag("Bob pushing to RT");
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
+    diag($err) if ($err);
+};
 
-$url =~ s|http://|http://root:password@|;
-warn $url;
-my $sd_rt_url = "rt:$url|General|Status!='resolved'";
+as_alice {
+    local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
 
-my $ticket = RT::Client::REST::Ticket->new(
-        rt => $rt,
-        queue => 'General',
-        status => 'new',
-        subject => 'Fly Man',
-    )->store(text => "Ticket Comment");
+    diag("Alice pushing to RT");
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
+    diag($err) if ($err);
+};
 
-diag $ticket->id;
-my ($ret, $out, $err);
-($ret, $out, $err) = run_script('sd', ['pull', '--from', $sd_rt_url]);
-warn $err;
-my ($yatta_uuid, $flyman_uuid);
-run_output_matches('sd', ['ticket', 'list', '--regex', '.'], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man new/]);
-
-
-RT::Client::REST::Ticket->new(
-        rt => $rt,
-        id => $ticket->id,
-        status => 'open',
-    )->store();
-
-($ret, $out, $err) = run_script('sd', ['pull', '--from', $sd_rt_url]);
-
-run_output_matches('sd', ['ticket', 'list', '--regex', '.'], ["$flyman_uuid Fly Man open"]);
-
-# create from sd and push
-
-run_output_matches('sd', ['ticket', 'create', '--summary', 'YATTA', '--status', 'new'], [qr/Created ticket (.*)(?{ $yatta_uuid = $1 })/]);
-
-diag $yatta_uuid;
-
-run_output_matches('sd', ['ticket', 'list', '--regex', '.'],
-                   [ sort 
-                    "$yatta_uuid YATTA new",
-                     "$flyman_uuid Fly Man open",
-                   ]);
-
-($ret, $out, $err) = run_script('sd', ['push', '--to', $sd_rt_url]);
-diag $err;
-my @tix = $rt->search(
-        type  => 'ticket',
-        query => "Subject='YATTA'"
-    );
-
-ok(scalar @tix, 'YATTA pushed');
-
-($ret, $out, $err) = run_script('sd', ['pull', '--from', $sd_rt_url]);
-
-run_output_matches('sd', ['ticket', 'list', '--regex', '.'],
-                   [ sort
-                    "$yatta_uuid YATTA new",
-                     "$flyman_uuid Fly Man open",
-                   ]);
-
-RT::Client::REST::Ticket->new(
-        rt => $rt,
-        id => $ticket->id,
-        status => 'stalled',
-    )->store();
-
-($ret, $out, $err) = run_script('sd', ['pull', '--from', $sd_rt_url]);
-
-run_output_matches('sd', ['ticket', 'list', '--regex', '.'],
-                   [ sort
-                    "$yatta_uuid YATTA new",
-                     "$flyman_uuid Fly Man stalled",
-                   ]);
-
-RT::Client::REST::Ticket->new(
-        rt => $rt,
-        id => $tix[0],
-        status => 'open',
-    )->store();
-
-warn "===> bad pull";
-($ret, $out, $err) = run_script('sd', ['pull', '--from', $sd_rt_url]);
-diag $err;
-run_output_matches('sd', ['ticket', 'list', '--regex', '.'],
-                   [ sort
-                    "$yatta_uuid YATTA open",
-                     "$flyman_uuid Fly Man stalled",
-                   ]);
-
-#diag $uuid;
-
-1;
-
-
-
+my @ids = $rt->search(
+    type => 'ticket',
+    query => "Subject LIKE 'YATTA'",
+);
+is(@ids, 0, "no YATTA ticket (from HM) in RT");
 

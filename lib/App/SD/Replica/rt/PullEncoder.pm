@@ -25,8 +25,7 @@ sub run {
     my $tickets = {};
     my @transactions;
 
-    $self->sync_source->log( "Finding tickets matching " . $args{'query'} );
-    my @tickets = $self->find_matching_tickets( $args{'query'} );
+    my @tickets =  $self->find_matching_tickets( $args{'query'} );
 
     $self->sync_source->log("No tickets found.") if @tickets == 0;
 
@@ -42,34 +41,30 @@ sub run {
         $self->sync_source->log(
             "Fetching ticket $id - $counter of " . scalar @tickets );
         $tickets->{$id}->{ticket} = $self->_translate_final_ticket_state(
-            $self->sync_source->rt->show( type => 'ticket', id => $id ) );
-        push @transactions,
-            @{
+            $self->sync_source->rt->show( type => 'ticket', id => $id )
+        );
+        push @transactions, @{
             $self->find_matching_transactions(
                 ticket               => $id,
                 starting_transaction => $first_rev
             )
-            };
+        };
     }
+
     my $txn_counter = 0;
     my @changesets;
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
         $txn_counter++;
-        $self->sync_source->log(
-            "Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of "
-                . scalar @transactions );
-        my $changeset = $self->transcode_one_txn( $txn,
-            $tickets->{ $txn->{Ticket} }->{ticket} );
+        $self->sync_source->log("Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of ". scalar @transactions);
+        my $changeset = $self->transcode_one_txn( $txn, $tickets->{ $txn->{Ticket} }->{ticket} );
         next unless $changeset->has_changes;
         unshift @changesets, $changeset;
     }
 
-    my $cs_counter = 0 ;
-    for (@changesets) {
-        $self->sync_source->log( "Applying changeset "
-                . ++$cs_counter . " of "
-                . scalar @changesets );
-        $args{callback}->($_);
+    my $cs_counter = 0;
+    for ( @changesets ) {
+        $self->sync_source->log("Applying changeset ".++$cs_counter . " of ".scalar @changesets); 
+        $args{callback}->($_)
     }
 
 }

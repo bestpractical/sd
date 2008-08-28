@@ -6,9 +6,6 @@ use strict;
 use warnings;
 no warnings 'once';
 
-# create a ticket as root, then try to pull it as someone who doesn't have the
-# rights to see it
-
 use Test::More;
 
 BEGIN {
@@ -24,29 +21,38 @@ BEGIN {
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
 }
 
-use Prophet::Test tests => 2;
+use Prophet::Test tests => 22;
 use App::SD::Test;
 use RT::Client::REST;
 use RT::Client::REST::Ticket;
 
 RT::Handle->InsertData( $RT::EtcPath . '/initialdata' );
 
+my ($ret, $out, $err);
 my ( $url, $m ) = RT::Test->started_ok;
 
-my $user = RT::Test->load_or_create_user(
+my $alice = RT::Test->load_or_create_user(
     Name     => 'alice',
     Password => 'AlicesPassword',
+);
+
+my $refuge = RT::Test->load_or_create_queue(
+    Name => 'Ticket Refuge',
 );
 
 my $root = RT::Client::REST->new( server => $url );
 $root->login( username => 'root', password => 'password' );
 
+diag("create a ticket as root, then try to pull it as someone who doesn't have the rights to see it");
+
 my $ticket = RT::Client::REST::Ticket->new(
-    rt      => $root,
-    queue   => 'General',
-    status  => 'new',
-    subject => 'Fly Man',
-)->store( text => "Ticket Comment" );
+    rt       => $root,
+    queue    => 'General',
+    status   => 'new',
+    subject  => 'Fly Man',
+    priority => 10,
+)->store(text => "Ticket Comment");
+my $ticket_id = $ticket->id;
 
 my $root_url = $url;
 $root_url =~ s|http://|http://root:password@|;
@@ -57,11 +63,117 @@ $alice_url =~ s|http://|http://alice:AlicesPassword@|;
 my $sd_alice_url = "rt:$alice_url|General|Status!='resolved'";
 
 as_alice {
-    run_output_matches( 'sd', [ 'pull', '--from',  $sd_alice_url ],
-        [
-            qr/^Pulling from rt:/,
-            "No new changesets.",
-        ],
-    );
+    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url]);
+    ok($ret);
+    like($out, qr/No new changesets/);
+
+    TODO: {
+        local $TODO = "not coming through for some reason";
+        like($err, qr/No tickets found/);
+    }
 };
+
+diag("grant read rights, ensure we can pull it");
+
+my $queue = RT::Queue->new($RT::SystemUser);
+$queue->Load('General');
+
+$alice->PrincipalObj->GrantRight(Right => 'SeeQueue',   Object => $queue);
+$alice->PrincipalObj->GrantRight(Right => 'ShowTicket', Object => $queue);
+
+my $flyman_id;
+as_alice {
+    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url]);
+    ok($ret);
+    like($out, qr/Merged one changeset/);
+
+    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ],
+        [qr/(.*?)(?{ $flyman_id = $1 }) Fly Man new/] );
+};
+
+diag("without write rights, ensure that trying to push it gives a sane error");
+
+as_alice {
+    run_output_matches('sd', ['ticket', 'update', $flyman_id, '--', 'priority=20'],
+        [qr/ticket .*$flyman_id.* updated/],
+    );
+
+    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $sd_alice_url]);
+    ok($ret);
+    like($err, qr/You are not allowed to modify ticket $ticket_id/);
+
+    TODO: {
+        local $TODO = "we report success even though it failed";
+        unlike($out, qr/Merged one changeset/);
+    }
+};
+
+$ticket = RT::Client::REST::Ticket->new(
+    rt      => $root,
+    id      => $ticket_id,
+)->retrieve;
+
+is($ticket->priority, 10, "ticket not updated");
+
+diag("give write rights, try to push again");
+
+$alice->PrincipalObj->GrantRight(Right => 'ModifyTicket', Object => $queue);
+
+as_alice {
+    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $sd_alice_url]);
+    ok($ret);
+    TODO: {
+        local $TODO = "Prophet thinks it already merged this changeset!";
+        like($out, qr/Merged one changeset/);
+    }
+};
+
+$ticket = RT::Client::REST::Ticket->new(
+    rt      => $root,
+    id      => $ticket_id,
+)->retrieve;
+
+TODO: {
+    local $TODO = "ticket is NOT updated!";
+    is($ticket->priority, 20, "ticket updated");
+}
+
+diag("move the ticket, ensure it doesn't just disappear");
+$ticket = RT::Client::REST::Ticket->new(
+    rt       => $root,
+    id       => $ticket_id,
+    queue    => $refuge->Id,
+    status   => 'stalled',
+)->store;
+
+as_alice {
+    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url]);
+    ok($ret);
+    like($out, qr/No new changesets/);
+
+    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ],
+        [qr/Fly Man new/] );
+};
+
+diag("update the moved ticket");
+$alice->PrincipalObj->GrantRight(Right => 'ModifyTicket', Object => $refuge);
+$alice->PrincipalObj->GrantRight(Right => 'SeeQueue',     Object => $refuge);
+$alice->PrincipalObj->GrantRight(Right => 'ShowTicket',   Object => $refuge);
+
+as_alice {
+    run_output_matches('sd', ['ticket', 'resolve', $flyman_id],
+        [qr/ticket .*$flyman_id.* updated/],
+    );
+
+    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $sd_alice_url]);
+    ok($ret);
+    like($out, qr/Merged one changeset/, "pushed the 'resolve' changeset");
+};
+
+$ticket = RT::Client::REST::Ticket->new(
+    rt       => $root,
+    id       => $ticket_id,
+)->retrieve;
+
+is($ticket->status, 'resolved', "ticket is updated");
 
