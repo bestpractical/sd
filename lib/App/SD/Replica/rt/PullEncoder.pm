@@ -4,6 +4,7 @@ extends 'App::SD::ForeignReplica::PullEncoder';
 
 use Params::Validate qw(:all);
 use Memoize;
+use Time::Progress;
 
 has sync_source => 
     ( isa => 'App::SD::Replica::rt',
@@ -24,14 +25,22 @@ sub run {
     my $tickets = {};
     my @transactions;
 
-    my @tickets =  $self->find_matching_tickets( $args{'query'} ); 
+    $self->sync_source->log( "Finding tickets matching " . $args{'query'} );
+    my @tickets = $self->find_matching_tickets( $args{'query'} );
 
     $self->sync_source->log("No tickets found.") if @tickets == 0;
 
     my $counter = 0;
-    for my $id ( @tickets) {
+    $self->sync_source->log("Discovering ticket history");
+    my $progress = Time::Progress->new();
+    $progress->attr( max => $#tickets );
+    local $| = 1;
+    for my $id (@tickets) {
         $counter++;
-        $self->sync_source->log("Fetching ticket $id - $counter of ".scalar @tickets);
+        print $progress->report( "%30b %p Est: %E\r", $counter );
+
+        $self->sync_source->log(
+            "Fetching ticket $id - $counter of " . scalar @tickets );
         $tickets->{$id}->{ticket} = $self->_translate_final_ticket_state(
             $self->sync_source->rt->show( type => 'ticket', id => $id ) );
         push @transactions,
@@ -42,21 +51,26 @@ sub run {
             )
             };
     }
-        my $txn_counter = 0;
-        my @changesets;
-        for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
-            $txn_counter++;
-            $self->sync_source->log("Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of ". scalar @transactions);
-            my $changeset = $self->transcode_one_txn( $txn, $tickets->{ $txn->{Ticket} }->{ticket} );
-            next unless $changeset->has_changes;
-            unshift @changesets, $changeset;
-        }
+    my $txn_counter = 0;
+    my @changesets;
+    for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
+        $txn_counter++;
+        $self->sync_source->log(
+            "Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of "
+                . scalar @transactions );
+        my $changeset = $self->transcode_one_txn( $txn,
+            $tickets->{ $txn->{Ticket} }->{ticket} );
+        next unless $changeset->has_changes;
+        unshift @changesets, $changeset;
+    }
 
-    my $cs_counter = 0;
-            for ( @changesets ) {
-    $self->sync_source->log("Applying changeset ".++$cs_counter . " of ".scalar @changesets); 
-            $args{callback}->($_)
-        }
+    my $cs_counter = 0 ;
+    for (@changesets) {
+        $self->sync_source->log( "Applying changeset "
+                . ++$cs_counter . " of "
+                . scalar @changesets );
+        $args{callback}->($_);
+    }
 
 }
 
