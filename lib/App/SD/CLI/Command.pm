@@ -54,6 +54,8 @@ sub get_content {
         # user aborted their text editor without changing anything; signify
         # this to the caller by returning nothing
         $content = '' if $content eq $text;
+    } elsif ($ENV{IN_PROPHET_TEST_COMMAND}) {
+        die "Tried to invoke an editor in a test script!";
     } else {
         print "Please type your $args{type} and press ctrl-d.\n";
         $content = do { local $/; <> };
