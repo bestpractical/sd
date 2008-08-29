@@ -6,6 +6,7 @@ sub handle_changeset {
     my $self      = shift;
     my $changeset = shift;
     print $changeset->as_string(
+        skip_empty => 1,
         change_filter => sub {
             my $change = shift;
             return undef if $change->record_type eq '_merge_tickets';
@@ -17,10 +18,10 @@ sub handle_changeset {
         },
         header_callback => sub {
             my $c = shift;
-            sprintf "Change %d by %s at %s\n",
-                $c->sequence_no,
-                ( $c->creator || '(unknown)' ),
+            sprintf "%s - %s @ %s\n",
                 $c->created,
+                ( $c->creator || '(unknown)' ),
+                $c->original_source_uuid
                 ;
             }
 
@@ -45,6 +46,22 @@ sub change_header {
         uuid => $change->record_uuid )
         . " ("
         . $change->record_uuid . ")";
+    }
+}
+
+
+sub change_header_comment {
+    my $self = shift;
+    my $change = shift;
+    require App::SD::Model::Comment;
+    my $c = App::SD::Model::Comment->new( handle => $self->handle, type => App::SD::Model::Comment->type);
+    $c->load(uuid => $change->record_uuid);
+    warn "getting ticket";
+    if ($c->prop('ticket')) {
+    my $t = $c->ticket;
+    return " # Comment on ticket " . $t->luid . " (".$t->prop('summary').")"
+    } else {
+        return "# Comment on unknown ticket";
     }
 }
 
