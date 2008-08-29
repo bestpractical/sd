@@ -461,9 +461,12 @@ our %PROP_MAP = (
     creator         => 'creator',
     timeworked      => 'time_worked',
     timeleft        => 'time_left',
+    timeestimated   => 'time_estimated',
     lastupdated     => '_delete',
     created         => 'created',
-    Queue           => 'queue',
+    queue           => 'queue',
+    starts          => '_delete',
+    started         => '_delete',
 );
 
 sub translate_prop_names {
