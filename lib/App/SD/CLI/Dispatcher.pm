@@ -12,17 +12,21 @@ on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
 
 on qr{.} => sub {
     my %args = @_;
-
-    my @pieces = __PACKAGE__->resolve_builtin_aliases(@{ $args{dispatching_on} });
+    my $cli = $args{cli};
 
     my @possible_classes;
-    while (@pieces) {
-        push @possible_classes, "App::SD::CLI::Command::"
-                              . join '::', @pieces;
-        shift @pieces;
-    }
 
-    my $cli = $args{cli};
+    # we want to dispatch on the original command "ticket attachment create"
+    # AND on the command we received "create"
+    for ([@{ $args{dispatching_on} }], [split ' ', $_]) {
+        my @pieces = __PACKAGE__->resolve_builtin_aliases(@$_);
+
+        while (@pieces) {
+            push @possible_classes, "App::SD::CLI::Command::"
+                                . join '::', @pieces;
+            shift @pieces;
+        }
+    }
 
     for my $class (@possible_classes) {
         if ($cli->_try_to_load_cmd_class($class)) {
