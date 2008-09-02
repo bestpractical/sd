@@ -11,6 +11,7 @@ BEGIN {
     App::SD::Test->set_editor('ticket-create-editor.pl');
 }
 
+my $replica_uuid = Prophet::CLI->new->handle->uuid;
 my ($ticket_id, $ticket_uuid, $comment_id, $comment_uuid) = App::SD::Test::create_ticket_with_editor_ok();
 
 run_output_matches( 'sd', [ 'ticket',
@@ -24,7 +25,8 @@ run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $ticket_id ],
         'summary: creating tickets with an editor is totally awesome',
         'status: new',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
-        qr/^creator: .+@.+$/,
+        qr/^creator: /,
+        "original_replica: $replica_uuid",
     ]
 );
 
@@ -35,5 +37,6 @@ run_output_matches( 'sd', [ 'ticket', 'comment', 'show', '--batch', '--id', $com
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: .+@.+$/,
         qr/^ticket: $ticket_uuid$/,
+        "original_replica: $replica_uuid",
     ]
 );

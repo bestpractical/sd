@@ -90,7 +90,7 @@ from first to last).
 =cut
 
 sub props_to_show {
-    ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by')
+    ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by', 'original_replica')
 }
 
 =head2 props_not_to_edit
