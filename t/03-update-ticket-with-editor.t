@@ -11,6 +11,8 @@ BEGIN {
     App::SD::Test->set_editor('ticket-update-editor.pl');
 }
 
+my $replica_uuid = replica_uuid;
+
 # create ticket
 my ($ticket_id, $ticket_uuid) = create_ticket_ok( '--summary', 'zomg!',
     '--owner', 'foo@bar.com');
@@ -23,7 +25,8 @@ run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $ticket_id ],
         'status: new',
         'owner: foo@bar.com',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
-        qr/^creator: .+@.+$/,
+        qr/^creator: /,
+        "original_replica: $replica_uuid",
     ]
 );
 
@@ -37,7 +40,8 @@ run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $ticket_id ],
         'summary: summary changed',
         'status: new',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
-        qr/^creator: .+@.+$/,
+        qr/^creator: /,
+        "original_replica: $replica_uuid",
     ]
 );
 
@@ -46,7 +50,8 @@ run_output_matches( 'sd', [ 'ticket', 'comment', 'show', '--batch', '--id', $com
         "id: $comment_id ($comment_uuid)",
         'content: We can create a comment at the same time.',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
-        qr/^creator: .+@.+$/,
+        qr/^creator: /,
+        "original_replica: $replica_uuid",
         qr/^ticket: $ticket_uuid$/,
     ]
 );

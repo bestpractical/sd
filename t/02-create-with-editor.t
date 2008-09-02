@@ -11,7 +11,7 @@ BEGIN {
     App::SD::Test->set_editor('ticket-create-editor.pl');
 }
 
-my $replica_uuid = Prophet::CLI->new->handle->uuid;
+my $replica_uuid = replica_uuid;
 my ($ticket_id, $ticket_uuid, $comment_id, $comment_uuid) = App::SD::Test::create_ticket_with_editor_ok();
 
 run_output_matches( 'sd', [ 'ticket',
@@ -35,8 +35,8 @@ run_output_matches( 'sd', [ 'ticket', 'comment', 'show', '--batch', '--id', $com
         "id: $comment_id ($comment_uuid)",
         'content: We can create a comment at the same time.',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
-        qr/^creator: .+@.+$/,
-        qr/^ticket: $ticket_uuid$/,
+        qr/^creator: /,
         "original_replica: $replica_uuid",
+        qr/^ticket: $ticket_uuid$/,
     ]
 );

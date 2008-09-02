@@ -11,6 +11,8 @@ BEGIN {
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
 }
+
+my $replica_uuid = replica_uuid;
 # create from sd and push
 my ($yatta_id, $yatta_uuid) =  create_ticket_ok( '--summary', 'YATTA', '--status', 'new' );
 
@@ -33,8 +35,9 @@ run_output_matches(
         "content: stub",
         "content_type: text/plain",
         qr/created: \d{4}-\d{2}-\d{2}.+/,
-        qr/creator: .+@.+$/,
+        qr/creator: /,
         qr/paper_order.doc/,
+        "original_replica: $replica_uuid",
         "ticket: $yatta_uuid",
     ],
     [],
@@ -58,8 +61,9 @@ run_output_matches(
         "content: stub",
         "content_type: text/plain",
         qr/created: \d{4}-\d{2}-\d{2}.+/,
-        qr/creator: .+@.+$/,
+        qr/creator: /,
         qr/plague_recipe.doc/,
+        "original_replica: " . replica_uuid,
         "ticket: $yatta_uuid"
     ],
     [],

@@ -11,6 +11,8 @@ BEGIN {
     App::SD::Test->set_editor('ticket-comment-update-editor.pl');
 }
 
+my $replica_uuid = replica_uuid;
+
 # create ticket
 my ($ticket_id, $ticket_uuid) = create_ticket_ok( '--summary', 'zomg!' );
 
@@ -26,7 +28,8 @@ run_output_matches( 'sd',
         "id: $comment_id ($comment_uuid)",
         qr/a new comment/,
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
-        qr/^creator: .+@.+$/,
+        qr/^creator: /,
+        "original_replica: $replica_uuid",
         "ticket: $ticket_uuid",
     ]
 );
@@ -41,7 +44,8 @@ run_output_matches( 'sd',
         "id: $comment_id ($comment_uuid)",
         qr/huzzah!/,
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
-        qr/^creator: .+@.+$/,
+        qr/^creator: /,
+        "original_replica: $replica_uuid",
         "ticket: $ticket_uuid",
     ]
 );

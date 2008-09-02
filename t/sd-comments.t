@@ -13,6 +13,8 @@ BEGIN {
     diag $ENV{'PROPHET_REPO'};
 }
 
+my $replica_uuid = replica_uuid;
+
 # create from sd and push
 
 my ( $yatta_luid, $yatta_uuid )
@@ -37,6 +39,7 @@ run_output_matches(
         qr/This is a test/,
         qr/created: /,
         qr/creator: /,
+        "original_replica: $replica_uuid",
         "ticket: $yatta_uuid"
     ],
     [],
@@ -59,6 +62,7 @@ run_output_matches(
         qr/I hate you/,
         qr/created: /i,
         qr/creator: /i,
+        "original_replica: $replica_uuid",
         "ticket: $yatta_uuid"
     ],
     [],
