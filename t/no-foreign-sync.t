@@ -162,7 +162,10 @@ as_alice {
     diag($err) if ($err);
 };
 
-ok(!$task->load_by_cols(summary => "Fly Man"), "no 'Fly Man' ticket on HM because RT had the no-foreign-sync custom field");
+TODO: {
+    local $TODO = "no-foreign-sync not yet specced";
+    ok(!$task->load_by_cols(summary => "Fly Man"), "no 'Fly Man' ticket on HM because RT had the no-foreign-sync custom field");
+}
 
 # try pushing YATTA to RT
 as_bob {
@@ -185,5 +188,8 @@ my @ids = $rt->search(
     type => 'ticket',
     query => "Subject LIKE 'YATTA'",
 );
-is(@ids, 0, "no YATTA ticket (from HM) in RT");
+TODO: {
+    local $TODO = "no-foreign-sync not yet specced";
+    is(@ids, 0, "no YATTA ticket (from HM) in RT");
+}
 
