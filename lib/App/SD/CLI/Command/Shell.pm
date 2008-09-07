@@ -5,7 +5,7 @@ extends 'Prophet::CLI::Command::Shell';
 sub preamble {
     return join "\n",
         "SD ($App::SD::VERSION; Prophet $Prophet::VERSION)",
-        'Type "help", "about", or "copying for more information.',
+        'Type "help", "about", or "copying" for more information.',
 }
 
 1;

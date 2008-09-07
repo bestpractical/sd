@@ -19,5 +19,5 @@ unless ($ENV{SD_VERBOSE_ERROR} || $ENV{'TEST_VERBOSE'}) {
 }
 
 my $cli = App::SD::CLI->new;
-$cli->run_one_command;
+$cli->run_one_command(@ARGV);
 

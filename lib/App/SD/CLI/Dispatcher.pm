@@ -4,6 +4,10 @@ use strict;
 use warnings;
 use Prophet::CLI::Dispatcher -base;
 
+
+on qr'^\?(.*)$' => sub {my $cmd = $1 || '';  run ('help'. $cmd,  @_); last_rule;};
+on qr'^(about|copying)$' => sub { run('help '.$1, @_); last_rule;};                     
+
 on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
     my %args = @_;
     $args{context}->set_arg(type => $1);
