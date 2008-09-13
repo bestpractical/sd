@@ -6,8 +6,12 @@ use Prophet::CLI::Dispatcher -base;
 
 
 on qr'^\?(.*)$' => sub {my $cmd = $1 || '';  run ('help'. $cmd,  @_); last_rule;};
-on qr'^(about|copying)$' => sub { run('help '.$1, @_); last_rule;};                     
 
+# 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
+on qr'^(about|copying)$' => sub { run('help '.$1, @_); last_rule;};
+
+# allow type to be specified via primary commands, e.g.
+# 'sd ticket display --id 14' -> 'sd display --type ticket --id 14'
 on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
     my %args = @_;
     $args{context}->set_arg(type => $1);
