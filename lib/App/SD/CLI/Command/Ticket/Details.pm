@@ -23,8 +23,13 @@ override run => sub {
     my @comments = sort by_creation_date @{$record->comments};
     if (@comments) {
         print "\n=head1 COMMENTS\n\n";
-        print $_->prop('creator') . ': ' . $_->prop('created') . "\n" . $_->prop('content') . "\n\n"
-            for @comments;
+        foreach my $comment (@comments) {
+            my $creator = $comment->prop('creator');
+            my $created = $comment->prop('created');
+            my $content = $comment->prop('content');
+            print "$creator: " if $creator;
+            print "$created\n$content\n\n";
+        }
     }
 
     print "\n=head1 HISTORY\n\n";
