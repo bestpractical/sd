@@ -1,6 +1,7 @@
 package App::SD::CLI::Command::Ticket::Search;
 use Moose;
 extends 'Prophet::CLI::Command::Search';
+with 'App::SD::CLI::Command';
 
 # frob the sort routine before running prophet's search command
 before run => sub {
@@ -10,12 +11,9 @@ before run => sub {
     if ($self->has_arg('sort')) {
         # some records might not have creation dates
         no warnings 'uninitialized';
-        # sort by creation date
-        my $sort_routine = sub {
-            my @records = @_;
-            return (sort { $a->prop('created') cmp $b->prop('created') } @records);
-        };
-        $self->sort_routine($sort_routine);
+        $self->sort_routine( sub {
+                    my $records = shift;
+                    return $self->sort_by_creation_date($records) } );
     }
 };
 
