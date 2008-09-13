@@ -15,7 +15,7 @@ sub run {
     if (@{$record->comments}) {
         for my $entry ($self->sort_by_creation_date($record->comments)) {
             print "id: ".$entry->luid." (".$entry->uuid.")\n";
-            print "created: ".$entry->prop('created')."\n";
+            print "created: ".$entry->prop('created')."\n\n";
             print $entry->prop('content')."\n\n";
         }
     } else {

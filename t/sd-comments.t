@@ -28,8 +28,8 @@ ok($comment_uuid);
 run_output_matches(
     'sd',
     [ qw/ticket comments --uuid/, $yatta_uuid ],
-    [ qr/^id: \d+ \($comment_uuid\)/, qr/^created: /, "'This is a test'" ],
-    [], "Found the comment"
+    [ qr/^id: \d+ \($comment_uuid\)/, qr/^created: /, '', "'This is a test'",
+    '' ], [], "Found the comment"
 );
 
 run_output_matches(
