@@ -18,7 +18,7 @@ my ($ticket_id, $ticket_uuid) = create_ticket_ok( '--summary', 'zomg!',
     '--owner', 'foo@bar.com');
 
 # verify that it's correct (test prop won't be shown)
-run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $ticket_id ],
+run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
     [
         "id: $ticket_id ($ticket_uuid)",
         'summary: zomg!',
@@ -34,7 +34,7 @@ run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $ticket_id ],
 my ($comment_id, $comment_uuid) = App::SD::Test->update_ticket_with_editor_ok($ticket_id, $ticket_uuid);
 
 # check output
-run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $ticket_id ],
+run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
     [
         "id: $ticket_id ($ticket_uuid)",
         'summary: summary changed',

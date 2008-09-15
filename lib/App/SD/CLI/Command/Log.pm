@@ -39,6 +39,12 @@ sub change_header {
     }
 
     else {
+        return $self->change_header_generic($change);
+    }
+}
+sub change_header_generic {
+    my $self = shift;
+    my $change = shift;
     return
           " # "
         . ucfirst($change->record_type) . " "
@@ -46,7 +52,6 @@ sub change_header {
         uuid => $change->record_uuid )
         . " ("
         . $change->record_uuid . ")";
-    }
 }
 
 
@@ -71,6 +76,9 @@ sub change_header_ticket {
     require App::SD::Model::Ticket;
     my $t = App::SD::Model::Ticket->new( handle => $self->handle, type => App::SD::Model::Ticket->type);
     $t->load(uuid => $change->record_uuid);
+    unless ($t->uuid) {
+        return $self->change_header_generic($change);
+    }
     return " # Ticket "
         . $self->app_handle->handle->find_or_create_luid(
         uuid => $change->record_uuid )

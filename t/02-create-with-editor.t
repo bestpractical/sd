@@ -19,7 +19,7 @@ run_output_matches( 'sd', [ 'ticket',
     [ qr/(\d+) creating tickets with an editor is totally awesome new/]
 );
 
-run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $ticket_id ],
+run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
     [
         "id: $ticket_id ($ticket_uuid)",
         'summary: creating tickets with an editor is totally awesome',

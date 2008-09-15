@@ -25,7 +25,7 @@ run_output_matches( 'sd', [ 'ticket',
    
 );
 
-run_output_matches( 'sd', [ 'ticket', 'show', '--batch', '--id', $yatta_id ],
+run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $yatta_id ],
     [
         "id: $yatta_id ($yatta_uuid)",
         'summary: YATTA',
