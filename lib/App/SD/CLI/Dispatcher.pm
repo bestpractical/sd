@@ -9,7 +9,11 @@ on qr'^\?(.*)$' => sub {my $cmd = $1 || '';  run ('help'. $cmd,  @_); last_rule;
 
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
 on qr'^(about|copying)$' => sub { run('help '.$1, @_); last_rule;};
-on qr'^help (push|pull|publish|server)$' => sub { run('help sync', @_); last_rule;};
+on qr'^help (?:push|pull|publish|server)$' => sub { run('help sync', @_); last_rule;};
+on qr'^help (?:env)$' => sub { run('help environment', @_); last_rule;};
+on qr'^help (?:ticket)$' => sub { run('help tickets', @_); last_rule;};
+on qr'^help ticket (list|search|find)$' => sub { run('help search', @_); last_rule;};
+on qr'^help (?:list|find)$' => sub { run('help search', @_); last_rule;};
 
 # allow type to be specified via primary commands, e.g.
 # 'sd ticket display --id 14' -> 'sd display --type ticket --id 14'
