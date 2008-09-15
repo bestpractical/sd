@@ -10,7 +10,7 @@ use Path::Class;
 
 BEGIN {
     unless (eval 'use RT::Test; 1') {
-        diag $@;
+        diag $@ if $ENV{'TEST_VERBOSE'};
         plan skip_all => 'requires 3.7 or newer to run tests.';
     }
 }
