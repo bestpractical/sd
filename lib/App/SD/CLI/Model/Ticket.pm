@@ -97,18 +97,25 @@ tickets represented as strings.
 
 sub comment_pattern { qr/^\s*#/ }
 
-=head2 create_record_string
+=head2 create_record_string RECORD
 
 Creates a string representing a new record, prefilling default props
 and props specified on the command line. Intended to be presented to
 the user for editing using L<Prophet::CLI::Command->edit_text>
 and then parsed using L</create_record_string>.
 
+If RECORD is given, then we are updating that record rather than
+creating a new one, and the ticket string will be created from its
+props rather than prop defaults.
+
 =cut
 
 sub create_record_string {
     my $self = shift;
-    my $record = $self->_get_record_object;
+    my $record = shift;
+    my $update = 0;
+
+    defined($record) ? $update = 1 : $record = $self->_get_record_object;
 
     my $props_not_to_edit = $record->props_not_to_edit;
     my (@metadata_order, @editable_order);
@@ -120,24 +127,31 @@ sub create_record_string {
     # that shouldn't be changed, such as uuid
     foreach my $prop ($record->props_to_show) {
         if ($prop =~ $props_not_to_edit) {
-            unless ($prop eq 'id' or $prop eq 'created') {
+            if ($prop eq 'id' && $update) {
+                # id isn't a *real* prop, so we have to mess with it some more
+                push @metadata_order, $prop;
+                $metadata_props{$prop} = $record->luid . ' (' . $record->uuid . ")";
+            }
+            elsif (!(($prop eq 'id' or $prop eq 'created') && !$update)) {
                 push @metadata_order, $prop;
                 # which came first, the chicken or the egg?
                 #
-                # we don't want to display id/created because they can't by
-                # their nature be specified until the ticket is actually
-                # created
-                $metadata_props{$prop} = undef;
+                # we don't want to display id/created for ticket creates
+                # because they can't by their nature be specified until the
+                # ticket is actually created
+                $metadata_props{$prop} = $update ? $record->prop($prop) : undef;
             }
         } else {
             push @editable_order, $prop;
-            $editable_props{$prop} = undef;
+            $editable_props{$prop} = $update ? $record->prop($prop) : undef;
         }
     }
 
-    # fill in prop defaults
-    $record->default_props(\%metadata_props);
-    $record->default_props(\%editable_props);
+    # fill in prop defaults if we're creating a new ticket
+    unless ($update) {
+        $record->default_props(\%metadata_props);
+        $record->default_props(\%editable_props);
+    }
 
     # fill in props specified on the commandline (overrides defaults)
     if ($self->has_arg('edit')) {
