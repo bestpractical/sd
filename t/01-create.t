@@ -32,6 +32,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $yatta_id ],
         'status: new',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
+        qr/^reported_by: /,
         "original_replica: " . replica_uuid,
     ]
 );
