@@ -1,6 +1,3 @@
-use warnings;
-use strict;
-
 package App::SD::Model::Comment;
 use Moose;
 extends 'App::SD::Record';
