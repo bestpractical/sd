@@ -217,7 +217,7 @@ sub parse_record_string {
                 $new_props{$prop} = $val unless !($val);
             }
         } elsif ($last_seen_sep eq comment_separator_text()) {
-            $comment .= $line;
+            $comment .= $line . "\n";
         }
     }
 
