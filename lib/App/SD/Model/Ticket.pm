@@ -101,7 +101,7 @@ user-modifiable.
 
 =cut
 
-sub props_not_to_edit { qr/^(id|created|creator)$/ }
+sub props_not_to_edit { qr/^(id|creator|created|original_replica)$/ }
 
 =head2 is_overdue [$date]
 
