@@ -26,6 +26,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
         'owner: foo@bar.com',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
+        qr/^reported_by: /,
         "original_replica: $replica_uuid",
     ]
 );
@@ -41,6 +42,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
         'status: new',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
+        qr/^reported_by: /,
         "original_replica: $replica_uuid",
     ]
 );
