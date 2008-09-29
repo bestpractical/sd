@@ -27,19 +27,23 @@ override run => sub {
 
         no warnings 'uninitialized';
 
-        # set new props but don't add props that didn't change to the changeset
-        foreach my $prop (keys %$props_ref) {
-            my $val = $props_ref->{$prop};
-            $record->set_prop(name => $prop, value => $val)
-                unless $val eq $record->prop($prop);
-        }
-
         # if a formerly existing prop was removed from the output, delete it
+        # (deleting is currently the equivalent of setting to '', and
+        # we want to do this all in one changeset)
         foreach my $prop (keys %{$record->get_props}) {
-            unless ($prop =~ /$do_not_edit/) {
-                $record->delete_prop(name => $prop) if !exists $props_ref->{$prop};
+            unless ($prop =~ $do_not_edit) {
+                $props_ref->{$prop} = '' if !exists $props_ref->{$prop};
             }
         }
+
+        # don't add props that didn't change to the changeset
+        foreach my $prop (keys %$props_ref) {
+            delete $props_ref->{$prop}
+                if $props_ref->{$prop} eq $record->prop($prop);
+        }
+
+        # set the new props
+        $record->set_props( props => $props_ref );
 
         print 'Updated ticket ' . $record->luid . ' (' . $record->uuid . ")\n";
 
