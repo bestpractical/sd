@@ -10,11 +10,23 @@ use constant type => 'ticket';
 
 =head2 default_prop_status
 
-Returns a string of the default value of the status prop.
+Returns a string of the default value of the C<status> prop.
 
 =cut
 
 sub default_prop_status { 'new' }
+
+=head2 default_prop_reported_by
+
+Returns a string of the default value of the C<reported_by> prop.
+(Currently, this is the config variable C<reporter_email> or
+the environmental variable C<EMAIL>.)
+
+=cut
+
+sub default_prop_reported_by {
+    shift->app_handle->config->{reporter_email} or $ENV{EMAIL}
+}
 
 =head2 _default_summary_format
 

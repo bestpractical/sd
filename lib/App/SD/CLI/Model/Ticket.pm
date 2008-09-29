@@ -120,8 +120,15 @@ sub create_record_string {
     # that shouldn't be changed, such as uuid
     foreach my $prop ($record->props_to_show) {
         if ($prop =~ $props_not_to_edit) {
-            push @metadata_order, $prop;
-            $metadata_props{$prop} = undef;
+            unless ($prop eq 'id' or $prop eq 'created') {
+                push @metadata_order, $prop;
+                # which came first, the chicken or the egg?
+                #
+                # we don't want to display id/created because they can't by
+                # their nature be specified until the ticket is actually
+                # created
+                $metadata_props{$prop} = undef;
+            }
         } else {
             push @editable_order, $prop;
             $editable_props{$prop} = undef;
