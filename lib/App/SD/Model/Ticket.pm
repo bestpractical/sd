@@ -28,6 +28,29 @@ sub default_prop_reported_by {
     shift->app_handle->config->{reporter_email} or $ENV{EMAIL}
 }
 
+=head2 canonicalize_prop_status
+
+resolved is called closed.
+
+=cut
+
+my %canonicalize_status = (
+    resolved => 'closed',
+);
+
+sub canonicalize_prop_status {
+    my $self = shift;
+    my %args = @_;
+
+    my $props = $args{props};
+
+    if (defined $canonicalize_status{ $props->{status} }) {
+        $props->{status} = $canonicalize_status{ $props->{status} };
+    }
+
+    return 1;
+}
+
 =head2 _default_summary_format
 
 The default ticket summary format (used for displaying tickets in a
