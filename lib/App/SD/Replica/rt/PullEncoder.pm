@@ -320,14 +320,15 @@ sub _recode_txn_AddLink {
 sub _recode_content_update {
     my $self   = shift;
     my %args   = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
+    my $url = $self->sync_source->remote_url . "/transaction/" . $args{'txn'}->{'id'};
     my $change = Prophet::Change->new(
         {   record_type => 'comment',
-            record_uuid => $self->sync_source->uuid_for_url( $self->sync_source->remote_url . "/transaction/" . $args{'txn'}->{'id'} ),
-            change_type => 'add_file'
+            record_uuid => $self->sync_source->uuid_for_url( $url ),
+            change_type => 'add_file',
         }
     );
 
-        $change->add_prop_change( name => 'created', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
+    $change->add_prop_change( name => 'created', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
 
     $change->add_prop_change( name => 'type', old  => undef, new  => $args{'txn'}->{'Type'});
     $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'txn'}->{'Creator'}));
