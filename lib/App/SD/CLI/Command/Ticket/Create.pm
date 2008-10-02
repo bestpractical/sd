@@ -53,16 +53,6 @@ override run => sub {
     }
 };
 
-sub prompt_Yn {
-    my $self = shift;
-    my $msg = shift;
-    print "$msg [Y/n]: ";
-    my $a = <>;
-    chomp $a;
-    return 1 if $a =~ /^(|y|yes)$/i;
-    return 0;
-}
-
 __PACKAGE__->meta->make_immutable;
 no Moose;
 

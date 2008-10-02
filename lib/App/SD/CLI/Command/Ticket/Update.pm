@@ -18,6 +18,7 @@ override run => sub {
         my $ticket_string_to_edit = $self->create_record_string($record);
         my $do_not_edit = $record->props_not_to_edit;
 
+        TRY_AGAIN:
         my $updated = $self->edit_text($ticket_string_to_edit);
 
         die "Aborted.\n"
@@ -43,7 +44,19 @@ override run => sub {
         }
 
         # set the new props
-        $record->set_props( props => $props_ref );
+        my $error;
+        {
+            local $@;
+            eval { $record->set_props( props => $props_ref ) }
+                or $error = $@ || "Something went wrong!";
+        }
+        if ( $error ) {
+            print STDERR "Couldn't update the record, error:\n\n", $error, "\n";
+            die "Aborted.\n" unless $self->prompt_Yn( "Want to return back to editing?" );
+
+            ($ticket_string_to_edit, $error) = ($updated, '');
+            goto TRY_AGAIN;
+        }
 
         print 'Updated ticket ' . $record->luid . ' (' . $record->uuid . ")\n";
 
