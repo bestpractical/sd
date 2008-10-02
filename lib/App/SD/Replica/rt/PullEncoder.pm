@@ -145,6 +145,7 @@ sub transcode_one_txn {
             my $changeset = Prophet::ChangeSet->new(
                 {   original_source_uuid => $self->sync_source->uuid,
                     original_sequence_no => $txn->{'id'},
+                    creator => $self->resolve_user_id_to( email_address => $txn->{'Creator'} ),
                 }
             );
 
@@ -185,7 +186,7 @@ sub _recode_attachment_create {
     );
     $change->add_prop_change( name => 'content_type', old  => undef, new  => $args{'attachment'}->{'ContentType'});
     $change->add_prop_change( name => 'created', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
-    $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'attachment'}->{'Creator'}));
+    $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email_address => $args{'attachment'}->{'Creator'}));
     $change->add_prop_change( name => 'content', old  => undef, new  => $args{'attachment'}->{'Content'});
     $change->add_prop_change( name => 'name', old  => undef, new  => $args{'attachment'}->{'Filename'});
     $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{ $self->sync_source->uuid . '-id'} ));
@@ -331,7 +332,7 @@ sub _recode_content_update {
     $change->add_prop_change( name => 'created', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
 
     $change->add_prop_change( name => 'type', old  => undef, new  => $args{'txn'}->{'Type'});
-    $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email => $args{'txn'}->{'Creator'}));
+    $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email_address => $args{'txn'}->{'Creator'}));
     $change->add_prop_change( name => 'content', old  => undef, new  => $args{'txn'}->{'Content'});
     $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{ $self->sync_source->uuid . '-id'} ));
     $args{'changeset'}->add_change( { change => $change } );
@@ -349,8 +350,8 @@ sub _recode_txn_AddWatcher {
     $args{'ticket'}->{ $args{'txn'}->{'Field'} } = $self->warp_list_to_old_value(
         $args{'ticket'}->{ $args{'txn'}->{'Field'} },
 
-        $self->resolve_user_id_to( email => $args{'txn'}->{'NewValue'} ),
-        $self->resolve_user_id_to( email => $args{'txn'}->{'OldValue'} )
+        $self->resolve_user_id_to( email_address => $args{'txn'}->{'NewValue'} ),
+        $self->resolve_user_id_to( email_address => $args{'txn'}->{'OldValue'} )
 
     );
 
@@ -425,7 +426,7 @@ sub resolve_user_id_to {
             warn $err;
            return $attr eq 'name' ? 'Unknown user' : 'nobody@localhost';
         }
-    return $attr eq 'name' ? $user->name : $user->email_address;
+    return $user->$attr();
 
 }
 
