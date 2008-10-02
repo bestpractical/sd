@@ -17,6 +17,7 @@ override run => sub {
     if (!@prop_set || $self->has_arg('edit')) {
         my $ticket_string_to_edit = $self->create_record_string();
 
+        TRY_AGAIN:
         my $ticket = $self->edit_text($ticket_string_to_edit);
 
         die "Aborted.\n"
@@ -28,7 +29,18 @@ override run => sub {
             $self->set_prop($prop => $props_ref->{$prop});
         }
 
-        super();
+        my $error;
+        {
+            local $@;
+            eval { super(); } or $error = $@ || "Something went wrong!";
+        }
+        if ( $error ) {
+            print STDERR "Couldn't create a record, error:\n\n", $error, "\n";
+            die "Aborted.\n" unless $self->prompt_Yn( "Want to return back to editing?" );
+
+            ($ticket_string_to_edit, $error) = ($ticket, '');
+            goto TRY_AGAIN;
+        }
 
         # retrieve the created record from the superclass
         $record = $self->record();
@@ -40,6 +52,16 @@ override run => sub {
         super();
     }
 };
+
+sub prompt_Yn {
+    my $self = shift;
+    my $msg = shift;
+    print "$msg [Y/n]: ";
+    my $a = <>;
+    chomp $a;
+    return 1 if $a =~ /^(|y|yes)$/i;
+    return 0;
+}
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
