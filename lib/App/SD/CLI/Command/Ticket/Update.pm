@@ -47,21 +47,25 @@ override run => sub {
     }
 
     # set the new props
-    my $error;
-    {
-        local $@;
-        eval { $record->set_props( props => $props_ref ) }
-            or $error = $@ || "Something went wrong!";
-    }
-    if ( $error ) {
-        print STDERR "Couldn't update the record, error:\n\n", $error, "\n";
-        die "Aborted.\n" unless $self->prompt_Yn( "Want to return back to editing?" );
+    if ( keys %$props_ref ) {
+        my $error;
+        {
+            local $@;
+            eval { $record->set_props( props => $props_ref ) }
+                or $error = $@ || "Something went wrong!";
+        }
+        if ( $error ) {
+            print STDERR "Couldn't update the record, error:\n\n", $error, "\n";
+            die "Aborted.\n" unless $self->prompt_Yn( "Want to return back to editing?" );
 
-        ($ticket_string_to_edit, $error) = ($updated, '');
-        goto TRY_AGAIN;
+            ($ticket_string_to_edit, $error) = ($updated, '');
+            goto TRY_AGAIN;
+        }
+        print 'Updated ticket ' . $record->luid . ' (' . $record->uuid . ")\n";
     }
-
-    print 'Updated ticket ' . $record->luid . ' (' . $record->uuid . ")\n";
+    else {
+        print "No changes in properties.\n";
+    }
 
     $self->add_comment( content => $comment, uuid => $record->uuid )
         if $comment;
