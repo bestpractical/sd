@@ -64,7 +64,7 @@ Returns undef if none can be found.
 sub get_uuid_for_luid {
         my $luid = shift;
     my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $luid ]);
-    if ($out =~ /^id: \d+ \((.*)\)/) {
+    if ($out =~ /^id: \d+ \((.*)\)/m) {
             return $1;
     }
     return undef;
@@ -81,7 +81,7 @@ Returns undef if none can be found.
 sub get_luid_for_uuid {
         my $uuid = shift;
     my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $uuid ]);
-    if ($out =~ /^id: (\d+)/) {
+    if ($out =~ /^id: (\d+)/m) {
             return $1;
     }
     return undef;

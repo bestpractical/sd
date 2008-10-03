@@ -56,7 +56,7 @@ run_output_matches_unordered( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$fly
 
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $flyman_uuid ] );
-if ($out =~ /^id: (\d+) /) {
+if ($out =~ /^id: (\d+) /m) {
     $flyman_id = $1;
 }
 
