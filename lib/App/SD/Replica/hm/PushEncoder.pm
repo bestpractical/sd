@@ -68,8 +68,7 @@ sub integrate_ticket_create {
         complete        => 0,
         will_complete   => 1,
         repeat_stacking => 0,
-        %{ $self->_recode_props_for_integrate($change) }
-
+        %{ $self->_recode_props_for_create($change) }
     );
 
     my $txns = $self->sync_source->hm->search( 'TaskTransaction', task_id => $task->{content}->{id} );
@@ -88,6 +87,26 @@ sub integrate_comment {
 
 sub integrate_ticket_update {
     warn "update not implemented yet";
+}
+
+sub _recode_props_for_create {
+    my $self = shift;
+    my $attr = $self->_recode_props_for_integrate(@_);
+    my $source_props = $self->sync_source->props;
+    return $attr unless $source_props;
+
+    if ( $source_props->{'tag'} ) {
+        if ( defined $attr->{'tags'} && length $attr->{'tags'} ) {
+            $attr->{'tags'} .= ', '. $source_props->{'tag'};
+        } else {
+            $attr->{'tags'} .= ', '. $source_props->{'tag'};
+        }
+    }
+    if ( $source_props->{'tag_not'} ) {
+        die "TODO: not sure what to do here and with other *_not search arguments";
+    }
+
+    return { %$attr, %$source_props };
 }
 
 sub _recode_props_for_integrate {

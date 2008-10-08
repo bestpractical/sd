@@ -11,6 +11,7 @@ use File::Temp 'tempdir';
 has hm => ( isa => 'Net::Jifty', is => 'rw');
 has remote_url => ( isa => 'Str', is => 'rw');
 has hm_username => ( isa => 'Str', is => 'rw');
+has props => ( isa => 'HashRef[Str]', is => 'rw');
 
 use constant scheme => 'hm';
 use App::SD::Replica::rt;
@@ -28,8 +29,8 @@ sub BUILD {
     my $self = shift;
 
     require Net::Jifty;
-    my ($server) = $self->{url} =~ m/^hm:(.*?)$/
-        or die "Can't parse Hiveminder server spec. Expected hm:http://hiveminder.com";
+    my ($server, $props) = $self->{url} =~ m/^hm:(.*?)(?:\|(.*))?$/
+        or die "Can't parse Hiveminder server spec. Expected hm:http://hiveminder.com or hm:http://hiveminder.com|props";
     $self->url($server);
     my $uri = URI->new($server);
     my ( $username, $password );
@@ -38,8 +39,12 @@ sub BUILD {
         $uri->userinfo(undef);
     }
     $self->remote_url("$uri");
-
     ( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
+
+    if ( $props ) {
+        my %props = split /=|;/, $props;
+        $self->props( \%props );
+    }
 
     $self->hm(
         Net::Jifty->new(
@@ -98,7 +103,7 @@ sub find_matching_tasks {
         group        => 0,
         requestor    => 'me',
         not_complete => 1,
-
+        %{ $self->props || {} },
     )->{content}->{tasks};
     return $tasks;
 }
