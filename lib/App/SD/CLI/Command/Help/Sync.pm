@@ -22,12 +22,11 @@ print <<EOF
     on the local network using Bonjour
  
  $cmd publish --to jesse\@server:path/to/destination
-    Publish a copy of this replica to a remote server using rsync over
-    ssh.
+    Publish a copy of this replica to a remote server using rsync.
 
  $cmd publish --html --replica --to jesse\@server:path/to/destination
     Publish a copy of this replica, including a static html representation,
-    to a remote server using rsync over ssh.
+    to a remote server using rsync.
 
  $cmd server --port 9876
     Start an sd replica server on port 9876. This command will make your 
