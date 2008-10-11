@@ -96,15 +96,17 @@ sub traverse_changesets {
 }
 
 sub find_matching_tasks {
-    my $self  = shift;
-    my $tasks = $self->hm->act(
-        'TaskSearch',
+    my $self = shift;
+    my %args = (
         owner        => 'me',
         group        => 0,
         requestor    => 'me',
         not_complete => 1,
-        %{ $self->props || {} },
-    )->{content}->{tasks};
+    );
+    if ( my $props = $self->props ) {
+        while ( my ($k, $v) = each %$props ) { $args{$k} = $v }
+    }
+    my $tasks = $self->hm->act( 'TaskSearch', %args )->{content}->{tasks};
     return $tasks;
 }
 
