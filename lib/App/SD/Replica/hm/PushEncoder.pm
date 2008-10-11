@@ -95,18 +95,23 @@ sub _recode_props_for_create {
     my $source_props = $self->sync_source->props;
     return $attr unless $source_props;
 
-    if ( $source_props->{'tag'} ) {
+    my %source_props = %$source_props;
+    foreach (grep exists $source_props{$_}, qw(group owner requestor)) {
+        $source_props{$_.'_id'} = delete $source_props{$_};
+    }
+
+    if ( $source_props{'tag'} ) {
         if ( defined $attr->{'tags'} && length $attr->{'tags'} ) {
-            $attr->{'tags'} .= ', '. $source_props->{'tag'};
+            $attr->{'tags'} .= ', '. $source_props{'tag'};
         } else {
-            $attr->{'tags'} .= ', '. $source_props->{'tag'};
+            $attr->{'tags'} .= ', '. $source_props{'tag'};
         }
     }
-    if ( $source_props->{'tag_not'} ) {
+    if ( $source_props{'tag_not'} ) {
         die "TODO: not sure what to do here and with other *_not search arguments";
     }
 
-    return { %$attr, %$source_props };
+    return { %$attr, %source_props };
 }
 
 sub _recode_props_for_integrate {
