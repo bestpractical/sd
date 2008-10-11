@@ -15,6 +15,7 @@ sub integrate_change {
         { isa => 'Prophet::ChangeSet' }
     );
     my $id;
+    local $@;
     eval {
         if (    $change->record_type eq 'ticket'
             and $change->change_type eq 'add_file' 
