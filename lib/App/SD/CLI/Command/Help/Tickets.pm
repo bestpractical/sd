@@ -11,7 +11,7 @@ print <<EOF
  $cmd ticket create
      Invokes a text editor with a ticket creation template
  
- $cmd ticket create --summary="This is a summary" status=open
+ $cmd ticket create summary="This is a summary" status=open
      Create a new ticket non-interactively
  
  $cmd ticket update 123 -- status=closed
