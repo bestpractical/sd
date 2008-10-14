@@ -14,7 +14,12 @@ Returns a string of the default value of the C<status> prop.
 
 =cut
 
-sub default_prop_status { 'new' }
+
+
+sub default_prop_status { 
+    my $self = shift; 
+    return $self->app_handle->setting(label => 'default_status')->get()->[0];
+}
 
 =head2 default_prop_reported_by
 

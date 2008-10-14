@@ -8,7 +8,73 @@ use base 'Prophet::Server::View';
 
     use App::SD::Model::Ticket;
     use App::SD::Collection::Ticket;
+template head => sub {
+    my $self = shift;
+    my $args = shift;
+    head {
+        title { shift @$args };
+show('style');
+    }
 
+};
+
+
+
+template 'style' => sub {
+
+style {
+outs_raw('
+    body {
+  font-family: sans-serif;
+}
+
+div.buglist {
+
+ border: 1px solid grey;
+  -moz-border-radius: 0.5em;
+   -webkit-botder-radius: 0.5em;
+   }
+
+   div.buglist ul {
+   list-style-type:none;
+
+   }
+
+   div.buglist ul li {
+   clear: both;
+   padding-bottom: 2em;
+   border-bottom: 1px solid #ccc;
+   margin-bottom: 1em;
+
+ 
+   }
+
+   
+
+   div.buglist ul li span {
+
+     float: left;
+   padding: 0.2em;
+     }
+
+div.buglist ul li span.summary {
+  width: 70%;
+
+}
+
+div.buglist ul li span.bug-link {
+  width: 2em;
+  text-align: right;
+}
+
+div.buglist ul li span.status {
+   width: 3em;
+
+}
+
+');
+}
+};
 
 template '/' => 
     page    { 'SD' }
@@ -28,6 +94,8 @@ template '/bugs/open' => sub {
 
     h2 { 'Open bugs' };
 
+    div { class is 'buglist'; 
+
     for my $bug (@$bugs) {
     ul {
     
@@ -35,16 +103,16 @@ template '/bugs/open' => sub {
 
 
             bug_link($bug => $bug->luid);
-            span { $bug->prop('status') };
-            span { $bug->prop('summary') };
-            span { $bug->prop('created') };
+            span { class is 'status'; $bug->prop('status') };
+            span { class is 'summary'; $bug->prop('summary') };
+            span { class is 'created'; $bug->prop('created') };
 
         }
 
     }
 
         }
-
+    }
 };
 
 
@@ -60,9 +128,9 @@ template '/show_bug' => page {
 sub bug_link {
         my $bug = shift;
         my $label = shift;
-        a {{ class is 'bug';
+        span { class is 'bug-link'; a {{ class is 'bug';
             href is '/bug/'.$bug->uuid; };
             $label;
-        };
+        }};
     } 
 1;
