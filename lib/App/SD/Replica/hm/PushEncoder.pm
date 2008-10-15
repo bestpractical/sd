@@ -82,7 +82,23 @@ sub integrate_ticket_create {
 }
 
 sub integrate_comment {
-    warn "comment not implemented yet";
+    my $self = shift;
+    my ($change, $changeset) = validate_pos( @_, { isa => 'Prophet::Change' }, {isa => 'Prophet::ChangeSet'} );
+    use Data::Dumper;
+
+    print STDERR Dumper [$change, $changeset];
+
+    my %props = map { $_->name => $_->new_value } $change->prop_changes;
+
+    # XXX, TODO, FIXME: $props{'ticket'} is a luid. is it ok?
+    my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'} )
+        or die "Couldn't remote id of sd ticket $props{'ticket'}";
+    my $hm = $self->sync_source->hm;
+    use Data::Dumper;
+    print STDERR Dumper [ $hm->act( 'CreateTaskEmail',
+        task_id => $ticket_id,
+        message => $props{'content'},
+    ) ];
 }
 
 sub integrate_ticket_update {
