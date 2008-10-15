@@ -89,7 +89,7 @@ sub _set_uuid_for_remote_id {
 # This cache is PERMANENT. - aka not a cache but a mapping table
 
 sub remote_id_for_uuid {
-    my ( $self, $uuid_for_remote_id ) = @_;
+    my ( $self, $uuid_or_luid ) = @_;
 
 
     # XXX: should not access CLI handle
@@ -97,9 +97,10 @@ sub remote_id_for_uuid {
         handle => Prophet::CLI->new->app_handle->handle,
         type   => 'ticket'
     );
-    $ticket->load( uuid => $uuid_for_remote_id );
-    my $id =  $ticket->prop( $self->uuid . '-id' );
-    return $id;
+    $ticket->load( $uuid_or_luid =~ /^\d+$/? 'luid': 'uuid', $uuid_or_luid );
+    my $prop = $self->uuid . '-id';
+    return scalar $ticket->prop( $prop )
+        or die "ticket #$uuid_or_luid has no property '$prop'";
 }
 
 sub _set_remote_id_for_uuid {
