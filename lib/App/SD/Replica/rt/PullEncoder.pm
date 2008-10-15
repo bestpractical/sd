@@ -39,7 +39,8 @@ sub run {
         print $progress->report( "%30b %p Est: %E\r", $counter );
 
         $self->sync_source->log(
-            "Fetching ticket $id - $counter of " . scalar @tickets );
+            "Fetching ticket $id - $counter of " . scalar @tickets
+        );
         $tickets->{$id}->{ticket} = $self->_translate_final_ticket_state(
             $self->sync_source->rt->show( type => 'ticket', id => $id )
         );
@@ -222,10 +223,6 @@ sub _recode_txn_Told {
 sub _recode_txn_Set {
     my $self = shift;
     my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
-        
-    
-    
-
 
     my $change = Prophet::Change->new(
         {   record_type   => 'ticket',

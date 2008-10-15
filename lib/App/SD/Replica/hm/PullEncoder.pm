@@ -34,10 +34,11 @@ sub run {
         foreach my $email ( @{ $txn->{email_entries} } ) {
             if ( my $sub = $self->can( '_recode_email_' . 'blah' ) ) {
                 $sub->(
-                    $self     => previous_state => $previous_state,
-                    email     => $email,
-                    txn       => $txn,
-                    changeset => $changeset
+                    $self,
+                    previous_state => $previous_state,
+                    email          => $email,
+                    txn            => $txn,
+                    changeset      => $changeset,
                 );
             }
         }
@@ -51,26 +52,20 @@ sub run {
 sub add_prop_change {
     my $self = shift;
     my %args = validate( @_, { history_entry => 1, previous_state => 1, change => 1 } );
-    
 
+    my $field = $args{'history_entry'}{'field'};
+    my $old   = $args{'history_entry'}{'old_value'};
+    my $new   = $args{'history_entry'}{'new_value'};
 
-    if ( $args{'previous_state'}->{ $args{history_entry}->{field} } eq $args{history_entry}->{'new_value'} ) {
-        $args{'previous_state'}->{ $args{history_entry}->{field} } = $args{history_entry}->{'old_value'};
+    if ( $args{'previous_state'}->{ $field } eq $new ) {
+        $args{'previous_state'}->{ $field } = $old;
     } else {
-        $args{'previous_state'}->{ $args{history_entry}->{field} } = $args{history_entry}->{'old_value'};
-        warn $args{'previous_state'}->{ $args{history_entry}->{field} } . " != "
-            . $args{history_entry}->{'new_value'} . "\n\n"
+        $args{'previous_state'}->{ $field } = $old;
+        warn $args{'previous_state'}->{ $field } . " != " . $new . "\n\n"
             . YAML::Dump( \%args );
     }
-      
 
-    $args{change}->add_prop_change(
-        name => $args{history_entry}->{'field'},
-        old  => $args{history_entry}->{'old_value'},
-        new  => $args{history_entry}->{'new_value'}
-
-    );
-
+    $args{change}->add_prop_change( name => $field, old => $old, new => $new );
 }
 
 sub recode_create {

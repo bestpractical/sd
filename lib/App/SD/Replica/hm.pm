@@ -84,14 +84,13 @@ sub traverse_changesets {
     require App::SD::Replica::hm::PullEncoder;
     my $recoder = App::SD::Replica::hm::PullEncoder->new( { sync_source => $self } );
     for my $task ( @{ $self->find_matching_tasks } ) {
-        $args{callback}->($_)
-            for @{
-            $recoder->run(
-                task => $task,
-                transactions =>
-                    $self->find_matching_transactions( task => $task->{id}, starting_transaction => $first_rev )
-            )
-            };
+        my $changesets = $recoder->run(
+            task         => $task,
+            transactions => $self->find_matching_transactions(
+                task => $task->{id}, starting_transaction => $first_rev
+            ),
+        );
+        $args{'callback'}->($_) for @$changesets;
     }
 }
 
