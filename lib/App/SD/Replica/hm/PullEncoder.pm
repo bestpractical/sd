@@ -18,50 +18,17 @@ sub run {
 
     my $previous_state = $args{'task'};
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @{ $args{'transactions'} } ) {
+        my $changeset = Prophet::ChangeSet->new( {
+            original_source_uuid => $self->sync_source->uuid,
+            original_sequence_no => $txn->{'id'},
+        } );
 
-
-        my $changeset = Prophet::ChangeSet->new(
-            {   original_source_uuid => $self->sync_source->uuid,
-                original_sequence_no => $txn->{'id'},
-            }
-        );
-        my $change;
-        if ( $txn->{type} eq 'update' ) {
-
-            # In Hiveminder, a changeset has only one change
-            $change = Prophet::Change->new(
-                {   record_type   => 'ticket',
-                    record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'task'}->{id} ),
-                    change_type => 'update_file'
-                }
-            );
-            foreach my $entry ( @{ $txn->{'history_entries'} } ) {
-
-                # Each of these entries is essentially a propchange
-                $self->add_prop_change(
-                    change         => $change,
-                    history_entry  => $entry,
-                    previous_state => $previous_state,
-                );
-
-            }
-
-        } elsif ( $txn->{type} eq 'create' ) {
-
-            # In Hiveminder, a changeset has only one change
-            $change = Prophet::Change->new(
-                {   record_type   => 'ticket',
-                    record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'task'}->{'id'} ),
-                    change_type => 'add_file'
-                }
-            );
-            for my $key ( keys %$previous_state ) {
-                $change->add_prop_change( { new => $previous_state->{$key}, old => undef, name => $key } );
-            }
-        }
-        else {
+        my $method = 'recode_'. $txn->{type};
+        unless ( $self->can( $method ) ) {
             die "Unknown change type $txn->{type}.";
         }
+
+        my $change = $self->$method( task => $args{'task'}, transaction => $txn );
 
         $changeset->add_change( { change => $change } );
         foreach my $email ( @{ $txn->{email_entries} } ) {
@@ -106,66 +73,45 @@ sub add_prop_change {
 
 }
 
-sub _recode_entry_create {
+sub recode_create {
     my $self = shift;
-    my %args = validate( @_, { txn => 1, previous_state => 1, changeset => 1 } );
+    my %args = validate( @_, { task => 1, transaction => 1 } );
 
-    my $change = Prophet::Change->new(
-        {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'previous_state'}->{'id'} ),
-            change_type => 'add_file'
-        }
-    );
+    my $source = $self->sync_source;
+    my $res = Prophet::Change->new( {
+        record_type => 'ticket',
+        record_uuid => $source->uuid_for_remote_id( $args{'task'}{'id'} ),
+        change_type => 'add_file'
+    } );
 
-    $args{'previous_state'}->{ $self->sync_source->uuid . '-id' } = delete $args{'previous_state'}->{'id'};
+    $args{'task'}{ $source->uuid .'-'. $_ } = delete $args{'task'}{$_}
+        foreach qw(id record_locator);
 
-    $args{'changeset'}->add_change( { change => $change } );
-    for my $name ( keys %{ $args{'previous_state'} } ) {
-
-        $change->add_prop_change(
-            name => $name,
-            old  => undef,
-            new  => $args{'previous_state'}->{$name},
-        );
-
+    while( my ($k, $v) = each %{ $args{'task'} } ) {
+        $res->add_prop_change( { name => $k, old => undef, new => $v } );
     }
-
-    $self->_recode_content_update(%args);    # add the create content txn as a seperate change in this changeset
-
+    return $res;
 }
 
-sub _recode_content_update {
+sub recode_update {
     my $self   = shift;
-    my %args   = validate( @_, { txn => 1, previous_state => 1, changeset => 1 } );
-    my $change = Prophet::Change->new(
-        {   record_type => 'comment',
-            record_uuid =>
-                $self->sync_source->uuid_for_url( $self->sync_source->remote_url . "/transaction/" . $args{'txn'}->{'id'} ),
-            change_type => 'add_file'
-        }
-    );
-    $change->add_prop_change(
-        name => 'type',
-        old  => undef,
-        new  => $args{'txn'}->{'Type'}
-    );
+    my %args = validate( @_, { task => 1, transaction => 1 } );
 
-    $change->add_prop_change(
-        name => 'creator',
-        old  => undef,
-        new  => $args{'txn'}->{'Creator'}
-    );
-    $change->add_prop_change(
-        name => 'content',
-        old  => undef,
-        new  => $args{'txn'}->{'Content'}
-    );
-    $change->add_prop_change(
-        name => 'task',
-        old  => undef,
-        new  => $args{task}->{uuid},
-    );
-    $args{'changeset'}->add_change( { change => $change } );
+    # In Hiveminder, a changeset has only one change
+    my $res = Prophet::Change->new( {
+        record_type => 'ticket',
+        record_uuid => $self->sync_source->uuid_for_remote_id( $args{'task'}{'id'} ),
+        change_type => 'update_file'
+    } );
+
+    foreach my $entry ( @{ $args{'transaction'}{'history_entries'} } ) {
+        $self->add_prop_change(
+            change         => $res,
+            history_entry  => $entry,
+            previous_state => $args{'task'},
+        );
+    }
+    return $res;
 }
 
 sub resolve_user_id_to_email {
@@ -243,6 +189,7 @@ sub translate_props {
                 $prop->new_value( $self->resolve_user_id_to_email( $prop->new_value ) );
             }
 
+            # XXX, TODO, FIXME: this doesn't work any more as id stored as SOURCE_UUID-id property
             if ( $prop->name eq 'id' ) {
                 $prop->old_value( $prop->old_value . '@' . $changeset->original_source_uuid )
                     if ( $prop->old_value || '' ) =~ /^\d+$/;
