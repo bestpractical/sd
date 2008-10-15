@@ -26,7 +26,7 @@ override run => sub {
     my @comments = sort by_creation_date @{$record->comments};
     if (@comments) {
         print "\n= COMMENTS\n\n";
-        foreach my $comment (@comments) {
+        for my $comment (@comments) {
             my $creator = $comment->prop('creator');
             my $created = $comment->prop('created');
             my $content = $comment->prop('content');

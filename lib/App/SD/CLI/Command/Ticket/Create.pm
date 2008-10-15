@@ -25,7 +25,7 @@ override run => sub {
 
         (my $props_ref, my $comment) = $self->parse_record_string($ticket);
 
-        foreach my $prop (keys %$props_ref) {
+        for my $prop (keys %$props_ref) {
             $self->set_prop($prop => $props_ref->{$prop});
         }
 

@@ -112,7 +112,7 @@ sub _recode_props_for_create {
     return $attr unless $source_props;
 
     my %source_props = %$source_props;
-    foreach (grep exists $source_props{$_}, qw(group owner requestor)) {
+    for (grep exists $source_props{$_}, qw(group owner requestor)) {
         $source_props{$_.'_id'} = delete $source_props{$_};
     }
 

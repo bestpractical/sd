@@ -34,14 +34,14 @@ override run => sub {
     # if a formerly existing prop was removed from the output, delete it
     # (deleting is currently the equivalent of setting to '', and
     # we want to do this all in one changeset)
-    foreach my $prop (keys %{$record->get_props}) {
+    for my $prop (keys %{$record->get_props}) {
         unless ($prop =~ $do_not_edit) {
             $props_ref->{$prop} = '' if !exists $props_ref->{$prop};
         }
     }
 
     # don't add props that didn't change to the changeset
-    foreach my $prop (keys %$props_ref) {
+    for my $prop (keys %$props_ref) {
         delete $props_ref->{$prop}
             if $props_ref->{$prop} eq $record->prop($prop);
     }

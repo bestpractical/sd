@@ -123,7 +123,7 @@ sub find_matching_transactions {
 
     my $txns = $self->hm->search( 'TaskTransaction', task_id => $args{task} ) || [];
     my @matched;
-    foreach my $txn (@$txns) {
+    for my $txn (@$txns) {
         next if $txn->{'id'} < $args{'starting_transaction'};    # Skip things we've pushed
 
         next if $self->prophet_has_seen_transaction( $txn->{'id'} );

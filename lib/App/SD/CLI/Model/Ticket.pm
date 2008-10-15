@@ -125,7 +125,7 @@ sub create_record_string {
     # the props that will be added to the new ticket and prevent
     # users from being able to break things by changing props
     # that shouldn't be changed, such as uuid
-    foreach my $prop ($record->props_to_show) {
+    for my $prop ($record->props_to_show) {
         if ($prop =~ $props_not_to_edit) {
             if ($prop eq 'id' && $update) {
                 # id isn't a *real* prop, so we have to mess with it some more
@@ -202,7 +202,7 @@ sub parse_record_string {
     my %new_props;
     my $comment = '';
 
-    foreach my $line (@lines) {
+    for my $line (@lines) {
         if ($line =~ separator_pattern()) {
             $last_seen_sep = $1;
         } elsif ($line =~ comment_pattern() or

@@ -31,7 +31,7 @@ sub run {
         my $change = $self->$method( task => $args{'task'}, transaction => $txn );
 
         $changeset->add_change( { change => $change } );
-        foreach my $email ( @{ $txn->{email_entries} } ) {
+        for my $email ( @{ $txn->{email_entries} } ) {
             if ( my $sub = $self->can( '_recode_email_' . 'blah' ) ) {
                 $sub->(
                     $self,
@@ -80,7 +80,7 @@ sub recode_create {
     } );
 
     $args{'task'}{ $source->uuid .'-'. $_ } = delete $args{'task'}{$_}
-        foreach qw(id record_locator);
+        for qw(id record_locator);
 
     while( my ($k, $v) = each %{ $args{'task'} } ) {
         $res->add_prop_change( { name => $k, old => undef, new => $v } );
@@ -99,7 +99,7 @@ sub recode_update {
         change_type => 'update_file'
     } );
 
-    foreach my $entry ( @{ $args{'transaction'}{'history_entries'} } ) {
+    for my $entry ( @{ $args{'transaction'}{'history_entries'} } ) {
         $self->add_prop_change(
             change         => $res,
             history_entry  => $entry,

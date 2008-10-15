@@ -77,14 +77,14 @@ sub _translate_final_ticket_state {
     $ticket->{'id'} =~ s/^ticket\///g;
 
     $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_}
-        foreach qw(Queue id);
-    delete $ticket->{$_} foreach
+        for qw(Queue id);
+    delete $ticket->{$_} for
         grep !defined $ticket->{$_} || $ticket->{$_} eq '',
         keys %$ticket;
     $ticket->{$_} = $self->date_to_iso( $ticket->{$_} )
-        foreach qw(Created Resolved Told LastUpdated Due Starts Started);
+        for qw(Created Resolved Told LastUpdated Due Starts Started);
     $ticket->{$_} =~ s/ minutes$//
-        foreach grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
+        for grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
     $ticket->{'Status'} =~ s/^(resolved|rejected)$/closed/;
     return $ticket;
 }
@@ -125,7 +125,7 @@ sub find_matching_transactions {
             type      => 'ticket'
         );
         if ( my $attachments = delete $txn_hash->{'Attachments'} ) {
-            foreach my $attach ( split( /\n/, $attachments ) ) {
+            for my $attach ( split( /\n/, $attachments ) ) {
                 next unless ( $attach =~ /^(\d+):/ );
                 my $id = $1;
                 my $a  = $rt_handle->get_attachment( parent_id => $args{'ticket'}, id        => $id);
@@ -166,7 +166,7 @@ sub transcode_one_txn {
             $self->translate_prop_names($changeset);
 
             if (my $attachments = delete $txn->{'_attachments'}) {
-               foreach my $attach (@$attachments) { 
+               for my $attach (@$attachments) { 
                     $self->_recode_attachment_create( ticket => $ticket, txn => $txn, changeset =>$changeset, attachment => $attach); 
                }
             }
