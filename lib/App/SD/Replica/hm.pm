@@ -155,19 +155,6 @@ sub remote_uri_path_for_id {
     return "/task/".$id;
 }
 
-
-# XXX TODO, can this get generalized out (take the rt one to ForeignReplica.pm?
-sub record_pushed_ticket {
-    my $self = shift;
-    my %args = validate(
-        @_,
-        {   uuid      => 1,
-            remote_id => 1
-        }
-    );
-    $self->_set_uuid_for_remote_id(%args);
-}
-
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;

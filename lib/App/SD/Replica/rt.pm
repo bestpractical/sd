@@ -74,17 +74,6 @@ sub record_pushed_transactions {
         );
     }
 }
-sub record_pushed_ticket {
-    my $self = shift;
-    my %args = validate(
-        @_,
-        {   uuid      => 1,
-            remote_id => 1
-        }
-    );
-    $self->_set_uuid_for_remote_id(%args);
-    $self->_set_remote_id_for_uuid(%args);
-}
 
 sub _integrate_change {
     my $self = shift;

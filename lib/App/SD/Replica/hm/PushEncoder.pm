@@ -76,29 +76,25 @@ sub integrate_ticket_create {
     # lalala
     $self->sync_source->record_pushed_transaction( transaction => $txns->[0]->{id}, changeset => $changeset );
     return $task->{content}->{id};
-
-    #    return $ticket->id;
-
 }
 
 sub integrate_comment {
     my $self = shift;
     my ($change, $changeset) = validate_pos( @_, { isa => 'Prophet::Change' }, {isa => 'Prophet::ChangeSet'} );
-    use Data::Dumper;
-
-    print STDERR Dumper [$change, $changeset];
 
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
 
-    # XXX, TODO, FIXME: $props{'ticket'} is a luid. is it ok?
     my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'} )
-        or die "Couldn't remote id of sd ticket $props{'ticket'}";
-    my $hm = $self->sync_source->hm;
-    use Data::Dumper;
-    print STDERR Dumper [ $hm->act( 'CreateTaskEmail',
+        or die "Couldn't get remote id of SD ticket";
+
+    my $email = $self->comment_as_email( \%props );
+    my $status = $self->sync_source->hm->act( 'CreateTaskEmail',
         task_id => $ticket_id,
-        message => $props{'content'},
-    ) ];
+        message => $email->as_string,
+    );
+    return $status->{'content'}{'id'} if $status->{'success'};
+
+    die "Couldn't integrate comment: ". $status->{'error'};
 }
 
 sub integrate_ticket_update {
@@ -128,6 +124,23 @@ sub _recode_props_for_create {
     }
 
     return { %$attr, %source_props };
+}
+
+sub comment_as_email {
+    my $self = shift;
+    my $props = shift;
+
+    require Email::Simple;
+    require Email::Simple::Creator;
+
+    my $res = Email::Simple->create(
+        header => [
+            From => $props->{'creator'},
+            Date => $props->{'created'},
+        ],
+        body => $props->{'content'},
+    );
+    return $res;
 }
 
 sub _recode_props_for_integrate {

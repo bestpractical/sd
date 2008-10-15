@@ -91,7 +91,6 @@ sub _set_uuid_for_remote_id {
 sub remote_id_for_uuid {
     my ( $self, $uuid_or_luid ) = @_;
 
-
     # XXX: should not access CLI handle
     my $ticket = Prophet::Record->new(
         handle => Prophet::CLI->new->app_handle->handle,
@@ -99,8 +98,9 @@ sub remote_id_for_uuid {
     );
     $ticket->load( $uuid_or_luid =~ /^\d+$/? 'luid': 'uuid', $uuid_or_luid );
     my $prop = $self->uuid . '-id';
-    return scalar $ticket->prop( $prop )
-        or die "ticket #$uuid_or_luid has no property '$prop'";
+    my $id = $ticket->prop( $prop )
+        or warn "ticket #$uuid_or_luid has no property '$prop'";
+    return $id;
 }
 
 sub _set_remote_id_for_uuid {
@@ -117,9 +117,23 @@ sub _set_remote_id_for_uuid {
         handle => Prophet::CLI->new->app_handle->handle,
         type   => 'ticket'
     );
-    $ticket->load( uuid => $args{'uuid'});
-    $ticket->set_props( props => {  $self->uuid.'-id' => $args{'remote_id'}});
+    $ticket->load( uuid => $args{'uuid'} );
+    $ticket->set_props( props => { $self->uuid.'-id' => $args{'remote_id'} } );
 
+}
+
+
+# XXX TODO, rename this
+sub record_pushed_ticket {
+    my $self = shift;
+    my %args = validate(
+        @_,
+        {   uuid      => 1,
+            remote_id => 1
+        }
+    );
+    $self->_set_uuid_for_remote_id(%args);
+    $self->_set_remote_id_for_uuid(%args);
 }
 
 __PACKAGE__->meta->make_immutable;
