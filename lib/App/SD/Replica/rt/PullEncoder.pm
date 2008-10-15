@@ -76,13 +76,15 @@ sub _translate_final_ticket_state {
 
     $ticket->{'id'} =~ s/^ticket\///g;
 
-    map { $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_} }
-        (qw(Queue id));
-    map { delete $ticket->{$_} if ( !defined $ticket->{$_} || $ticket->{$_} eq '' ) } keys %$ticket;
-    map { $ticket->{$_} = $self->date_to_iso( $ticket->{$_} ) }
-        qw(Created Resolved Told LastUpdated Due Starts Started);
-    map { $ticket->{$_} =~ s/ minutes$// if defined $ticket->{$_} }
-        qw(TimeWorked TimeLeft TimeEstimated);
+    $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_}
+        foreach qw(Queue id);
+    delete $ticket->{$_} foreach
+        grep !defined $ticket->{$_} || $ticket->{$_} eq '',
+        keys %$ticket;
+    $ticket->{$_} = $self->date_to_iso( $ticket->{$_} )
+        foreach qw(Created Resolved Told LastUpdated Due Starts Started);
+    $ticket->{$_} =~ s/ minutes$//
+        foreach grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
     $ticket->{'Status'} =~ s/^(resolved|rejected)$/closed/;
     return $ticket;
 }
