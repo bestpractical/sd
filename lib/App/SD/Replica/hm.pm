@@ -155,6 +155,54 @@ sub remote_uri_path_for_id {
     return "/task/".$id;
 }
 
+our %PROP_MAP = (
+    owner_id                 => 'owner',
+    requestor_id             => 'reported_by',
+    priority                 => 'priority_integer',
+    completed_at             => 'completed',
+    due                      => 'due',
+    creator                  => 'creator',
+    attachment_count         => '_delete',
+    depended_on_by_count     => '_delete',
+    depended_on_by_summaries => '_delete',
+    depends_on_count         => '_delete',
+    depends_on_summaries     => '_delete',
+    group_id                 => '_delete',
+    last_repeat              => '_delete',
+    repeat_days_before_due   => '_delete',
+    repeat_every             => '_delete',
+    repeat_of                => '_delete',
+    repeat_next_create       => '_delete',
+    repeat_period            => '_delete',
+    repeat_stacking          => '_delete',
+
+);
+
+our %REV_PROP_MAP = ();
+while ( my ($k, $v) = each %PROP_MAP ) {
+    if ( $REV_PROP_MAP{ $v } ) {
+        $REV_PROP_MAP{ $v } = [ $REV_PROP_MAP{ $v } ]
+            unless ref $REV_PROP_MAP{ $v };
+        push @{ $REV_PROP_MAP{ $v } }, $k;
+    } else {
+        $REV_PROP_MAP{ $v } = $k;
+    }
+}
+
+sub property_map {
+    my $self = shift;
+    my $dir = shift || 'pull';
+    if ( $dir eq 'pull' ) {
+        return %PROP_MAP;
+    }
+    elsif ( $dir eq 'push' ) {
+        return %REV_PROP_MAP;
+    }
+    else {
+        die "unknown direction";
+    }
+}
+
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;

@@ -52,8 +52,6 @@ sub integrate_change {
     return $id;
 }
 
-
-
 sub integrate_ticket_create {
     my $self = shift;
     my ( $change, $changeset ) = validate_pos( @_, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' } );
@@ -88,7 +86,8 @@ sub integrate_comment {
         or die "Couldn't get remote id of SD ticket";
 
     my $email = $self->comment_as_email( \%props );
-    my $status = $self->sync_source->hm->act( 'CreateTaskEmail',
+    my $status = $self->sync_source->hm->act(
+        'CreateTaskEmail',
         task_id => $ticket_id,
         message => $email->as_string,
     );
@@ -98,12 +97,29 @@ sub integrate_comment {
 }
 
 sub integrate_ticket_update {
-    warn "update not implemented yet";
+    my $self = shift;
+    my ($change, $changeset) = validate_pos( @_, { isa => 'Prophet::Change' }, {isa => 'Prophet::ChangeSet'} );
+
+    my %props = $self->translate_props( $change );
+    return unless %props;
+
+    my $ticket_id = $self->sync_source->remote_id_for_uuid( $change->record_uuid )
+        or die "Couldn't get remote id of SD ticket";
+
+    my $status = $self->sync_source->hm->act(
+        'UpdateTask',
+        id => $ticket_id,
+        %props,
+    );
+    return $status->{'content'}{'id'} if $status->{'success'};
+
+    die "Couldn't integrate comment: ". $status->{'error'};
 }
 
 sub _recode_props_for_create {
     my $self = shift;
     my $attr = $self->_recode_props_for_integrate(@_);
+
     my $source_props = $self->sync_source->props;
     return $attr unless $source_props;
 
@@ -148,8 +164,8 @@ sub _recode_props_for_integrate {
     my ($change) = validate_pos( @_, { isa => 'Prophet::Change' } );
 
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
-    my %attr;
 
+    my %attr;
     for my $key ( keys %props ) {
         # XXX: fill me in
         #        next unless ( $key =~ /^(summary|queue|status|owner|custom)/ );
@@ -158,8 +174,22 @@ sub _recode_props_for_integrate {
     return \%attr;
 }
 
+sub translate_props {
+    my $self     = shift;
+    my ($change) = validate_pos( @_, { isa => 'Prophet::Change' } );
+
+    my %PROP_MAP = $self->sync_source->property_map('push');
+
+    my %props = map { $_->name => $_->new_value } $change->prop_changes;
+    delete $props{ $_ } for @{ delete $PROP_MAP{'_delete'} };
+    while ( my ($k, $v) = each %PROP_MAP ) {
+        next unless exists $props{$k};
+        $props{$v} = delete $props{$k};
+    }
+    return %props;
+}
+
 __PACKAGE__->meta->make_immutable;
 no Moose;
 
 1;
-
