@@ -86,41 +86,49 @@ props rather than prop defaults.
 =cut
 
 sub create_record_template {
-    my $self = shift;
+    my $self   = shift;
     my $record = shift;
-    my $update ;
+    my $update;
 
-    if ($record) { $update = 1 } 
+    if ($record) { $update = 1 }
     else {
-        
-            $record = $self->_get_record_object;
-            $update = 0;
+
+        $record = $self->_get_record_object;
+        $update = 0;
     }
 
-
-    my $props_not_to_edit = $record->props_not_to_edit;
-    my (@metadata_order, @editable_order);
-    my (%immutable_props, %editable_props);
+    my @do_not_edit = $record->immutable_props;
+    my ( @metadata_order,  @editable_order );
+    my ( %immutable_props, %editable_props );
 
     # separate out user-editable props so we can both show all
     # the props that will be added to the new ticket and prevent
     # users from being able to break things by changing props
     # that shouldn't be changed, such as uuid
-    for my $prop ($record->props_to_show) {
-        if ($prop =~ $props_not_to_edit) {
-            if ($prop eq 'id' && $update) {
+   #
+    # filter out props we don't want to present for editing
+    my %do_not_edit = map { $_ => 1 } @do_not_edit;
+   
+    
+    for my $prop ( $record->props_to_show ) {
+        if ( $do_not_edit{$prop}) {
+            if ( $prop eq 'id' && $update ) {
+
                 # id isn't a *real* prop, so we have to mess with it some more
                 push @metadata_order, $prop;
-                $immutable_props{$prop} = $record->luid . ' (' . $record->uuid . ")";
-            }
-            elsif (!(($prop eq 'id' or $prop eq 'created') && !$update)) {
+                $immutable_props{$prop}
+                    = $record->luid . ' (' . $record->uuid . ")";
+            } elsif ( !( ( $prop eq 'id' or $prop eq 'created' ) && !$update ) )
+            {
                 push @metadata_order, $prop;
+
                 # which came first, the chicken or the egg?
                 #
                 # we don't want to display id/created for ticket creates
                 # because they can't by their nature be specified until the
                 # ticket is actually created
-                $immutable_props{$prop} = $update ? $record->prop($prop) : undef;
+                $immutable_props{$prop}
+                    = $update ? $record->prop($prop) : undef;
             }
         } else {
             push @editable_order, $prop;
@@ -129,14 +137,15 @@ sub create_record_template {
     }
 
     # fill in prop defaults if we're creating a new ticket
-    if (! $update) {
-        $record->default_props(\%immutable_props);
-        $record->default_props(\%editable_props);
+    if ( !$update ) {
+        $record->default_props( \%immutable_props );
+        $record->default_props( \%editable_props );
     }
 
     # fill in props specified on the commandline (overrides defaults)
-    if ($self->has_arg('edit')) {
-        map { $editable_props{$_} = $self->prop($_) if $self->has_prop($_) } @editable_order;
+    if ( $self->has_arg('edit') ) {
+        map { $editable_props{$_} = $self->prop($_) if $self->has_prop($_) }
+            @editable_order;
         $self->delete_arg('edit');
     }
 
@@ -150,23 +159,24 @@ sub create_record_template {
     );
 
     # glue all the parts together
-    return join( "\n\n",
+    return join(
+        "\n\n",
 
-    $self->_build_template_section(
-        header => metadata_separator,
-        data   => $immutable_props_string
-    ),
+        $self->_build_template_section(
+            header => metadata_separator,
+            data   => $immutable_props_string
+        ),
 
-    $self->_build_template_section(
-        header => editable_props_separator,
-        data => $editable_props_string
-    ),
-    $self->_build_template_section(
-        header =>  comment_separator,
-        data   => ''
-        )
+        $self->_build_template_section(
+            header => editable_props_separator,
+            data   => $editable_props_string
+        ),
+        $self->_build_template_section(
+            header => comment_separator,
+            data   => ''
+            )
 
-);
+    );
 }
 
 sub _build_template_section {

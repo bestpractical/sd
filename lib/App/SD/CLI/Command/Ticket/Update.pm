@@ -30,7 +30,6 @@ sub process_template {
     my %args = validate( @_, { template => 1, edited => 1, record => 1 } );
 
     my $record      = $args{record};
-    my $do_not_edit = $record->props_not_to_edit;
     my $updated     = $args{edited};
     my ( $props_ref, $comment ) = $self->parse_record_template($updated);
 
@@ -40,9 +39,11 @@ sub process_template {
     # (deleting is currently the equivalent of setting to '', and
     # we want to do this all in one changeset)
     for my $prop ( keys %{ $record->get_props } ) {
-        unless ( $prop =~ $do_not_edit ) {
+        next if ( grep { $_ eq $prop } $record->immutable_props );
+
+
             $props_ref->{$prop} = '' if !exists $props_ref->{$prop};
-        }
+        
     }
 
     # don't add props that didn't change to the changeset

@@ -34,7 +34,6 @@ sub process_template {
     my %args = validate( @_, { template => 1, edited => 1, record => 1 } );
 
     my $record      = $args{record};
-    my $do_not_edit = $record->props_not_to_edit;
     my $updated     = $args{edited};
     ( my $props_ref, my $comment ) = $self->parse_record_template($updated);
 

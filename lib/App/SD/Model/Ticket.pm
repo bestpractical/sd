@@ -76,14 +76,16 @@ C<$args{errors}{status}> to an error message and returns false.
 =cut
 
 sub validate_prop_status {
-    my ($self, %args) = @_;
-
+    my ( $self, %args ) = @_;
 
     # XXX: validater not called when a value is unset, so can't do
     # mandatory check here
-    return 1 if scalar grep { $args{props}{status} eq $_ } qw(new open closed stalled);
 
-    $args{errors}{status} = "'".$args{props}->{status}."' is not a valid status";
+    return 1
+        if scalar grep { $args{props}{status} eq $_ }
+            @{ $self->app_handle->setting( label => 'statuses' )->get() };
+
+    $args{errors}{status} = "'" . $args{props}->{status} . "' is not a valid status";
     return 0;
 
 }
@@ -141,7 +143,7 @@ user-modifiable.
 
 =cut
 
-sub props_not_to_edit { qr/^(id|creator|created|original_replica)$/ }
+sub immutable_props { qw(id creator created original_replica) }
 
 =head2 is_overdue [$date]
 
