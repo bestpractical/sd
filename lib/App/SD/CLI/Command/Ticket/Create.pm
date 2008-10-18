@@ -1,57 +1,64 @@
 package App::SD::CLI::Command::Ticket::Create;
 use Moose;
 
+use Params::Validate qw/validate/;
 extends 'Prophet::CLI::Command::Create';
 with 'App::SD::CLI::Model::Ticket';
 with 'App::SD::CLI::Command';
+with 'App::SD::CLI::Command::TextEditor';
 
 # we want to launch an $EDITOR window to grab props and a comment if no
 # props are specified on the commandline
+
 override run => sub {
     my $self = shift;
     my @prop_set = $self->prop_set;
     my $record = $self->_get_record_object;
 
-    # only invoke editor if no props specified on the commandline or edit arg
-    # specified
-    if (!@prop_set || $self->has_arg('edit')) {
-        my $ticket_string_to_edit = $self->create_record_string();
+    # only invoke editor if no props specified on the commandline or edit arg # specified
+   return super() if (@{$self->prop_set} && !$self->has_arg('edit'));
 
-        TRY_AGAIN:
-        my $ticket = $self->edit_text($ticket_string_to_edit);
 
-        die "Aborted.\n"
-            if $ticket eq $ticket_string_to_edit; # user didn't change anything
+    my $template_to_edit = $self->create_record_template();
 
-        (my $props_ref, my $comment) = $self->parse_record_string($ticket);
+    my $done = 0;
 
-        for my $prop (keys %$props_ref) {
-            $self->set_prop($prop => $props_ref->{$prop});
-        }
-
-        my $error;
-        {
-            local $@;
-            eval { super(); } or $error = $@ || "Something went wrong!";
-        }
-        if ( $error ) {
-            print STDERR "Couldn't create a record, error:\n\n", $error, "\n";
-            die "Aborted.\n" unless $self->prompt_Yn( "Want to return back to editing?" );
-
-            ($ticket_string_to_edit, $error) = ($ticket, '');
-            goto TRY_AGAIN;
-        }
-
-        # retrieve the created record from the superclass
-        $record = $self->record();
-
-        $self->add_comment( content => $comment, uuid => $record->uuid )
-            if $comment;
-
-    } else {
-        super();
+    while (!$done) {
+      $done =  $self->try_to_edit( template => \$template_to_edit, record => $record);
     }
+
 };
+
+sub process_template {
+    my $self = shift;
+    my %args = validate( @_, { template => 1, edited => 1, record => 1 } );
+
+    my $record      = $args{record};
+    my $do_not_edit = $record->props_not_to_edit;
+    my $updated     = $args{edited};
+    ( my $props_ref, my $comment ) = $self->parse_record_template($updated);
+
+    for my $prop ( keys %$props_ref ) {
+        $self->context->set_prop( $prop => $props_ref->{$prop} );
+    }
+
+    my $error;
+        local $@;
+        eval { super(); } or $error = $@ || "Something went wrong!";
+
+    return $self->handle_template_errors(
+        error        => $error,
+        template_ref => $args{template},
+        bad_template => $updated
+    ) if ($error);
+
+    $self->add_comment( content => $comment, uuid => $self->record->uuid )
+        if $comment;
+
+    return 1;
+}
+
+
 
 __PACKAGE__->meta->make_immutable;
 no Moose;

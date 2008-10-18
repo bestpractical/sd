@@ -4,6 +4,19 @@ use Params::Validate qw(:all);
 use constant record_class => 'App::SD::Model::Ticket';
 
 
+=head2 separator_pattern
+
+A pattern that will match on lines that count as section separators
+in tickets represented as strings. Separator string text is remembered
+as C<$1>.
+
+=cut
+
+use constant separator_pattern => qr/^=== (.*) ===$/;
+use constant comment_pattern => qr/^\s*#/;
+
+
+
 =head2 add_comment content => str, uuid => str
 
 A convenience method that takes a content string and a ticket uuid and creates
@@ -29,7 +42,7 @@ sub add_comment {
     $command->run();
 }
 
-=head2 metadata_separator_text
+=head2 metadata_separator
 
 Returns a string of text that goes in the comment denoting the beginning of
 uneditable ticket metadata in a string representing a ticket.
@@ -41,68 +54,30 @@ be changed manually.
 
 =cut
 
-sub metadata_separator_text {
-    'required ticket metadata (changes here will not be saved)'
-}
+use constant metadata_separator => 'required ticket metadata (changes here will not be saved)';
+use constant editable_props_separator => 'edit ticket details below';
+use constant comment_separator => 'add new ticket comment below';
 
-=head2 editable_props_separator_text
-
-Returns a string that denotes the text that goes in the comment denoting the
-beginning of prop: value pairs that are updatable in a string representing a
-ticket.
-
-=cut
-
-sub editable_props_separator_text { 'edit ticket details below' }
-
-=head2 comment_separator_text
-
-Returns a string that goes in the comment that separates the prop: value lines
-from the ticket comment in a string representing a ticket. The ticket comment
-will be free text to the end of the new ticket. May contain arbitrary newlines.
-
-=cut
-
-sub comment_separator_text { 'add new ticket comment below' }
-
-=head2 separator_pattern
-
-A pattern that will match on lines that count as section separators
-in tickets represented as strings. Separator string text is remembered
-as C<$1>.
-
-=cut
-
-sub separator_pattern { qr/^=== (.*) ===$/ }
-
-=head2 create_separator $text
+=head2 _build_separator $text
 
 Takes a string and returns it in separator form.
 
 =cut
 
-sub create_separator {
+sub _build_separator {
     my $self = shift;
     my $text = shift;
 
     return "=== $text ===";
 }
 
-=head2 comment_pattern
 
-Returns a pattern that will match on lines that count as comments in
-tickets represented as strings.
-
-=cut
-
-sub comment_pattern { qr/^\s*#/ }
-
-=head2 create_record_string RECORD
+=head2 create_record_template RECORD
 
 Creates a string representing a new record, prefilling default props
 and props specified on the command line. Intended to be presented to
-the user for editing using L<Prophet::CLI::Command->edit_text>
-and then parsed using L</create_record_string>.
+the user for editing using L<Prophet::CLI::Command->edit>
+and then parsed using L</create_record_template>.
 
 If RECORD is given, then we are updating that record rather than
 creating a new one, and the ticket string will be created from its
@@ -110,16 +85,22 @@ props rather than prop defaults.
 
 =cut
 
-sub create_record_string {
+sub create_record_template {
     my $self = shift;
     my $record = shift;
-    my $update = 0;
+    my $update ;
 
-    defined($record) ? $update = 1 : $record = $self->_get_record_object;
+    if ($record) { $update = 1 } 
+    else {
+        
+            $record = $self->_get_record_object;
+            $update = 0;
+    }
+
 
     my $props_not_to_edit = $record->props_not_to_edit;
     my (@metadata_order, @editable_order);
-    my (%metadata_props, %editable_props);
+    my (%immutable_props, %editable_props);
 
     # separate out user-editable props so we can both show all
     # the props that will be added to the new ticket and prevent
@@ -130,7 +111,7 @@ sub create_record_string {
             if ($prop eq 'id' && $update) {
                 # id isn't a *real* prop, so we have to mess with it some more
                 push @metadata_order, $prop;
-                $metadata_props{$prop} = $record->luid . ' (' . $record->uuid . ")";
+                $immutable_props{$prop} = $record->luid . ' (' . $record->uuid . ")";
             }
             elsif (!(($prop eq 'id' or $prop eq 'created') && !$update)) {
                 push @metadata_order, $prop;
@@ -139,7 +120,7 @@ sub create_record_string {
                 # we don't want to display id/created for ticket creates
                 # because they can't by their nature be specified until the
                 # ticket is actually created
-                $metadata_props{$prop} = $update ? $record->prop($prop) : undef;
+                $immutable_props{$prop} = $update ? $record->prop($prop) : undef;
             }
         } else {
             push @editable_order, $prop;
@@ -148,8 +129,8 @@ sub create_record_string {
     }
 
     # fill in prop defaults if we're creating a new ticket
-    unless ($update) {
-        $record->default_props(\%metadata_props);
+    if (! $update) {
+        $record->default_props(\%immutable_props);
         $record->default_props(\%editable_props);
     }
 
@@ -159,31 +140,55 @@ sub create_record_string {
         $self->delete_arg('edit');
     }
 
-    # make undef values empty strings to avoid interpolation warnings
-    # (we can't do this earlier because $record->default_props only
-    # overrides undefined props)
-    map { $metadata_props{$_} = '' if !defined($metadata_props{$_}) }
-        @metadata_order;
-    map { $editable_props{$_} = '' if !defined($editable_props{$_}) }
-        @editable_order;
-
-    my $metadata_separator = $self->create_separator(metadata_separator_text());
-    my $editable_separator = $self->create_separator(editable_props_separator_text());
-    my $comment_separator = $self->create_separator(comment_separator_text());
-
-    my $metadata_props_string = join "\n",
-                        map { "$_: $metadata_props{$_}" } @metadata_order;
-    my $editable_props_string = join "\n",
-                        map { "$_: $editable_props{$_}" } @editable_order;
+    my $immutable_props_string = $self->_build_kv_pairs(
+        order => \@metadata_order,
+        data  => \%immutable_props
+    );
+    my $editable_props_string = $self->_build_kv_pairs(
+        order => \@editable_order,
+        data  => \%editable_props
+    );
 
     # glue all the parts together
-    my $ticket_string = $metadata_separator . "\n\n" . $metadata_props_string
-                    . "\n\n" . $editable_separator . "\n\n" .
-                    $editable_props_string . "\n\n" . $comment_separator
-                    . "\n";
+    return join( "\n\n",
+
+    $self->_build_template_section(
+        header => metadata_separator,
+        data   => $immutable_props_string
+    ),
+
+    $self->_build_template_section(
+        header => editable_props_separator,
+        data => $editable_props_string
+    ),
+    $self->_build_template_section(
+        header =>  comment_separator,
+        data   => ''
+        )
+
+);
 }
 
-=head2 parse_record_string $str
+sub _build_template_section {
+    my $self = shift;
+    my %args = validate (@_, { header => 1, data => 0 });
+    return $self->_build_separator($args{'header'}) ."\n\n". ( $args{data} || '');
+}
+
+sub _build_kv_pairs {
+    my $self = shift;
+    my %args = validate (@_, { order => 1, data => 1 });
+
+    my $string = '';
+    for my $prop ( @{$args{order}}) {
+        $string .= "$prop: ".($args{data}->{$prop} ||'') ."\n";
+    }
+    return $string;
+}
+
+
+
+=head2 parse_record_template $str
 
 Takes a string containing a ticket record consisting of prop: value pairs
 followed by a separator, followed by an optional comment.
@@ -193,7 +198,7 @@ with props with false values filtered out.
 
 =cut
 
-sub parse_record_string {
+sub parse_record_template {
     my $self = shift;
     my $ticket = shift;
 
@@ -203,21 +208,25 @@ sub parse_record_string {
     my $comment = '';
 
     for my $line (@lines) {
-        if ($line =~ separator_pattern()) {
+        if ($line =~ separator_pattern) {
             $last_seen_sep = $1;
-        } elsif ($line =~ comment_pattern() or
-            # skip comments and unchangeable props
-            $last_seen_sep eq metadata_separator_text()) {
+        } elsif ($line =~ comment_pattern) {
+            # skip comments 
             next;
-        } elsif ($last_seen_sep eq editable_props_separator_text()) {
+        } elsif ( $last_seen_sep eq metadata_separator) {
+            # skip unchangeable props
+            next;
+        } elsif ($last_seen_sep eq editable_props_separator) {
             # match prop: value pairs. whitespace in between is ignored.
             if ($line =~ m/^([^:]+):\s*(.*)$/) {
                 my $prop = $1;
                 my $val = $2;
                 $new_props{$prop} = $val unless !($val);
             }
-        } elsif ($last_seen_sep eq comment_separator_text()) {
+        } elsif ($last_seen_sep eq comment_separator) {
             $comment .= $line . "\n";
+        } else {
+            # Throw away the section 
         }
     }
 

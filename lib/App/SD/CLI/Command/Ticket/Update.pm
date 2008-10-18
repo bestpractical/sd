@@ -1,47 +1,52 @@
 package App::SD::CLI::Command::Ticket::Update;
 use Moose;
+use Params::Validate qw/validate/;
 
 extends 'Prophet::CLI::Command::Update';
 with 'App::SD::CLI::Model::Ticket';
 with 'App::SD::CLI::Command';
+with 'App::SD::CLI::Command::TextEditor';
+
 
 # use an editor to edit if no props are specified on the commandline,
 # allowing the creation of a new comment in the process
 override run => sub {
     my $self = shift;
     $self->require_uuid;
-
     my $record = $self->_load_record;
-    my $props = $record->get_props;
+   return super() if (@{$self->prop_set} && !$self->has_arg('edit'));
+    my $template_to_edit = $self->create_record_template($record);
 
-    if (@{$self->prop_set} && !$self->has_arg('edit')) {
-        return super();
+    my $done = 0;
+
+    while (!$done) {
+      $done =  $self->try_to_edit( template => \$template_to_edit, record => $record);
     }
 
-    my $ticket_string_to_edit = $self->create_record_string($record);
+};
+
+sub process_template {
+    my $self = shift;
+    my %args = validate( @_, { template => 1, edited => 1, record => 1 } );
+
+    my $record      = $args{record};
     my $do_not_edit = $record->props_not_to_edit;
-
-    TRY_AGAIN:
-    my $updated = $self->edit_text($ticket_string_to_edit);
-
-    die "Aborted.\n"
-        if $updated eq $ticket_string_to_edit; # user didn't change anything
-
-    my ($props_ref, $comment) = $self->parse_record_string($updated);
+    my $updated     = $args{edited};
+    my ( $props_ref, $comment ) = $self->parse_record_template($updated);
 
     no warnings 'uninitialized';
 
     # if a formerly existing prop was removed from the output, delete it
     # (deleting is currently the equivalent of setting to '', and
     # we want to do this all in one changeset)
-    for my $prop (keys %{$record->get_props}) {
-        unless ($prop =~ $do_not_edit) {
+    for my $prop ( keys %{ $record->get_props } ) {
+        unless ( $prop =~ $do_not_edit ) {
             $props_ref->{$prop} = '' if !exists $props_ref->{$prop};
         }
     }
 
     # don't add props that didn't change to the changeset
-    for my $prop (keys %$props_ref) {
+    for my $prop ( keys %$props_ref ) {
         delete $props_ref->{$prop}
             if $props_ref->{$prop} eq $record->prop($prop);
     }
@@ -49,27 +54,24 @@ override run => sub {
     # set the new props
     if ( keys %$props_ref ) {
         my $error;
-        {
-            local $@;
-            eval { $record->set_props( props => $props_ref ) }
-                or $error = $@ || "Something went wrong!";
-        }
-        if ( $error ) {
-            print STDERR "Couldn't update the record, error:\n\n", $error, "\n";
-            die "Aborted.\n" unless $self->prompt_Yn( "Want to return back to editing?" );
+        local $@;
+        eval { $record->set_props( props => $props_ref ) }
+            or $error = $@ || "Something went wrong!";
 
-            ($ticket_string_to_edit, $error) = ($updated, '');
-            goto TRY_AGAIN;
-        }
+        return $self->handle_template_errors(
+            error        => $error,
+            template_ref => $args{template},
+            bad_template => $updated
+        ) if ($error);
+
         print 'Updated ticket ' . $record->luid . ' (' . $record->uuid . ")\n";
-    }
-    else {
+    } else {
         print "No changes in properties.\n";
     }
 
-    $self->add_comment( content => $comment, uuid => $record->uuid )
-        if $comment;
-};
+    $self->add_comment( content => $comment, uuid => $record->uuid ) if $comment;
+    return 1;
+}
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
