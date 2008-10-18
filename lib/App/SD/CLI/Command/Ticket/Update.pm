@@ -5,7 +5,7 @@ use Params::Validate qw/validate/;
 extends 'Prophet::CLI::Command::Update';
 with 'App::SD::CLI::Model::Ticket';
 with 'App::SD::CLI::Command';
-with 'App::SD::CLI::Command::TextEditor';
+with 'Prophet::CLI::TextEditorCommand';
 
 
 # use an editor to edit if no props are specified on the commandline,
