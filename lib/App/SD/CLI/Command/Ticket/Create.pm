@@ -5,7 +5,7 @@ use Params::Validate qw/validate/;
 extends 'Prophet::CLI::Command::Create';
 with 'App::SD::CLI::Model::Ticket';
 with 'App::SD::CLI::Command';
-with 'App::SD::CLI::Command::TextEditor';
+with 'Prophet::CLI::TextEditorCommand';
 
 # we want to launch an $EDITOR window to grab props and a comment if no
 # props are specified on the commandline
