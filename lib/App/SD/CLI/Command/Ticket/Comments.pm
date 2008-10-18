@@ -1,6 +1,6 @@
 package App::SD::CLI::Command::Ticket::Comments;
 use Moose;
-extends 'Prophet::CLI::Command';
+extends 'Prophet::CLI::Command::Search';
 with 'Prophet::CLI::RecordCommand';
 with 'App::SD::CLI::Command';
 with 'App::SD::CLI::Model::Ticket';
