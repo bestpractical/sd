@@ -9,15 +9,19 @@ sub run {
 
 print <<EOF
  $cmd ticket search
-     Lists all tickets with a status that does not match 'closed'
+     List all tickets with a status that does not match 'closed'
  
  $cmd ticket search --regex abc
-     Lists all tickets with content matching 'abc'
+     List all tickets with content matching 'abc'
  
  $cmd ticket search -- status!=closed summary =~ http 
-     Lists all tickets with a status that does match closed
+     List all tickets with a status that does match closed
      and a summary matching 'http'
- 
+
+ $cmd ticket search --group owner
+      List all tickets with a status that does not match 'closed', 
+      grouped by owner
+
  $cmd ticket show 1234
      Show basic information for the ticket with local id 1234
  

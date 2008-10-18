@@ -65,19 +65,6 @@ sub get_content {
     return $content;
 }
 
-=head2 sort_by_creation_date $records
-
-Given an arrayref to a list of records, returns a list of the records
-sorted by their C<created> property, in ascending order.
-
-=cut
-
-sub sort_by_creation_date {
-    my ($self, $records) = @_;
-
-    return (sort { $a->prop('created') cmp $b->prop('created') } @{$records});
-}
-
 no Moose::Role;
 
 1;

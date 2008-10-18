@@ -13,8 +13,16 @@ before run => sub {
         no warnings 'uninitialized';
         $self->sort_routine( sub {
                     my $records = shift;
-                    return $self->sort_by_creation_date($records) } );
+                    return $self->sort_by_prop( created => $records) } );
     }
+    if ($self->has_arg('group')) {
+        $self->group_routine( sub {
+                    my $records = shift;
+                    return $self->group_by_prop( $self->arg('group') => $records) } )
+    }
+
+
+
 };
 
 # implicit status != closed
@@ -22,8 +30,8 @@ sub default_match {
     my $self = shift;
     my $ticket = shift;
 
-    return 0 if $ticket->prop('status') eq 'closed';
-    return 1;
+    return 1 if $ticket->prop('status') ne 'closed';
+    return 0;
 }
 
 __PACKAGE__->meta->make_immutable;
