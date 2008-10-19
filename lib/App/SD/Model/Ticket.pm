@@ -132,10 +132,10 @@ from first to last).
 =cut
 
 sub props_to_show {
-    ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by', 'original_replica')
+    ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by', 'milestone', 'original_replica')
 }
 
-=head2 props_not_to_edit
+=head2 immutable_props
 
 A pattern of props not to show in an editor (when creating or updating a
 ticket, for example). Could also be used to determine which props shouldn't be
