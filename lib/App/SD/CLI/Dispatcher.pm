@@ -15,6 +15,14 @@ on qr'^help (?:ticket)$' => sub { run('help tickets', @_); last_rule;};
 on qr'^help ticket (list|search|find)$' => sub { run('help search', @_); last_rule;};
 on qr'^help (?:list|find)$' => sub { run('help search', @_); last_rule;};
 
+on qr{ticket \s+ give \s+ (.*) \s+ (.*)}xi => sub {
+    my %args = @_;
+    $args{context}->set_arg(type => 'ticket');
+    $args{context}->set_arg(id => $1);
+    $args{context}->set_arg(owner => $2);
+    run('update', %args);
+};
+
 # allow type to be specified via primary commands, e.g.
 # 'sd ticket display --id 14' -> 'sd display --type ticket --id 14'
 on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
@@ -22,7 +30,6 @@ on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
     $args{context}->set_arg(type => $1);
     run($2, %args);
 };
-
 
 #on qr'^about$' => sub { run('help about'); last_rule;};
 
@@ -40,8 +47,7 @@ on qr{.} => sub {
         my @pieces = __PACKAGE__->resolve_builtin_aliases(@$_);
 
         while (@pieces) {
-            push @possible_classes, "App::SD::CLI::Command::"
-                                . join '::', @pieces;
+            push @possible_classes, "App::SD::CLI::Command::" . join '::', @pieces;
             shift @pieces;
         }
     }

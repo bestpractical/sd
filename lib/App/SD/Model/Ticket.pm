@@ -15,6 +15,10 @@ Returns a string of the default value of the C<status> prop.
 =cut
 
 
+sub default_prop_milestone { 
+    my $self = shift; 
+    return $self->app_handle->setting(label => 'default_milestone')->get()->[0];
+}
 
 sub default_prop_status { 
     my $self = shift; 
@@ -77,18 +81,27 @@ C<$args{errors}{status}> to an error message and returns false.
 
 sub validate_prop_status {
     my ( $self, %args ) = @_;
-
-    # XXX: validater not called when a value is unset, so can't do
-    # mandatory check here
-
-    return 1
-        if scalar grep { $args{props}{status} eq $_ }
-            @{ $self->app_handle->setting( label => 'statuses' )->get() };
-
-    $args{errors}{status} = "'" . $args{props}->{status} . "' is not a valid status";
-    return 0;
-
+    return $self->_validate_prop_from_setting('status', 'statuses', \%args);
 }
+
+
+sub validate_prop_milestone {
+    my ( $self, %args ) = @_;
+    return $self->_validate_prop_from_setting('milestone', 'milestones', \%args);
+}
+
+
+sub _validate_prop_from_setting {
+    my ( $self, $prop, $setting, $args ) = @_;
+    # XXX: validater not called when a value is unset, so can't do mandatory check here
+    return 1 if scalar grep { $args->{props}{$prop} eq $_ }
+            @{ $self->app_handle->setting( label => $setting )->get() };
+
+    $args->{errors}{$prop} = "'" . $args->{props}->{$prop} . "' is not a valid $prop";
+    return 0;
+}
+
+
 
 =head2 color_prop_status $value
 
