@@ -66,6 +66,29 @@ __PACKAGE__->dispatcher->add_rule(
     ),
 );
 
+my %CMD_MAP = (
+    ls      => 'search',
+    new     => 'create',
+    edit    => 'update',
+    rm      => 'delete',
+    del     => 'delete',
+    list    => 'search',
+    display => 'show',
+);
+
+sub resolve_builtin_aliases {
+    my $self = shift;
+    my @cmds = @_;
+
+    if (my $replacement = $CMD_MAP{ lc $cmds[-1] }) {
+        $cmds[-1] = $replacement;
+    }
+
+    @cmds = map { ucfirst lc } @cmds;
+
+    return wantarray ? @cmds : $cmds[-1];
+}
+
 __PACKAGE__->meta->make_immutable;
 no Moose;
 
