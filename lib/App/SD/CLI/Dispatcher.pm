@@ -16,19 +16,19 @@ on qr'^help ticket (list|search|find)$' => sub { run('help search', @_); last_ru
 on qr'^help (?:list|find)$' => sub { run('help search', @_); last_rule;};
 
 on qr{ticket \s+ give \s+ (.*) \s+ (.*)}xi => sub {
-    my %args = @_;
-    $args{context}->set_arg(type => 'ticket');
-    $args{context}->set_arg(id => $1);
-    $args{context}->set_arg(owner => $2);
-    run('update', %args);
+    my $self = shift;
+    $self->context->set_arg(type => 'ticket');
+    $self->context->set_arg(id => $1);
+    $self->context->set_arg(owner => $2);
+    run('update', $self, @_);
 };
 
 # allow type to be specified via primary commands, e.g.
 # 'sd ticket display --id 14' -> 'sd display --type ticket --id 14'
 on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
-    my %args = @_;
-    $args{context}->set_arg(type => $1);
-    run($2, %args);
+    my $self = shift;
+    $self->context->set_arg(type => $1);
+    run($2, $self, @_);
 };
 
 #on qr'^about$' => sub { run('help about'); last_rule;};
@@ -36,14 +36,14 @@ on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
 
 # Run class based commands
 on qr{.} => sub {
-    my %args = @_;
-    my $cli = $args{cli};
+    my $self = shift;
+    my $cli = $self->cli;
 
     my @possible_classes;
 
     # we want to dispatch on the original command "ticket attachment create"
     # AND on the command we received "create"
-    for ([@{ $args{dispatching_on} }], [split ' ', $_]) {
+    for ([@{ $self->dispatching_on }], [split ' ', $_]) {
         my @pieces = __PACKAGE__->resolve_builtin_aliases(@$_);
 
         while (@pieces) {
@@ -53,8 +53,8 @@ on qr{.} => sub {
     }
 
     for my $class (@possible_classes) {
-        if ($args{cli}->_try_to_load_cmd_class($class)) {
-            return $args{got_command}->($class) 
+        if ($cli->_try_to_load_cmd_class($class)) {
+            return $class->run;
         }
     }
 
