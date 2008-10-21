@@ -31,7 +31,7 @@ my $as_root = BTDT::Model::User->new( current_user => $root );
 $as_root->load_by_cols( email => 'onlooker@example.com' );
 my ( $val, $msg ) = $as_root->set_accepted_eula_version( Jifty->config->app('EULAVersion') );
 ok( $val, $msg );
-my ( $val, $msg ) = $as_root->set_pro_account(1);
+( $val, $msg ) = $as_root->set_pro_account(1);
 ok( $val, $msg );
 
 my $GOODUSER = BTDT::CurrentUser->new( email => 'onlooker@example.com' );
