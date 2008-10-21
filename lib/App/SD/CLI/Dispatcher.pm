@@ -1,9 +1,7 @@
 #!/usr/bin/env perl
 package App::SD::CLI::Dispatcher;
-use strict;
-use warnings;
 use Prophet::CLI::Dispatcher -base;
-
+use Moose;
 
 on qr'^\?(.*)$' => sub {my $cmd = $1 || '';  run ('help'. $cmd,  @_); last_rule;};
 
@@ -67,6 +65,9 @@ __PACKAGE__->dispatcher->add_rule(
         dispatcher => Prophet::CLI::Dispatcher->dispatcher,
     ),
 );
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
 
 1;
 
