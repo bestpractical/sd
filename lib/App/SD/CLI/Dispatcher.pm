@@ -3,22 +3,22 @@ package App::SD::CLI::Dispatcher;
 use Prophet::CLI::Dispatcher -base;
 use Moose;
 
-on qr'^\?(.*)$' => sub {my $cmd = $1 || '';  run ('help'. $cmd,  @_); last_rule;};
+on qr'^\?(.*)$' => sub {my $cmd = $1 || '';  redispatch('help'. $cmd,  @_); last_rule;};
 
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
-on qr'^(about|copying)$' => sub { run('help '.$1, @_); last_rule;};
-on qr'^help (?:push|pull|publish|server)$' => sub { run('help sync', @_); last_rule;};
-on qr'^help (?:env)$' => sub { run('help environment', @_); last_rule;};
-on qr'^help (?:ticket)$' => sub { run('help tickets', @_); last_rule;};
-on qr'^help ticket (list|search|find)$' => sub { run('help search', @_); last_rule;};
-on qr'^help (?:list|find)$' => sub { run('help search', @_); last_rule;};
+on qr'^(about|copying)$' => sub { redispatch('help '.$1, @_); last_rule;};
+on qr'^help (?:push|pull|publish|server)$' => sub { redispatch('help sync', @_); last_rule;};
+on qr'^help (?:env)$' => sub { redispatch('help environment', @_); last_rule;};
+on qr'^help (?:ticket)$' => sub { redispatch('help tickets', @_); last_rule;};
+on qr'^help ticket (list|search|find)$' => sub { redispatch('help search', @_); last_rule;};
+on qr'^help (?:list|find)$' => sub { redispatch('help search', @_); last_rule;};
 
 on qr{ticket \s+ give \s+ (.*) \s+ (.*)}xi => sub {
     my $self = shift;
     $self->context->set_arg(type => 'ticket');
     $self->context->set_arg(id => $1);
     $self->context->set_arg(owner => $2);
-    run('update', $self, @_);
+    redispatch('update', $self, @_);
 };
 
 # allow type to be specified via primary commands, e.g.
@@ -26,10 +26,10 @@ on qr{ticket \s+ give \s+ (.*) \s+ (.*)}xi => sub {
 on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
     my $self = shift;
     $self->context->set_arg(type => $1);
-    run($2, $self, @_);
+    redispatch($2, $self, @_);
 };
 
-#on qr'^about$' => sub { run('help about'); last_rule;};
+#on qr'^about$' => sub { redispatch(('help about'); last_rule;};
 
 
 # Run class based commands
