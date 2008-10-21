@@ -51,9 +51,13 @@ on qr{.} => sub {
     }
 
     for my $class (@possible_classes) {
-        if ($cli->_try_to_load_cmd_class($class)) {
-            return $class->run;
+        next unless Prophet::App->try_to_require($class);
+        if (!$class->isa('App::SD::CLI::Command')) {
+            warn "$class is not a subclass of App::SD::CLI::Command!";
+            next;
         }
+
+        return $class->run;
     }
 
     # found no class-based rule
