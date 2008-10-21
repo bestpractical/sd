@@ -87,6 +87,7 @@ sub validate_prop_status {
 
 sub validate_prop_milestone {
     my ( $self, %args ) = @_;
+    return 1;
     return $self->_validate_prop_from_setting('milestone', 'milestones', \%args);
 }
 
