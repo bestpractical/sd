@@ -33,5 +33,11 @@ on qr{.} => sub {
     next_rule;
 };
 
+__PACKAGE__->dispatcher->add_rule(
+    Path::Dispatcher::Rule::Dispatch->new(
+        dispatcher => Prophet::CLI::Dispatcher->dispatcher,
+    ),
+);
+
 1;
 
