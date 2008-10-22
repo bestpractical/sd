@@ -163,7 +163,8 @@ sub _recode_props_for_integrate {
     my $self = shift;
     my ($change) = validate_pos( @_, { isa => 'Prophet::Change' } );
 
-    my %props = map { $_->name => $_->new_value } $change->prop_changes;
+    my %props = $self->translate_props( $change );
+    #my %props = map { $_->name => $_->new_value } $change->prop_changes;
 
     my %attr;
     for my $key ( keys %props ) {
