@@ -9,8 +9,8 @@ use File::Spec;
 use Cwd qw/getcwd/;
 use base qw/Exporter/;
 our @EXPORT = qw(create_ticket_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid);
-$ENV{'EMAIL'} = "someone\@example.com";
-$ENV{'PROPHET_APP_CONFIG'} = "t/prophet_testing.conf";
+$ENV{'SD_CONFIG'} = 't/prophet_testing.conf';
+$ENV{'PROPHET_APP_CONFIG'} = undef;
 
 =head2 create_ticket_ok ARGS
 
@@ -168,3 +168,20 @@ sub set_editor {
     $ENV{'EDITOR'} = File::Spec->catfile(getcwd(), 't', 'scripts', $script);
     diag 'export EDITOR=' . $ENV{'EDITOR'} . "\n";
 }
+
+=head2 write_to_file FILENAME DATA
+
+Takes the string given in DATA and writes it to the file whose name is given
+by FILENAME.
+
+=cut
+
+sub write_to_file {
+    my ($self, $filename, $data) = @_;
+
+    open FH, '>', $filename;
+    print FH $data;
+    close FH;
+}
+
+1;
