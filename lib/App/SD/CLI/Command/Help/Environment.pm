@@ -9,6 +9,9 @@ sub run {
 print <<EOF
   export SD_REPO=/path/to/sd/replica
     Specify where the ticket database SD is using should reside
+
+  export SD_CONFIG=/path/to/sd/config/file
+    Specify where the configuration file SD is using should reside
 EOF
 
 }
