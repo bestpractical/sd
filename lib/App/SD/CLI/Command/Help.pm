@@ -43,6 +43,7 @@ $cmd help comments    -  Working with ticket comments
 $cmd help attachments -  Working with ticket attachments
 $cmd help sync        -  Publishing and importing ticket databases
 $cmd help environment -  Environment variables which affect sd
+$cmd help config      -  Database configuration variables
 
 EOF
 

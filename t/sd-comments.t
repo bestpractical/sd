@@ -2,7 +2,7 @@
 
 use strict;
 
-use Prophet::Test tests => 8;
+use Prophet::Test tests => 10;
 use App::SD::Test;
 no warnings 'once';
 
@@ -45,6 +45,7 @@ run_output_matches(
     [],
     "Found the comment"
 );
+
 run_output_matches(
     'sd',
     [   qw/ticket comment update --uuid/, $comment_uuid,
@@ -55,6 +56,7 @@ run_output_matches(
     [],
     "updated the comment"
 );
+
 run_output_matches(
     'sd',
     [ qw/ticket comment show --batch --uuid/, $comment_uuid ],
@@ -75,4 +77,31 @@ run_output_matches(
     [qr/$comment_uuid/],
     [],
     "Found the comment when we tried to search for all comments on a ticket by the ticket's uuid"
+);
+
+run_output_matches(
+    'sd',
+    [   qw/ticket comment update --uuid/, $comment_uuid,
+        '--',
+        qw/--content/,                    "A\nmultiline\ncomment"
+    ],
+    [qr/comment \d+ \($comment_uuid\) updated/],
+    [],
+    "updated the comment to a multiline content"
+);
+
+run_output_matches(
+    'sd',
+    [ qw/ticket comment show --batch --uuid/, $comment_uuid ],
+    [ qr/id: (\d+) \($comment_uuid\)/, 
+        qr/^content: A/,
+        qr/^multiline$/,
+        qr/^comment$/,
+        qr/created: /i,
+        qr/creator: /i,
+        "original_replica: $replica_uuid",
+        "ticket: $yatta_uuid"
+    ],
+    [],
+    "Found the comment new version"
 );

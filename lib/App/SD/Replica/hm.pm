@@ -162,6 +162,7 @@ our %PROP_MAP = (
     completed_at             => 'completed',
     due                      => 'due',
     creator                  => 'creator',
+    milestone                => '_delete',
     attachment_count         => '_delete',
     depended_on_by_count     => '_delete',
     depended_on_by_summaries => '_delete',
