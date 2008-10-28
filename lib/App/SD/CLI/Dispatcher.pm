@@ -3,10 +3,11 @@ package App::SD::CLI::Dispatcher;
 use Prophet::CLI::Dispatcher -base;
 use Moose;
 
-on qr'^\?(.*)$' => sub {my $cmd = $1 || ''; run('help'. $cmd, @_); last_rule;};
+# "sd ?about" => "sd help about"
+rewrite qr/^\?(.*)/ => sub { "help $1" };
 
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
-on [ ['about', 'copying'] ] => sub { run("help $1", @_); };
+rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 
 under help => sub {
     rewrite [ ['push', 'pull', 'publish', 'server'] ] => 'help sync';
