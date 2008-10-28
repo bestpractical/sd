@@ -10,7 +10,7 @@ use Cwd qw/getcwd/;
 use base qw/Exporter/;
 our @EXPORT = qw(create_ticket_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid);
 $ENV{'SD_CONFIG'} = 't/prophet_testing.conf';
-$ENV{'PROPHET_APP_CONFIG'} = undef;
+delete $ENV{'PROPHET_APP_CONFIG'};
 
 =head2 create_ticket_ok ARGS
 
