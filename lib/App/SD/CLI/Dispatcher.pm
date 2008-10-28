@@ -17,6 +17,8 @@ under help => sub {
     rewrite [ ['list', 'find'] ] => 'help search';
 };
 
+on help => run_command('Help');
+
 under ticket => sub {
     on create   => run_command('Ticket::Create');
     on basics   => run_command('Ticket::Basics');
