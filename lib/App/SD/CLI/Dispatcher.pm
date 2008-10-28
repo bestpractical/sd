@@ -28,13 +28,12 @@ under ticket => sub {
 
     on ['give', qr/.*/, qr/.*/] => sub {
         my $self = shift;
-        $self->context->set_arg(type  => 'ticket');
         $self->context->set_arg(id    => $2);
         $self->context->set_arg(owner => $3);
-        run('update', $self, @_);
+        run('ticket update', $self, @_);
     };
 
-    on ['resolve', 'close'] => sub {
+    on [ ['resolve', 'close'] ] => sub {
         my $self = shift;
         $self->context->set_prop(status => 'closed');
         run('ticket update', $self, @_);
