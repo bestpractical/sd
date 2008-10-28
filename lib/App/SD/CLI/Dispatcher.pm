@@ -32,12 +32,20 @@ on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
     run($2, $self, @_);
 };
 
-
 __PACKAGE__->dispatcher->add_rule(
     Path::Dispatcher::Rule::Dispatch->new(
         dispatcher => Prophet::CLI::Dispatcher->dispatcher,
     ),
 );
+
+sub run_command { Prophet::CLI::Dispatcher::run_command(@_) }
+
+sub class_names {
+    my $self = shift;
+    my $name = shift;
+
+    ("App::SD::CLI::Command::$name", $self->SUPER::class_names($name, @_));
+}
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
