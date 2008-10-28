@@ -3,10 +3,10 @@ package App::SD::CLI::Dispatcher;
 use Prophet::CLI::Dispatcher -base;
 use Moose;
 
-on qr'^\?(.*)$' => sub {my $cmd = $1 || '';  redispatch('help'. $cmd,  @_); last_rule;};
+on qr'^\?(.*)$' => sub {my $cmd = $1 || ''; run('help'. $cmd, @_); last_rule;};
 
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
-on [ ['about', 'copying'] ] => sub { redispatch("help $1", @_); };
+on [ ['about', 'copying'] ] => sub { run("help $1", @_); };
 
 under help => sub {
     rewrite [ ['push', 'pull', 'publish', 'server'] ] => 'help sync';
@@ -21,7 +21,7 @@ on ['ticket', 'give', qr/.*/, qr/.*/] => sub {
     $self->context->set_arg(type  => 'ticket');
     $self->context->set_arg(id    => $3);
     $self->context->set_arg(owner => $4);
-    redispatch('update', $self, @_);
+    run('update', $self, @_);
 };
 
 # allow type to be specified via primary commands, e.g.
@@ -29,7 +29,7 @@ on ['ticket', 'give', qr/.*/, qr/.*/] => sub {
 on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
     my $self = shift;
     $self->context->set_arg(type => $1);
-    redispatch($2, $self, @_);
+    run($2, $self, @_);
 };
 
 
