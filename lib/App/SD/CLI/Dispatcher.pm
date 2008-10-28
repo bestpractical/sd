@@ -17,6 +17,15 @@ under help => sub {
 };
 
 under ticket => sub {
+    on create   => run_command('Ticket::Create');
+    on basics   => run_command('Ticket::Basics');
+    on comments => run_command('Ticket::Comments');
+    on comment  => run_command('Ticket::Comment');
+    on details  => run_command('Ticket::Details');
+    on search   => run_command('Ticket::Search');
+    on show     => run_command('Ticket::Show');
+    on update   => run_command('Ticket::Update');
+
     on ['give', qr/.*/, qr/.*/] => sub {
         my $self = shift;
         $self->context->set_arg(type  => 'ticket');
@@ -25,7 +34,21 @@ under ticket => sub {
         run('update', $self, @_);
     };
 
-    on basics => run_command('Ticket::Basics');
+    on ['resolve', 'close'] => sub {
+        my $self = shift;
+        $self->context->set_prop(status => 'closed');
+        run('ticket update', $self, @_);
+    };
+
+    under comment => sub {
+        on create => run_command('Ticket::Attachment::Create');
+        on update => run_command('Ticket::Attachment::Update');
+    };
+
+    under attachment => sub {
+        on create => run_command('Ticket::Attachment::Create');
+        on search => run_command('Ticket::Attachment::Search');
+    };
 };
 
 # allow type to be specified via primary commands, e.g.
