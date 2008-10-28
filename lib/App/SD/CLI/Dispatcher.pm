@@ -1,67 +1,88 @@
 #!/usr/bin/env perl
 package App::SD::CLI::Dispatcher;
-use strict;
-use warnings;
 use Prophet::CLI::Dispatcher -base;
+use Moose;
 
-
-on qr'^\?(.*)$' => sub {my $cmd = $1 || '';  run ('help'. $cmd,  @_); last_rule;};
+# "sd ?about" => "sd help about"
+rewrite qr/^\?(.*)/ => sub { "help $1" };
 
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
-on qr'^(about|copying)$' => sub { run('help '.$1, @_); last_rule;};
-on qr'^help (?:push|pull|publish|server)$' => sub { run('help sync', @_); last_rule;};
-on qr'^help (?:env)$' => sub { run('help environment', @_); last_rule;};
-on qr'^help (?:ticket)$' => sub { run('help tickets', @_); last_rule;};
-on qr'^help ticket (list|search|find)$' => sub { run('help search', @_); last_rule;};
-on qr'^help (?:list|find)$' => sub { run('help search', @_); last_rule;};
+rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 
-on qr{ticket \s+ give \s+ (.*) \s+ (.*)}xi => sub {
-    my %args = @_;
-    $args{context}->set_arg(type => 'ticket');
-    $args{context}->set_arg(id => $1);
-    $args{context}->set_arg(owner => $2);
-    run('update', %args);
+under help => sub {
+    rewrite [ ['push', 'pull', 'publish', 'server'] ] => 'help sync';
+    rewrite 'env' => 'help environment';
+    rewrite 'ticket' => 'help tickets';
+    rewrite [ 'ticket', ['list', 'search', 'find'] ] => 'help search';
+    rewrite [ ['list', 'find'] ] => 'help search';
+};
+
+on help => run_command('Help');
+
+under ticket => sub {
+    on create   => run_command('Ticket::Create');
+    on basics   => run_command('Ticket::Basics');
+    on comments => run_command('Ticket::Comments');
+    on comment  => run_command('Ticket::Comment');
+    on details  => run_command('Ticket::Details');
+    on search   => run_command('Ticket::Search');
+    on show     => run_command('Ticket::Show');
+    on update   => run_command('Ticket::Update');
+
+    on ['give', qr/.*/, qr/.*/] => sub {
+        my $self = shift;
+        $self->context->set_arg(id    => $2);
+        $self->context->set_arg(owner => $3);
+        run('ticket update', $self, @_);
+    };
+
+    on [ ['resolve', 'close'] ] => sub {
+        my $self = shift;
+        $self->context->set_prop(status => 'closed');
+        run('ticket update', $self, @_);
+    };
+
+    under comment => sub {
+        on create => run_command('Ticket::Comment::Create');
+        on update => run_command('Ticket::Comment::Update');
+    };
+
+    under attachment => sub {
+        on create => run_command('Ticket::Attachment::Create');
+        on search => run_command('Ticket::Attachment::Search');
+    };
+};
+
+under attachment => sub {
+    on content => run_command('Attachment::Content');
+    on create  => run_command('Attachment::Create');
 };
 
 # allow type to be specified via primary commands, e.g.
 # 'sd ticket display --id 14' -> 'sd display --type ticket --id 14'
 on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
-    my %args = @_;
-    $args{context}->set_arg(type => $1);
-    run($2, %args);
+    my $self = shift;
+    $self->context->set_arg(type => $1);
+    run($2, $self, @_);
 };
 
-#on qr'^about$' => sub { run('help about'); last_rule;};
+__PACKAGE__->dispatcher->add_rule(
+    Path::Dispatcher::Rule::Dispatch->new(
+        dispatcher => Prophet::CLI::Dispatcher->dispatcher,
+    ),
+);
 
+sub run_command { Prophet::CLI::Dispatcher::run_command(@_) }
 
-# Run class based commands
-on qr{.} => sub {
-    my %args = @_;
-    my $cli = $args{cli};
+sub class_names {
+    my $self = shift;
+    my $name = shift;
 
-    my @possible_classes;
+    ("App::SD::CLI::Command::$name", $self->SUPER::class_names($name, @_));
+}
 
-    # we want to dispatch on the original command "ticket attachment create"
-    # AND on the command we received "create"
-    for ([@{ $args{dispatching_on} }], [split ' ', $_]) {
-        my @pieces = __PACKAGE__->resolve_builtin_aliases(@$_);
-
-        while (@pieces) {
-            push @possible_classes, "App::SD::CLI::Command::" . join '::', @pieces;
-            shift @pieces;
-        }
-    }
-
-    for my $class (@possible_classes) {
-        if ($args{cli}->_try_to_load_cmd_class($class)) {
-            return $args{got_command}->($class) 
-        }
-    }
-
-    # found no class-based rule
-    next_rule;
-};
-
+__PACKAGE__->meta->make_immutable;
+no Moose;
 
 1;
 

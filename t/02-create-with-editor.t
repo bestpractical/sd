@@ -12,7 +12,7 @@ BEGIN {
 }
 
 my $replica_uuid = replica_uuid;
-my ($ticket_id, $ticket_uuid, $comment_id, $comment_uuid) = App::SD::Test::create_ticket_with_editor_ok();
+my ($ticket_id, $ticket_uuid, $comment_id, $comment_uuid) = create_ticket_with_editor_ok();
 
 run_output_matches( 'sd', [ 'ticket',
     'list', '--regex', '.' ],
