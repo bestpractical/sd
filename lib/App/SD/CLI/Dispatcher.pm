@@ -16,12 +16,16 @@ under help => sub {
     rewrite [ ['list', 'find'] ] => 'help search';
 };
 
-on ['ticket', 'give', qr/.*/, qr/.*/] => sub {
-    my $self = shift;
-    $self->context->set_arg(type  => 'ticket');
-    $self->context->set_arg(id    => $3);
-    $self->context->set_arg(owner => $4);
-    run('update', $self, @_);
+under ticket => sub {
+    on ['give', qr/.*/, qr/.*/] => sub {
+        my $self = shift;
+        $self->context->set_arg(type  => 'ticket');
+        $self->context->set_arg(id    => $2);
+        $self->context->set_arg(owner => $3);
+        run('update', $self, @_);
+    };
+
+    on basics => run_command('Ticket::Basics');
 };
 
 # allow type to be specified via primary commands, e.g.
