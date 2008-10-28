@@ -40,8 +40,8 @@ under ticket => sub {
     };
 
     under comment => sub {
-        on create => run_command('Ticket::Attachment::Create');
-        on update => run_command('Ticket::Attachment::Update');
+        on create => run_command('Ticket::Comment::Create');
+        on update => run_command('Ticket::Comment::Update');
     };
 
     under attachment => sub {
