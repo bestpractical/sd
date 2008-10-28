@@ -51,6 +51,11 @@ under ticket => sub {
     };
 };
 
+under attachment => sub {
+    on content => run_command('Attachment::Content');
+    on create  => run_command('Attachment::Create');
+};
+
 # allow type to be specified via primary commands, e.g.
 # 'sd ticket display --id 14' -> 'sd display --type ticket --id 14'
 on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
