@@ -10,11 +10,25 @@ rewrite qr/^\?(.*)/ => sub { "help $1" };
 rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 
 under help => sub {
-    rewrite [ ['push', 'pull', 'publish', 'server'] ] => 'help sync';
-    rewrite 'env' => 'help environment';
-    rewrite 'ticket' => 'help tickets';
-    rewrite [ 'ticket', ['list', 'search', 'find'] ] => 'help search';
-    rewrite [ ['list', 'find'] ] => 'help search';
+    on about   => run_command('Help::About');
+    on config  => run_command('Help::Config');
+    on copying => run_command('Help::Copying');
+
+    on [ ['author', 'authors'] ]         => run_command('Help::Authors');
+    on [ ['environment', 'env'] ]        => run_command('Help::Environment');
+    on [ ['ticket', 'tickets'] ]         => run_command('Help::Tickets');
+    on [ ['attachment', 'attachments'] ] => run_command('Help::Attachments');
+    on [ ['comment', 'comments'] ]       => run_command('Help:::Comments');
+
+    on [
+        ['ticket', 'attachment', 'comment'],
+        ['list', 'search', 'find'],
+    ] => run_command('Help::Search');
+
+    on [ ['search', 'list', 'find'] ] => run_command('Help::Search');
+
+    on [ ['sync', 'push', 'pull', 'publish', 'server'] ]
+        => run_command('Help::Sync');
 };
 
 on help => run_command('Help');
