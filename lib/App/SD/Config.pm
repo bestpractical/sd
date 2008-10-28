@@ -15,7 +15,8 @@ before 'app_config_file' => sub {
     #   $ENV{SD_CONFIG} > fs_root/sdrc > fs_root/prophetrc (for backcompat)
     #   $HOME/.sdrc > $ENV{PROPHET_APP_CONFIG} > $HOME/.prophetrc
 
-    $ENV{'PROPHET_APP_CONFIG'} = $self->file_if_exists($ENV{'SD_CONFIG'})
+    $ENV{'PROPHET_APP_CONFIG'}
+            =  $self->file_if_exists($ENV{'SD_CONFIG'})
             || $self->file_if_exists(
                 File::Spec->catfile($self->app_handle->handle->fs_root => 'sdrc'))
             || $self->file_if_exists(
@@ -23,7 +24,8 @@ before 'app_config_file' => sub {
                 File::Spec->catfile($self->app_handle->handle->fs_root => 'prophetrc'))
             || $self->file_if_exists(
                 File::Spec->catfile($ENV{'HOME'}.'/.sdrc'))
-            || $ENV{'PROPHET_APP_CONFIG'}; # don't overwrite with nothing
+            || $ENV{'PROPHET_APP_CONFIG'} # don't overwrite with nothing
+            || ''; # don't write undef
 };
 
 __PACKAGE__->meta->make_immutable;
