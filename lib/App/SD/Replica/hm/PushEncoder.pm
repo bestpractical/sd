@@ -68,12 +68,28 @@ sub integrate_ticket_create {
         repeat_stacking => 0,
         %{ $self->_recode_props_for_create($change) }
     );
+    unless ( $task->{'success'} ) {
+        die "Couldn't create a task: ". $self->decode_error( $task );
+    }
 
     my $txns = $self->sync_source->hm->search( 'TaskTransaction', task_id => $task->{content}->{id} );
 
     # lalala
     $self->sync_source->record_pushed_transaction( transaction => $txns->[0]->{id}, changeset => $changeset );
     return $task->{content}->{id};
+}
+
+sub decode_error {
+    my $self = shift;
+    my $status = shift;
+    my $msg = '';
+    $msg .= $status->{'error'} if defined $status->{'error'};
+    if ( $status->{'field_errors'} ) {
+        while ( my ($k, $v) = each %{ $status->{'field_errors'} } ) {
+            $msg .= "field '$k' - '$v'\n";
+        }
+    }
+    return $msg;
 }
 
 sub integrate_comment {
@@ -93,7 +109,7 @@ sub integrate_comment {
     );
     return $status->{'content'}{'id'} if $status->{'success'};
 
-    die "Couldn't integrate comment: ". $status->{'error'};
+    die "Couldn't integrate comment: ". $self->decode_error( $status );
 }
 
 sub integrate_ticket_update {
@@ -113,7 +129,7 @@ sub integrate_ticket_update {
     );
     return $status->{'content'}{'id'} if $status->{'success'};
 
-    die "Couldn't integrate comment: ". $status->{'error'};
+    die "Couldn't integrate comment: ". $self->decode_error( $status );
 }
 
 sub _recode_props_for_create {
