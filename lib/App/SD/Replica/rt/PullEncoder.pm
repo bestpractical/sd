@@ -227,37 +227,38 @@ sub _recode_txn_Set {
     my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
 
     my $change = Prophet::Change->new(
-        {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
+        {   record_type => 'ticket',
+            record_uuid => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'update_file'
         }
     );
 
-    if ( $args{txn}->{Field} eq 'Queue' ) {
+    my ($field, $old, $new) = @{ $args{txn} }{qw(Field OldValue NewValue)};
+
+    if ( $field eq 'Queue' ) {
         my $current_queue = $args{'ticket'}->{$self->sync_source->uuid .'-queue'};
         my $user          = $args{txn}->{Creator};
         if ( $args{txn}->{Description} =~ /Queue changed from (.*) to $current_queue by $user/ ) {
-            $args{txn}->{OldValue} = $1;
-            $args{txn}->{NewValue} = $current_queue;
+            $old = $1;
+            $new = $current_queue;
         }
 
-    } elsif ( $args{txn}->{Field} eq 'Owner' ) {
-        $args{'txn'}->{NewValue} = $self->resolve_user_id_to( name => $args{'txn'}->{'NewValue'} );
-        $args{'txn'}->{OldValue} = $self->resolve_user_id_to( name => $args{'txn'}->{'OldValue'} );
+    } elsif ( $field eq 'Owner' ) {
+        $new = $self->resolve_user_id_to( name => $new );
+        $old = $self->resolve_user_id_to( name => $old );
     }
 
     $args{'changeset'}->add_change( { change => $change } );
-    if ( $args{'ticket'}->{ $args{txn}->{Field} } eq $args{txn}->{'NewValue'} ) {
-        $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
+    if ( $args{'ticket'}->{ $field } eq $new ) {
+        $args{'ticket'}->{ $field } = $old;
     } else {
-        $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
-        warn "Update consistency problem: " . $args{'ticket'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'};
+        $args{'ticket'}->{ $field } = $old;
+        warn "Update consistency problem: " . $args{'ticket'}->{ $field } ." != ". $new;
     }
     $change->add_prop_change(
-        name => $args{txn}->{'Field'},
-        old  => $args{txn}->{'OldValue'},
-        new  => $args{txn}->{'NewValue'}
-
+        name => $field,
+        old  => $old,
+        new  => $new,
     );
 
 }
