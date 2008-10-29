@@ -246,8 +246,8 @@ sub _recode_txn_Set {
         }
 
     } elsif ( $field eq 'Owner' ) {
-        $new = $self->resolve_user_id_to( name => $new );
-        $old = $self->resolve_user_id_to( name => $old );
+        $new = $self->resolve_user_id_to( email_address => $new );
+        $old = $self->resolve_user_id_to( email_address => $old );
     }
 
     $args{'changeset'}->add_change( { change => $change } );
@@ -257,7 +257,6 @@ sub _recode_txn_Set {
     $args{'ticket'}->{ $field } = $old;
 
     $change->add_prop_change( name => $field, old => $old, new => $new );
-
 }
 
 *_recode_txn_Steal = \&_recode_txn_Set;
@@ -416,15 +415,23 @@ sub resolve_user_id_to {
     my $self = shift;
     my $attr = shift;
     my $id   = shift;
-    return undef unless ($id);
+    return undef unless $id;
 
+    local $@;
     my $user = eval { RT::Client::REST::User->new( rt => $self->sync_source->rt, id => $id )->retrieve};
-    if (my $err = $@) {
-            warn $err;
-           return $attr eq 'name' ? 'Unknown user' : 'nobody@localhost';
-        }
-    return $user->$attr();
-
+    if ( my $err = $@ ) {
+        warn $err;
+        return $attr eq 'name' ? 'Unknown user' : 'unknown@localhost';
+    }
+    my $name = $user->name;
+    if ( lc $name eq 'nobody' ) {
+        return $attr eq 'name' ? 'nobody' : undef;
+    }
+    elsif ( lc $name eq 'RT_System' ) {
+        return $attr eq 'name' ? 'system' : undef;
+    } else {
+        return $user->$attr();
+    }
 }
 
 memoize 'resolve_user_id_to';
