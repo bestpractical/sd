@@ -144,38 +144,40 @@ sub find_matching_transactions {
 sub transcode_one_txn {
     my ($self, $txn, $ticket) = (@_);
     
-        if ( my $sub = $self->can( '_recode_txn_' . $txn->{'Type'} ) ) {
-            my $changeset = Prophet::ChangeSet->new(
-                {   original_source_uuid => $self->sync_source->uuid,
-                    original_sequence_no => $txn->{'id'},
-                    creator => $self->resolve_user_id_to( email_address => $txn->{'Creator'} ),
-                }
-            );
-
-            if ( ( $txn->{'Ticket'} ne $ticket->{$self->sync_source->uuid . '-id'} ) && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/ ) {
-                warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'} . ' vs ' . $ticket->{$self->sync_source->uuid . '-id'};
-                next;
-            }
-
-
-
-            delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '');
-            delete $txn->{'NewValue'} if ( $txn->{'NewValue'} eq '');
-
-            $sub->( $self, ticket => $ticket, txn          => $txn, changeset    => $changeset);
-            $self->translate_prop_names($changeset);
-
-            if (my $attachments = delete $txn->{'_attachments'}) {
-               for my $attach (@$attachments) { 
-                    $self->_recode_attachment_create( ticket => $ticket, txn => $txn, changeset =>$changeset, attachment => $attach); 
-               }
-            }
-
-            return $changeset;
-        } else {
-            die "Transaction type $txn->{Type} (for transaction $txn->{id}) not implemented yet";
-        }
+    my $sub = $self->can( '_recode_txn_' . $txn->{'Type'} );
+    unless ( $sub ) {
+        die "Transaction type $txn->{Type} (for transaction $txn->{id}) not implemented yet";
     }
+
+    my $changeset = Prophet::ChangeSet->new(
+        {   original_source_uuid => $self->sync_source->uuid,
+            original_sequence_no => $txn->{'id'},
+            creator => $self->resolve_user_id_to( email_address => $txn->{'Creator'} ),
+        }
+    );
+
+    if ( $txn->{'Ticket'} ne $ticket->{$self->sync_source->uuid . '-id'}
+        && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/
+    ) {
+        warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'}
+            .' vs '. $ticket->{$self->sync_source->uuid . '-id'};
+        next;
+    }
+
+    delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '');
+    delete $txn->{'NewValue'} if ( $txn->{'NewValue'} eq '');
+
+    $sub->( $self, ticket => $ticket, txn          => $txn, changeset    => $changeset);
+    $self->translate_prop_names($changeset);
+
+    if (my $attachments = delete $txn->{'_attachments'}) {
+       for my $attach (@$attachments) { 
+            $self->_recode_attachment_create( ticket => $ticket, txn => $txn, changeset =>$changeset, attachment => $attach); 
+       }
+    }
+
+    return $changeset;
+}
 
 
 sub _recode_attachment_create {
