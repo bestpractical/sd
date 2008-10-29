@@ -251,17 +251,12 @@ sub _recode_txn_Set {
     }
 
     $args{'changeset'}->add_change( { change => $change } );
-    if ( $args{'ticket'}->{ $field } eq $new ) {
-        $args{'ticket'}->{ $field } = $old;
-    } else {
-        $args{'ticket'}->{ $field } = $old;
-        warn "Update consistency problem: " . $args{'ticket'}->{ $field } ." != ". $new;
-    }
-    $change->add_prop_change(
-        name => $field,
-        old  => $old,
-        new  => $new,
-    );
+    
+    # XXX: This line is kind of magic
+    # TODO: check if it's sill needed
+    $args{'ticket'}->{ $field } = $old;
+
+    $change->add_prop_change( name => $field, old => $old, new => $new );
 
 }
 
