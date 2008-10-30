@@ -122,7 +122,7 @@ run_output_matches_unordered(
 rmtree( $ENV{'SD_REPO'}, {keep_root => 1} );
 
 
-my $sd_hm_url = "hm:$URL|group=$gname";
+$sd_hm_url = "hm:$URL|group=$gname";
 # pull
 {
     eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] ) };
