@@ -100,8 +100,11 @@ sub find_matching_tasks {
     if ( my $props = $self->props ) {
         while ( my ($k, $v) = each %$props ) { $args{$k} = $v }
     }
-    my $tasks = $self->hm->act( 'TaskSearch', %args )->{content}->{tasks};
-    return $tasks;
+    my $status = $self->hm->act( 'TaskSearch', %args );
+    unless ( $status->{'success'} ) {
+        die "couldn't search";
+    }
+    return $status->{content}{tasks};
 }
 
 sub record_pushed_transactions {
