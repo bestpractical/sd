@@ -81,7 +81,7 @@ my ( $ret, $out, $err );
 # now the tests, bob syncs with rt, alice syncs with hm
 as_alice {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] );
     diag($err) if ($err);
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $alice_yatta_id = $1 }) YATTA .*/] );
     $yatta_uuid = get_uuid_for_luid($alice_yatta_id);
@@ -89,8 +89,7 @@ as_alice {
 
 as_bob {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
-    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [] );
-
+    run_script_ok('sd',['init']);
     diag("Bob pulling from RT");
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
     diag($err) if ($err);

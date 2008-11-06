@@ -42,10 +42,12 @@ my $remote_id = $task->id;
 
 my ($yatta_uuid, $yatta_id);
 {
-    my ($ret, $out, $err) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
+    my ($ret, $out, $err) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] );
 
     run_output_matches( 'sd', [qw(ticket list --regex .)], [qr/(.*?)(?{ $yatta_uuid = $1 }) YATTA (.*)/] );
     ( $ret, $out, $err ) = run_script( 'sd', [ qw(ticket show --batch --id), $yatta_uuid ] );
+    diag($out);
+    diag($err);
     ($yatta_id, $yatta_uuid) = ($1, $2) if $out =~ /^id: (\d+)\s*\((.*)\)/m;
 }
 

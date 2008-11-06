@@ -72,7 +72,7 @@ as_alice {
     TODO: {
         local $TODO = "not coming through for some reason";
         like($err, qr/No tickets found/);
-    }
+        }
 };
 
 diag("grant read rights, ensure we can pull it");
