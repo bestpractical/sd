@@ -109,5 +109,5 @@ $ENV{'SD_CONFIG'} = 't/prophet_testing.conf';
 
 run_output_matches( 'sd', [ 'ticket',
     'list', '--regex', '.' ],
-    [ qr/(\d+) YATTA new/]
+    [ qr/(\d+) } new    YATTA /]
 );
