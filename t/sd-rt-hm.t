@@ -25,7 +25,7 @@ BEGIN {
     push @INC, File::Spec->catdir( Jifty::Util->app_root, "lib" );
 }
 
-plan tests => 11;
+plan tests => 10;
 
 RT::Test->import();
 
