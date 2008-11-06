@@ -83,6 +83,9 @@ sub _integrate_change {
         { isa => 'Prophet::ChangeSet' }
     );
 
+    # don't push internal records
+    return if $change->record_type =~ /^__/;
+
     require App::SD::Replica::rt::PushEncoder;
     my $recoder = App::SD::Replica::rt::PushEncoder->new( { sync_source => $self } );
     $recoder->integrate_change($change,$changeset);
