@@ -89,7 +89,7 @@ as_alice {
 
 as_bob {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
-    run_script_ok('sd',['init']);
+    run_script('sd',['init']);
     diag("Bob pulling from RT");
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
     diag($err) if ($err);
