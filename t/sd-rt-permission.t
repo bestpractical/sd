@@ -19,6 +19,7 @@ BEGIN {
     require File::Temp;
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
+
 }
 
 use Prophet::Test tests => 22;
@@ -64,7 +65,7 @@ my $sd_alice_url = "rt:$alice_url|General|Status!='resolved'";
 
 as_alice {
     run_script( 'sd', [ 'init']);
-    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url]);
+    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url, '--force']);
     ok($ret);
     like($out, qr/No new changesets/);
 

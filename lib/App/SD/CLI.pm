@@ -10,7 +10,7 @@ has '+app_class' => (
     default => 'App::SD',
 );
 
-sub dispatcher { "App::SD::CLI::Dispatcher" }
+sub dispatcher_class { "App::SD::CLI::Dispatcher" }
 
 __PACKAGE__->meta->make_immutable;
 no Moose;

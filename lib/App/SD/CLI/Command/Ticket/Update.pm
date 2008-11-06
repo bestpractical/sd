@@ -14,7 +14,7 @@ override run => sub {
     my $self = shift;
     $self->require_uuid;
     my $record = $self->_load_record;
-   return super() if (@{$self->prop_set} && !$self->has_arg('edit'));
+   return super() if ($self->context->prop_names && !$self->has_arg('edit'));
     my $template_to_edit = $self->create_record_template($record);
 
     my $done = 0;

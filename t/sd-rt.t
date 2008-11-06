@@ -51,7 +51,7 @@ my $ticket = RT::Client::REST::Ticket->new(
 )->store( text => "Ticket Comment" );
 
 my ( $ret, $out, $err );
-( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from',  $sd_rt_url ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from',  $sd_rt_url ] );
 my ( $yatta_id, $flyman_id );
 run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], 
     [qr/(.*?)(?{ $flyman_id = $1 }) Fly Man new/] );
@@ -77,6 +77,8 @@ run_output_matches(
 run_output_matches_unordered( 'sd', [ 'ticket',                     'list', '--regex', '.' ], [sort  "$yatta_id YATTA new", "$flyman_id Fly Man open" ]);
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
+diag ($out);
+diag ($err);
 my @tix = $rt->search(
     type  => 'ticket',
     query => "Subject='YATTA'"

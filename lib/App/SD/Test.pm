@@ -8,9 +8,10 @@ use Test::More;
 use File::Spec;
 use Cwd qw/getcwd/;
 use base qw/Exporter/;
-our @EXPORT = qw(create_ticket_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid);
-$ENV{'EMAIL'} = "someone\@example.com";
-$ENV{'PROPHET_APP_CONFIG'} = "t/prophet_testing.conf";
+our @EXPORT = qw(create_ticket_ok create_ticket_with_editor_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid);
+$ENV{'SD_CONFIG'} = 't/prophet_testing.conf';
+delete $ENV{'PROPHET_APP_CONFIG'};
+$ENV{'EDITOR'} = '/bin/true';
 
 =head2 create_ticket_ok ARGS
 
@@ -101,7 +102,8 @@ sub create_ticket_with_editor_ok {
     my ( $ticket_uuid, $ticket_luid, $comment_uuid, $comment_luid );
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create' ],
-        [qr/Created ticket (.*?)(?{ $ticket_luid = $1})\s+\((.*)(?{ $ticket_uuid = $2 })\)/, qr/Created comment (.*?)(?{ $comment_luid = $1})\s+\((.*)(?{ $comment_uuid = $2 })\)/]
+        [qr/Created ticket (.*?)(?{ $ticket_luid = $1})\s+\((.*)(?{ $ticket_uuid = $2 })\)/,
+        qr/Created comment (.*?)(?{ $comment_luid = $1})\s+\((.*)(?{ $comment_uuid = $2 })\)/]
     );
 
     return ( $ticket_luid, $ticket_uuid, $comment_luid, $comment_uuid );
@@ -168,3 +170,20 @@ sub set_editor {
     $ENV{'EDITOR'} = File::Spec->catfile(getcwd(), 't', 'scripts', $script);
     diag 'export EDITOR=' . $ENV{'EDITOR'} . "\n";
 }
+
+=head2 write_to_file FILENAME DATA
+
+Takes the string given in DATA and writes it to the file whose name is given
+by FILENAME.
+
+=cut
+
+sub write_to_file {
+    my ($self, $filename, $data) = @_;
+
+    open FH, '>', $filename;
+    print FH $data;
+    close FH;
+}
+
+1;

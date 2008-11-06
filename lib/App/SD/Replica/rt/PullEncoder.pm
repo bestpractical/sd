@@ -144,38 +144,40 @@ sub find_matching_transactions {
 sub transcode_one_txn {
     my ($self, $txn, $ticket) = (@_);
     
-        if ( my $sub = $self->can( '_recode_txn_' . $txn->{'Type'} ) ) {
-            my $changeset = Prophet::ChangeSet->new(
-                {   original_source_uuid => $self->sync_source->uuid,
-                    original_sequence_no => $txn->{'id'},
-                    creator => $self->resolve_user_id_to( email_address => $txn->{'Creator'} ),
-                }
-            );
-
-            if ( ( $txn->{'Ticket'} ne $ticket->{$self->sync_source->uuid . '-id'} ) && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/ ) {
-                warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'} . ' vs ' . $ticket->{$self->sync_source->uuid . '-id'};
-                next;
-            }
-
-
-
-            delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '');
-            delete $txn->{'NewValue'} if ( $txn->{'NewValue'} eq '');
-
-            $sub->( $self, ticket => $ticket, txn          => $txn, changeset    => $changeset);
-            $self->translate_prop_names($changeset);
-
-            if (my $attachments = delete $txn->{'_attachments'}) {
-               for my $attach (@$attachments) { 
-                    $self->_recode_attachment_create( ticket => $ticket, txn => $txn, changeset =>$changeset, attachment => $attach); 
-               }
-            }
-
-            return $changeset;
-        } else {
-            die "Transaction type $txn->{Type} (for transaction $txn->{id}) not implemented yet";
-        }
+    my $sub = $self->can( '_recode_txn_' . $txn->{'Type'} );
+    unless ( $sub ) {
+        die "Transaction type $txn->{Type} (for transaction $txn->{id}) not implemented yet";
     }
+
+    my $changeset = Prophet::ChangeSet->new(
+        {   original_source_uuid => $self->sync_source->uuid,
+            original_sequence_no => $txn->{'id'},
+            creator => $self->resolve_user_id_to( email_address => $txn->{'Creator'} ),
+        }
+    );
+
+    if ( $txn->{'Ticket'} ne $ticket->{$self->sync_source->uuid . '-id'}
+        && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/
+    ) {
+        warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'}
+            .' vs '. $ticket->{$self->sync_source->uuid . '-id'};
+        next;
+    }
+
+    delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '');
+    delete $txn->{'NewValue'} if ( $txn->{'NewValue'} eq '');
+
+    $sub->( $self, ticket => $ticket, txn          => $txn, changeset    => $changeset);
+    $self->translate_prop_names($changeset);
+
+    if (my $attachments = delete $txn->{'_attachments'}) {
+       for my $attach (@$attachments) { 
+            $self->_recode_attachment_create( ticket => $ticket, txn => $txn, changeset =>$changeset, attachment => $attach); 
+       }
+    }
+
+    return $changeset;
+}
 
 
 sub _recode_attachment_create {
@@ -227,39 +229,34 @@ sub _recode_txn_Set {
     my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
 
     my $change = Prophet::Change->new(
-        {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
+        {   record_type => 'ticket',
+            record_uuid => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'update_file'
         }
     );
 
-    if ( $args{txn}->{Field} eq 'Queue' ) {
+    my ($field, $old, $new) = @{ $args{txn} }{qw(Field OldValue NewValue)};
+
+    if ( $field eq 'Queue' ) {
         my $current_queue = $args{'ticket'}->{$self->sync_source->uuid .'-queue'};
         my $user          = $args{txn}->{Creator};
         if ( $args{txn}->{Description} =~ /Queue changed from (.*) to $current_queue by $user/ ) {
-            $args{txn}->{OldValue} = $1;
-            $args{txn}->{NewValue} = $current_queue;
+            $old = $1;
+            $new = $current_queue;
         }
 
-    } elsif ( $args{txn}->{Field} eq 'Owner' ) {
-        $args{'txn'}->{NewValue} = $self->resolve_user_id_to( name => $args{'txn'}->{'NewValue'} );
-        $args{'txn'}->{OldValue} = $self->resolve_user_id_to( name => $args{'txn'}->{'OldValue'} );
+    } elsif ( $field eq 'Owner' ) {
+        $new = $self->resolve_user_id_to( email_address => $new );
+        $old = $self->resolve_user_id_to( email_address => $old );
     }
 
     $args{'changeset'}->add_change( { change => $change } );
-    if ( $args{'ticket'}->{ $args{txn}->{Field} } eq $args{txn}->{'NewValue'} ) {
-        $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
-    } else {
-        $args{'ticket'}->{ $args{txn}->{Field} } = $args{txn}->{'OldValue'};
-        warn "Update consistency problem: " . $args{'ticket'}->{ $args{txn}->{Field} } . " != " . $args{txn}->{'NewValue'};
-    }
-    $change->add_prop_change(
-        name => $args{txn}->{'Field'},
-        old  => $args{txn}->{'OldValue'},
-        new  => $args{txn}->{'NewValue'}
+    
+    # XXX: This line is kind of magic
+    # TODO: check if it's sill needed
+    $args{'ticket'}->{ $field } = $old;
 
-    );
-
+    $change->add_prop_change( name => $field, old => $old, new => $new );
 }
 
 *_recode_txn_Steal = \&_recode_txn_Set;
@@ -418,15 +415,23 @@ sub resolve_user_id_to {
     my $self = shift;
     my $attr = shift;
     my $id   = shift;
-    return undef unless ($id);
+    return undef unless $id;
 
+    local $@;
     my $user = eval { RT::Client::REST::User->new( rt => $self->sync_source->rt, id => $id )->retrieve};
-    if (my $err = $@) {
-            warn $err;
-           return $attr eq 'name' ? 'Unknown user' : 'nobody@localhost';
-        }
-    return $user->$attr();
-
+    if ( my $err = $@ ) {
+        warn $err;
+        return $attr eq 'name' ? 'Unknown user' : 'unknown@localhost';
+    }
+    my $name = $user->name;
+    if ( lc $name eq 'nobody' ) {
+        return $attr eq 'name' ? 'nobody' : undef;
+    }
+    elsif ( lc $name eq 'RT_System' ) {
+        return $attr eq 'name' ? 'system' : undef;
+    } else {
+        return $user->$attr();
+    }
 }
 
 memoize 'resolve_user_id_to';

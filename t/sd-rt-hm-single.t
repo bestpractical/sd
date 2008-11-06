@@ -82,7 +82,7 @@ diag("Pull from Hiveminder");
 
 as_bob {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] );
     diag($err) if ($err);
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $yatta_id = $1 }) YATTA .*/] );
     $yatta_uuid = get_uuid_for_luid($yatta_id);

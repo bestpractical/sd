@@ -54,7 +54,7 @@ diag $task->id;
 my ( $ret, $out, $err );
 
 my $sd_hm_url = "hm:$URL|tag=mytag";
-eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] ) };
+eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] ) };
 like($out, qr/one changeset/, "only one change");
 
 my ($flyman_uuid, $flyman_id );

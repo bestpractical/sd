@@ -66,8 +66,10 @@ my $sd_hm_url = "hm:$URL|group=$gid";
 
 # pull
 {
-    eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] ) };
+    eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] ) };
     like($out, qr/one changeset/, "only one change");
+    diag($out);
+    diag($err);
 }
 
 my ($flyman_uuid, $flyman_id );
@@ -122,7 +124,7 @@ run_output_matches_unordered(
 rmtree( $ENV{'SD_REPO'}, {keep_root => 1} );
 
 
-my $sd_hm_url = "hm:$URL|group=$gname";
+$sd_hm_url = "hm:$URL|group=$gname";
 # pull
 {
     eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] ) };

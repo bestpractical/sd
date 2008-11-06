@@ -50,7 +50,8 @@ sub get_content {
         if (my $footer = $args{footer}) {
             $text .= $footer;
         }
-        $content = $self->edit_text($text);
+    
+           $content = $self->edit_text($text);
         # user aborted their text editor without changing anything; signify
         # this to the caller by returning nothing
         $content = '' if $content eq $text;

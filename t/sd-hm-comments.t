@@ -41,7 +41,6 @@ $task->create(
 my ($yatta_uuid, $yatta_id);
 {
     my ($ret, $out, $err) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] );
-
     run_output_matches( 'sd', [qw(ticket list --regex .)], [qr/(.*?)(?{ $yatta_uuid = $1 }) YATTA (.*)/] );
     ( $ret, $out, $err ) = run_script( 'sd', [ qw(ticket show --batch --id), $yatta_uuid ] );
     $yatta_id = $1 if $out =~ /^id: (\d+) /m;

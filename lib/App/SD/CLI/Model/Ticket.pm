@@ -160,7 +160,7 @@ sub create_record_template {
 
     # glue all the parts together
     return join(
-        "\n\n",
+        "\n",
 
         $self->_build_template_section(
             header => metadata_separator,
