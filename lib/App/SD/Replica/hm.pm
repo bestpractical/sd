@@ -93,7 +93,13 @@ sub traverse_changesets {
 
 sub find_matching_tasks {
     my $self = shift;
-    my %args;
+    my %args = (
+        owner        => 'me',
+        group        => 0,
+        requestor    => 'me',
+        not_complete => 1,
+    );
+
     if ( my $props = $self->props ) {
         while ( my ($k, $v) = each %$props ) { $args{$k} = $v }
     }
