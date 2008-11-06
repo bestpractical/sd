@@ -61,6 +61,7 @@ RT::Client::REST::Ticket->new(
     status => 'open',
 )->store();
 
+run_script( 'sd', [ 'init']);
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
 run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_id Fly Man open"] );

@@ -13,6 +13,9 @@ BEGIN {
     diag $ENV{'PROPHET_REPO'};
 }
 
+run_script( 'sd', [ 'init']);
+
+
 my $replica_uuid = replica_uuid;
 
 # create from sd and push

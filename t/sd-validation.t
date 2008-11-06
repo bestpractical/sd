@@ -11,6 +11,9 @@ BEGIN {
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
     warn $ENV{'PROPHET_REPO'};
 }
+
+run_script( 'sd', [ 'init']);
+
 # create from sd and push
 my ($yatta_id, $yatta_uuid) = create_ticket_ok(    '--summary', 'YATTA', '--status', 'new' );
 

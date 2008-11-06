@@ -10,6 +10,7 @@ BEGIN {
     diag 'export SD_REPO=' . $ENV{'PROPHET_REPO'} . "\n";
     App::SD::Test->set_editor('ticket-update-editor.pl');
 }
+run_script( 'sd', [ 'init']);
 
 my $replica_uuid = replica_uuid;
 

@@ -99,6 +99,9 @@ my ( $ret, $out, $err );
 # now the tests, bob syncs with rt, alice syncs with hm
 as_alice {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
+
+    run_script( 'sd', [ 'init']);
+    
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
     diag($err) if ($err);
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $alice_yatta_id = $1 }) YATTA .*/] );
@@ -107,6 +110,8 @@ as_alice {
 
 as_bob {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
+    run_script( 'sd', [ 'init']);
+    
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [] );
 
     diag("Bob pulling from RT");
