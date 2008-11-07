@@ -15,7 +15,7 @@ BEGIN {
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = $ENV{'HOME'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
     diag "export HOME=".$ENV{'PROPHET_REPO'} ."\n";
-    $ENV{'PROPHET_APP_CONFIG'} = undef; # clear this because Prophet::Test sets it
+    delete $ENV{'PROPHET_APP_CONFIG'}; # clear this because Prophet::Test sets it
 }
 
 # Tests the config file order of preference laid out in App::SD::Config
@@ -34,7 +34,10 @@ run_output_matches( 'sd', [ 'ticket',
     [ qr/(\d+) YATTA new/]
 );
 
-$ENV{'SD_CONFIG'} = $ENV{'PROPHET_APP_CONFIG'} = undef;  # override App::SD::Test
+# override App::SD::Test
+delete $ENV{'SD_CONFIG'};
+delete $ENV{'PROPHET_APP_CONFIG'};
+
 ok( ! $ENV{'SD_CONFIG'}, "SD_CONFIG env var has been cleared" );
 ok( ! $ENV{'PROPHET_APP_CONFIG'}, "PROPHET_APP_CONFIG env var has been cleared" );
 
