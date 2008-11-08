@@ -188,9 +188,9 @@ my $logo = shift @two_attachments;
 
 is ($logo->file_name, 'bplogo.gif');
 is ($makefile->file_name, 'Makefile.PL');
-is($makefile->content, $MAKEFILE_CONTENT , " The makefile's content was ropundtripped ot rt ok");
+is($makefile->content, $MAKEFILE_CONTENT , " The makefile's content was roundtripped ot rt ok");
 
-is($logo->content, file($IMAGE_FILE)->slurp, " The image's content was ropundtripped ot rt ok");
+is($logo->content, file($IMAGE_FILE)->slurp, " The image's content was roundtripped ot rt ok");
 
 
 #diag $uuid;
