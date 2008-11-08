@@ -25,7 +25,7 @@ BEGIN {
     push @INC, File::Spec->catdir( Jifty::Util->app_root, "lib" );
 }
 
-plan tests => 11;
+plan tests => 10;
 
 RT::Test->import();
 
@@ -78,9 +78,21 @@ $task->create(
 my ( $bob_yatta_id, $bob_flyman_id, $flyman_uuid, $yatta_uuid, $alice_yatta_id, $alice_flyman_id );
 my ( $ret, $out, $err );
 
+as_alice {
+    local $ENV{SD_REPO} = $ENV{PROPHET_REPO};
+    ( $ret, $out, $err ) = run_script('sd',['init']);
+    diag($err) if ($err);
+};
+
+as_bob {
+    local $ENV{SD_REPO} = $ENV{PROPHET_REPO};
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', repo_uri_for('alice') ] );
+    diag($err) if ($err);
+};
+
 # now the tests, bob syncs with rt, alice syncs with hm
 as_alice {
-    local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
+    local $ENV{SD_REPO} = $ENV{PROPHET_REPO};
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
     diag($err) if ($err);
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $alice_yatta_id = $1 }) YATTA .*/] );
@@ -88,15 +100,13 @@ as_alice {
 };
 
 as_bob {
-    local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
-    run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [] );
-
+    local $ENV{SD_REPO} = $ENV{PROPHET_REPO};
     diag("Bob pulling from RT");
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
     diag($err) if ($err);
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $bob_flyman_id = $1 }) Fly Man new/] );
     diag("Bob pulling from alice");
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('alice'), '--force' ] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', repo_uri_for('alice')] );
 
     $flyman_uuid = get_uuid_for_luid($bob_flyman_id);
     my $bob_yatta_id = get_luid_for_uuid($yatta_uuid);

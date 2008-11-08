@@ -10,6 +10,7 @@ BEGIN {
     diag 'export SD_REPO=' . $ENV{'PROPHET_REPO'} . "\n";
     App::SD::Test->set_editor('ticket-create-editor.pl');
 }
+run_script( 'sd', [ 'init']);
 
 my $replica_uuid = replica_uuid;
 my ($ticket_id, $ticket_uuid, $comment_id, $comment_uuid) = create_ticket_with_editor_ok();
@@ -26,7 +27,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
         'status: new',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
-        qr/^reported_by: /,
+        'reported_by: ' . $ENV{EMAIL},
         'milestone: alpha',
         "original_replica: $replica_uuid",
     ]

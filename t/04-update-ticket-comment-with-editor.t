@@ -11,6 +11,9 @@ BEGIN {
     App::SD::Test->set_editor('ticket-comment-update-editor.pl');
 }
 
+run_script( 'sd', [ 'init']);
+
+
 my $replica_uuid = replica_uuid;
 
 # create ticket

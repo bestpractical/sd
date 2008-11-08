@@ -16,6 +16,8 @@ BEGIN {
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
 }
 
+run_script( 'sd', [ 'init']);
+
 # create from sd and push
 my ($yatta_id, $yatta_uuid) = create_ticket_ok( '--summary', 'YATTA');
 
@@ -32,7 +34,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $yatta_id ],
         'status: new',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
-        qr/^reported_by: /,
+        'reported_by: ' . $ENV{EMAIL},
         'milestone: alpha',
         "original_replica: " . replica_uuid,
     ]

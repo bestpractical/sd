@@ -16,16 +16,7 @@ has remote_url => ( isa => 'Str', is => 'rw');
 has rt_queue => ( isa => 'Str', is => 'rw');
 has rt_query => ( isa => 'Str', is => 'rw');
 
-# XXX: this should be called from superclass, or better, have individual attributes have their own builders.
-
-around 'new' => sub {
-    my ($next, $self, @args) = @_;
-    my $ret = $self->$next(@args);
-    $ret->setup;
-    return $ret;
-};
-
-sub setup {
+sub BUILD {
     my $self = shift;
 
     # Require rather than use to defer load
@@ -82,6 +73,9 @@ sub _integrate_change {
         { isa => 'Prophet::Change' },
         { isa => 'Prophet::ChangeSet' }
     );
+
+    # don't push internal records
+    return if $change->record_type =~ /^__/;
 
     require App::SD::Replica::rt::PushEncoder;
     my $recoder = App::SD::Replica::rt::PushEncoder->new( { sync_source => $self } );

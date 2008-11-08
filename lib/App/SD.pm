@@ -5,7 +5,7 @@ use App::SD::Config;
 extends 'Prophet::App';
 our $VERSION = '0.01';
 
-has +config => (
+has '+config' => (
     default => sub {
         my $self = shift;
         return App::SD::Config->new(app_handle => $self);

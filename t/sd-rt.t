@@ -51,7 +51,7 @@ my $ticket = RT::Client::REST::Ticket->new(
 )->store( text => "Ticket Comment" );
 
 my ( $ret, $out, $err );
-( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from',  $sd_rt_url ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from',  $sd_rt_url ] );
 my ( $yatta_id, $flyman_id );
 run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], 
     [qr/(.*?)(?{ $flyman_id = $1 }) Fly Man new/] );
@@ -61,6 +61,7 @@ RT::Client::REST::Ticket->new(
     status => 'open',
 )->store();
 
+run_script( 'sd', [ 'init']);
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
 run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_id Fly Man open"] );
@@ -76,6 +77,8 @@ run_output_matches(
 run_output_matches_unordered( 'sd', [ 'ticket',                     'list', '--regex', '.' ], [sort  "$yatta_id YATTA new", "$flyman_id Fly Man open" ]);
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
+diag ($out);
+diag ($err);
 my @tix = $rt->search(
     type  => 'ticket',
     query => "Subject='YATTA'"
@@ -185,9 +188,9 @@ my $logo = shift @two_attachments;
 
 is ($logo->file_name, 'bplogo.gif');
 is ($makefile->file_name, 'Makefile.PL');
-is($makefile->content, $MAKEFILE_CONTENT , " The makefile's content was ropundtripped ot rt ok");
+is($makefile->content, $MAKEFILE_CONTENT , " The makefile's content was roundtripped ot rt ok");
 
-is($logo->content, file($IMAGE_FILE)->slurp, " The image's content was ropundtripped ot rt ok");
+is($logo->content, file($IMAGE_FILE)->slurp, " The image's content was roundtripped ot rt ok");
 
 
 #diag $uuid;

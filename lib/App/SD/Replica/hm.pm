@@ -27,7 +27,6 @@ Open a connection to the SVN source identified by C<$self->url>.
 
 sub BUILD {
     my $self = shift;
-
     require Net::Jifty;
     my ($server, $props) = $self->{url} =~ m/^hm:(.*?)(?:\|(.*))?$/
         or die "Can't parse Hiveminder server spec. Expected hm:http://hiveminder.com or hm:http://hiveminder.com|props";
@@ -39,13 +38,12 @@ sub BUILD {
         $uri->userinfo(undef);
     }
     $self->remote_url("$uri");
+    $self->hm_username($username);
     ( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
-
     if ( $props ) {
         my %props = split /=|;/, $props;
         $self->props( \%props );
     }
-
     $self->hm(
         Net::Jifty->new(
             site        => $self->remote_url,
@@ -55,18 +53,17 @@ sub BUILD {
             password => $password
         )
     );
-
-    $self->hm_username($username);
 }
 
 =head2 uuid
 
-Return the replica SVN repository's UUID
+Return the replica's UUID
 
 =cut
 
 sub uuid {
     my $self = shift;
+    Carp::cluck "- can't make a uuid for this" unless ($self->remote_url && $self->hm_username);
     return $self->uuid_for_url( join( '/', $self->remote_url, $self->hm_username ) );
 }
 
@@ -96,7 +93,13 @@ sub traverse_changesets {
 
 sub find_matching_tasks {
     my $self = shift;
-    my %args;
+    my %args = (
+        owner        => 'me',
+        group        => 0,
+        requestor    => 'me',
+        not_complete => 1,
+    );
+
     if ( my $props = $self->props ) {
         while ( my ($k, $v) = each %$props ) { $args{$k} = $v }
     }
@@ -141,6 +144,9 @@ sub _integrate_change {
         { isa => 'Prophet::Change' },
         { isa => 'Prophet::ChangeSet' }
     );
+
+    # don't push internal records
+    return if $change->record_type =~ /^__/;
 
     require App::SD::Replica::hm::PushEncoder;
     my $recoder = App::SD::Replica::hm::PushEncoder->new( { sync_source => $self } );

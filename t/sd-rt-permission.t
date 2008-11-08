@@ -19,9 +19,10 @@ BEGIN {
     require File::Temp;
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
+
 }
 
-use Prophet::Test tests => 22;
+use Prophet::Test tests => 23;
 use App::SD::Test;
 use RT::Client::REST;
 use RT::Client::REST::Ticket;
@@ -63,14 +64,15 @@ $alice_url =~ s|http://|http://alice:AlicesPassword@|;
 my $sd_alice_url = "rt:$alice_url|General|Status!='resolved'";
 
 as_alice {
-    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url]);
+    run_script( 'sd', [ 'init']);
+    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url, '--force']);
     ok($ret);
     like($out, qr/No new changesets/);
 
     TODO: {
         local $TODO = "not coming through for some reason";
         like($err, qr/No tickets found/);
-    }
+        }
 };
 
 diag("grant read rights, ensure we can pull it");
@@ -102,9 +104,21 @@ as_alice {
     ok($ret);
     like($err, qr/You are not allowed to modify ticket $ticket_id/);
 
+    SKIP: {
+        skip "test needs fixing", 1;
+
+        # we should know exactly how many changesets there are.. used to be 1,
+        # now it's 13. one must fail to be merged but we can still report that
+        # the others (up to but excluding the failure) were successfully merged
+        unlike($out, qr/Merged 12 changesets/);
+    }
+
+    # try again to make sure we still have pending changesets
+    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $sd_alice_url]);
+
     TODO: {
-        local $TODO = "we report success even though it failed";
-        unlike($out, qr/Merged one changeset/);
+        local $TODO = "we mark all changesets as merged even if some failed";
+        unlike($out, qr/No new changesets/, "there are still pending changesets");
     }
 };
 

@@ -35,6 +35,8 @@ $GOODUSER->user_object->set_accepted_eula_version( Jifty->config->app('EULAVersi
 
 my $sd_hm_url = "hm:$URL";
 
+run_script('sd', [qw(init)]);
+
 my ($yatta_id, $yatta_uuid) = create_ticket_ok( qw(--summary YATTA --status new) );
 {
     my ( $ret, $out, $err ) = run_script( 'sd', [ 'push','--to', $sd_hm_url ] );

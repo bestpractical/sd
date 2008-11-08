@@ -42,7 +42,7 @@ diag $task->id;
 my ( $ret, $out, $err );
 
 my $sd_hm_url = "hm:$URL";
-eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] ) };
+eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] ) };
 diag $err;
 
 my ($flyman_uuid, $flyman_id );

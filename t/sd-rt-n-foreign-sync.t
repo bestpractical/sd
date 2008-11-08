@@ -96,9 +96,23 @@ $task->create(
 my ( $bob_yatta_id, $bob_flyman_id, $flyman_uuid, $yatta_uuid, $alice_yatta_id, $alice_flyman_id );
 my ( $ret, $out, $err );
 
+# start with the same database
+as_alice {
+    local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
+
+    run_script( 'sd', [ 'init']);
+};
+
+as_bob {
+    local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
+
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', repo_uri_for('alice') ] );
+};
+
 # now the tests, bob syncs with rt, alice syncs with hm
 as_alice {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
+
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
     diag($err) if ($err);
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/^(.*?)(?{ $alice_yatta_id = $1 }) YATTA .*/] );
@@ -107,6 +121,7 @@ as_alice {
 
 as_bob {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
+
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [] );
 
     diag("Bob pulling from RT");

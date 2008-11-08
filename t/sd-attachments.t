@@ -12,6 +12,9 @@ BEGIN {
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
 }
 
+run_script( 'sd', [ 'init']);
+
+
 my $replica_uuid = replica_uuid;
 # create from sd and push
 my ($yatta_id, $yatta_uuid) =  create_ticket_ok( '--summary', 'YATTA', '--status', 'new' );
