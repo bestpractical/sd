@@ -34,12 +34,12 @@ under help => sub {
 on help => run_command('Help');
 
 under ticket => sub {
+    on [['search', 'list']]   => run_command('Ticket::Search');
     on create   => run_command('Ticket::Create');
     on basics   => run_command('Ticket::Basics');
     on comments => run_command('Ticket::Comments');
     on comment  => run_command('Ticket::Comment');
     on details  => run_command('Ticket::Details');
-    on search   => run_command('Ticket::Search');
     on show     => run_command('Ticket::Show');
     on update   => run_command('Ticket::Update');
 
