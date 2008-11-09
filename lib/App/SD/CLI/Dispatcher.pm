@@ -9,6 +9,8 @@ rewrite qr/^\?(.*)/ => sub { "help $1" };
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
 rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 
+on undef => run_command('Shell');
+
 under help => sub {
     on about   => run_command('Help::About');
     on config  => run_command('Help::Config');
@@ -34,14 +36,14 @@ under help => sub {
 on help => run_command('Help');
 
 under ticket => sub {
-    on [['search', 'list']]   => run_command('Ticket::Search');
-    on create   => run_command('Ticket::Create');
+    on [ [ 'search', 'list', 'ls' ] ] => run_command('Ticket::Search');
+    on [ [ 'new',    'create' ] ]  => run_command('Ticket::Create');
+    on [ [ 'show',   'display' ] ] => run_command('Ticket::Show');
+    on [ [ 'update', 'edit' ] ]    => run_command('Ticket::Update');
     on basics   => run_command('Ticket::Basics');
     on comments => run_command('Ticket::Comments');
     on comment  => run_command('Ticket::Comment');
     on details  => run_command('Ticket::Details');
-    on show     => run_command('Ticket::Show');
-    on update   => run_command('Ticket::Update');
 
     on ['give', qr/.*/, qr/.*/] => sub {
         my $self = shift;
