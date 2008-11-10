@@ -5,7 +5,6 @@ package App::SD::Record; # should probably be Prophet::App::Record
 use Moose;
 use Params::Validate;
 
-
 sub declared_props { 'created', inner() }
 
 extends 'Prophet::Record';

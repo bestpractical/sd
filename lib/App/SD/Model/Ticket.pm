@@ -6,7 +6,9 @@ use Term::ANSIColor;
 use HTTP::Date;
 
 use constant collection_class => 'App::SD::Collection::Ticket';
-use constant type => 'ticket';
+#use constant type => 'ticket';
+
+has type => ( default => 'ticket');
 
 =head2 default_prop_status
 
