@@ -91,9 +91,8 @@ sub _set_uuid_for_remote_id {
 sub remote_id_for_uuid {
     my ( $self, $uuid_or_luid ) = @_;
 
-    # XXX: should not access CLI handle
     my $ticket = Prophet::Record->new(
-        handle => Prophet::CLI->new->app_handle->handle,
+        handle => $self->app_handle->handle,
         type   => 'ticket'
     );
     $ticket->load( $uuid_or_luid =~ /^\d+$/? 'luid': 'uuid', $uuid_or_luid );
@@ -112,9 +111,8 @@ sub _set_remote_id_for_uuid {
         }
     );
 
-    # XXX: should not access CLI handle
     my $ticket = Prophet::Record->new(
-        handle => Prophet::CLI->new->app_handle->handle,
+        handle => $self->app_handle->handle,
         type   => 'ticket'
     );
     $ticket->load( uuid => $args{'uuid'} );
