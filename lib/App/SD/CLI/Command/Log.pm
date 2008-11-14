@@ -61,7 +61,6 @@ sub change_header_comment {
     require App::SD::Model::Comment;
     my $c = App::SD::Model::Comment->new( handle => $self->handle, type => App::SD::Model::Comment->type);
     $c->load(uuid => $change->record_uuid);
-    warn "getting ticket";
     if ($c->prop('ticket')) {
     my $t = $c->ticket;
     return " # Comment on ticket " . $t->luid . " (".$t->prop('summary').")"
