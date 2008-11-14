@@ -1,6 +1,9 @@
 #!/usr/bin/env perl 
 use warnings;
 use strict;
+
+BEGIN { $ENV{'CLASS_MOP_NO_XS'} = 1 if ($^V == 5.0010); }
+
 use App::SD::CLI;
 
 $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.sd';
