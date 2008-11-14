@@ -87,36 +87,31 @@ my ($flyman_uuid, $flyman_id );
 
 
 my ($yatta_id, $yatta_uuid) = create_ticket_ok( '--summary', 'YATTA', '--status', 'new' );
-diag $yatta_uuid;
 
 run_output_matches_unordered(
-    'sd',
-    [ 'ticket', 'list', '--regex', '.' ],
+    'sd', [ qw(ticket list --regex .) ],
     [ "$yatta_id YATTA new", "$flyman_id Crash Man (no status)" ]
 );
 
 {
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'push','--to', $sd_hm_url ] );
-    diag $err;
-    ok( $task->load_by_cols( summary => 'YATTA' ), "loaded HM task" );
+    my ( $ret, $out, $err ) = run_script( 'sd', [ 'push','--to', $sd_hm_url ] );
+    ok( $task->load_by_cols( summary => 'YATTA' ), "loaded HM task #". $task->id );
     is( $task->group->id, $gid, "is in correct group" );
 }
 
 {
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
+    my ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
     run_output_matches_unordered(
-        'sd',
-        [ 'ticket',                     'list', '--regex', '.' ],
+        'sd', [ qw(ticket list --regex .) ],
         [ "$yatta_id YATTA new", "$flyman_id Crash Man (no status)" ]
     );
 }
 
 {
-    $task->set_summary('KILL');
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
+    my @res = $task->set_summary('KILL');
+    my ($ret, $out, $err) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
     run_output_matches_unordered(
-        'sd',
-        [ 'ticket',                    'list', '--regex', '.' ],
+        'sd', [ qw(ticket list --regex .) ],
         [ "$yatta_id KILL new", "$flyman_id Crash Man (no status)" ]
     );
 }

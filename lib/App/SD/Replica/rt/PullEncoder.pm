@@ -67,7 +67,6 @@ sub run {
         $self->sync_source->log("Applying changeset ".++$cs_counter . " of ".scalar @changesets); 
         $args{callback}->($_)
     }
-
 }
 
 sub _translate_final_ticket_state {
@@ -268,8 +267,8 @@ sub _recode_txn_Create {
     my %args = validate( @_, {  txn => 1, ticket => 1, changeset => 1 } );
 
     my $change = Prophet::Change->new(
-        {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
+        {   record_type => 'ticket',
+            record_uuid => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
             change_type => 'add_file'
         }
     );
@@ -282,11 +281,9 @@ sub _recode_txn_Create {
             old  => undef,
             new  => $args{'ticket'}->{$name},
         );
-
     }
 
     $self->_recode_content_update(%args);    # add the create content txn as a seperate change in this changeset
-
 }
 
 sub _recode_txn_AddLink {
@@ -311,19 +308,17 @@ sub _recode_txn_AddLink {
         old  => $args{'ticket'}->{ $args{'txn'}->{'Field'} },
         new  => $new_state
     );
-
 }
 
 sub _recode_content_update {
-    my $self   = shift;
-    my %args   = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
+    my $self = shift;
+    my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
     my $url = $self->sync_source->remote_url . "/transaction/" . $args{'txn'}->{'id'};
-    my $change = Prophet::Change->new(
-        {   record_type => 'comment',
-            record_uuid => $self->sync_source->uuid_for_url( $url ),
-            change_type => 'add_file',
-        }
-    );
+    my $change = Prophet::Change->new( {
+        record_type => 'comment',
+        record_uuid => $self->sync_source->uuid_for_url( $url ),
+        change_type => 'add_file',
+    } );
 
     $change->add_prop_change( name => 'created', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
 
