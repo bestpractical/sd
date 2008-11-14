@@ -13,6 +13,8 @@ $ENV{'SD_CONFIG'} = 't/prophet_testing.conf';
 delete $ENV{'PROPHET_APP_CONFIG'};
 $ENV{'EDITOR'} = '/bin/true';
 
+our ($A, $B, $C, $D);
+
 =head2 create_ticket_ok ARGS
 
 Creates a new ticket, passing ARGS along to the creation command (after the
@@ -24,12 +26,12 @@ Returns a list of the luid and uuid of the newly created ticket.
 
 sub create_ticket_ok {
     my @args = (@_);
-    my ( $uuid, $luid );
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create', '--', @args ],
-        [qr/Created ticket (.*?)(?{ $luid = $1})\s+\((.*)(?{ $uuid = $2 })\)/]
+        [qr/Created ticket (.*?)(?{ $A = $1})\s+\((.*)(?{ $B = $2 })\)/]
     );
 
+    my ( $uuid, $luid ) =($B,$A);
     return ( $luid, $uuid );
 }
 
@@ -43,13 +45,13 @@ Returns a list of the luid and uuid of the newly created comment.
 
 sub create_ticket_comment_ok {
     my @args = (@_);
-    my ( $uuid, $luid );
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     Prophet::Test::run_output_matches(
         'sd',
         [ 'ticket', 'comment', 'create', @args ],
-        [qr/Created comment (.*?)(?{ $luid = $1})\s+\((.*)(?{ $uuid = $2 })\)/]
+        [qr/Created comment (.*?)(?{ $A = $1})\s+\((.*)(?{ $B = $2 })\)/]
     );
+    my ( $uuid, $luid ) = ($B, $A);
 
     return ( $luid, $uuid );
 }
@@ -98,14 +100,15 @@ Returns a list of the ticket luid, ticket uuid, comment luid, and comment uuid.
 
 =cut
 
+
 sub create_ticket_with_editor_ok {
-    my ( $ticket_uuid, $ticket_luid, $comment_uuid, $comment_luid );
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create' ],
-        [qr/Created ticket (.*?)(?{ $ticket_luid = $1})\s+\((.*)(?{ $ticket_uuid = $2 })\)/,
-        qr/Created comment (.*?)(?{ $comment_luid = $1})\s+\((.*)(?{ $comment_uuid = $2 })\)/]
+        [qr/Created ticket (.*?)(?{ $A = $1})\s+\((.*)(?{ $B = $2 })\)/,
+        qr/Created comment (.*?)(?{ $C = $1})\s+\((.*)(?{ $D = $2 })\)/]
     );
 
+    my ( $ticket_uuid, $ticket_luid, $comment_uuid, $comment_luid )=  ($B,$A,$D,$C);
     return ( $ticket_luid, $ticket_uuid, $comment_luid, $comment_uuid );
 }
 
@@ -124,14 +127,14 @@ sub update_ticket_with_editor_ok {
     my $self = shift;
     my $ticket_luid = shift;
     my $ticket_uuid = shift;
-    my ($comment_luid, $comment_uuid);
 
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'update', $ticket_uuid ],
-        [ qr/Updated ticket (.*?)(?{ $ticket_luid })\s+\((.*)(?{ $ticket_uuid })\)/,
-          qr/Created comment (.*?)(?{ $comment_luid = $1 })\s+\((.*)(?{ $comment_uuid = $2 })\)/ ]
+        [ qr/Updated ticket (.*?)\s+\((.*)\)/,
+          qr/Created comment (.*?)(?{ $A = $1 })\s+\((.*)(?{ $B = $2 })\)/ ]
     );
 
+    my ($comment_luid, $comment_uuid) = ($A, $B);
     return ( $comment_luid, $comment_uuid );
 }
 
@@ -150,7 +153,7 @@ sub update_ticket_comment_with_editor_ok {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     Prophet::Test::run_output_matches( 'sd',
         [ 'ticket', 'comment', 'update', $comment_uuid ],
-        [ qr/Updated comment (.*?)(?{ $comment_luid })\s+\((.*)(?{ $comment_uuid })\)/]
+        [ 'Updated comment '.$comment_luid . ' ('. $comment_uuid .')']
     );
 }
 
