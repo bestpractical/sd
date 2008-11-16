@@ -14,7 +14,8 @@ has '+config' => (
 
 sub database_settings {
 { 
-        statuses            => ['24183C4D-EFD0-4B16-A207-ED7598E875E6' => qw/new open stalled closed/],
+        statuses            => ['24183C4D-EFD0-4B16-A207-ED7598E875E6' => qw/new open stalled closed rejected/],
+        active_statuses            => ['C879A68F-8CFE-44B5-9EDD-14E53933669E' => qw/new open/],
         default_status      => ['2F9E6509-4468-438A-A733-246B3061003E' => 'new' ],
         components          => ['6CBD84A1-4568-48E7-B90C-F1A5B7BD8ECD' => qw/core ui docs tests/],
         default_component   => ['0AEC922F-57B1-44BE-9588-816E5841BB18' => 'core'],

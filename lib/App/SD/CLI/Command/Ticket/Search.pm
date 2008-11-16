@@ -7,20 +7,30 @@ with 'App::SD::CLI::Command';
 before run => sub {
     my $self = shift;
 
+    if (!$self->has_arg('sort') &&  $self->app_handle->config->get('default_sort_ticket_list')) {
+        $self->set_arg('sort' => $self->app_handle->config->get('default_sort_ticket_list'));
+    }
+    
+    if (!$self->has_arg('group') &&  $self->app_handle->config->get('default_group_ticket_list')) {
+        $self->set_arg('group' => $self->app_handle->config->get('default_group_ticket_list'));
+    }
+    
+    
+
     # sort output by created date if user specifies --sort
-    if ( $self->has_arg('sort') ) {
+    if ( $self->has_arg('sort') && ($self->arg('sort') ne 'none')) {
 
         # some records might not have creation dates
         no warnings 'uninitialized';
         $self->sort_routine(
             sub {
                 my $records = shift;
-                return $self->sort_by_prop( created => $records );
+                return $self->sort_by_prop( $self->arg('sort') => $records );
             }
         );
     }
 
-    if ( $self->has_arg('group') ) {
+    if ( $self->has_arg('group') && ($self->arg('group') ne 'none')) {
         $self->group_routine(
             sub {
                 my $records = shift;
@@ -46,7 +56,7 @@ sub default_match {
     my $self = shift;
     my $ticket = shift;
 
-    return 1 if $ticket->prop('status') ne 'closed';
+    return 1 if grep  { $_ eq $ticket->prop('status') } @{$self->app_handle->setting(label => 'active_statuses')->get()};
     return 0;
 }
 
