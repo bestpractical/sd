@@ -16,11 +16,17 @@ sub _get_cmd_name {
     return $cmd;
 }
 
+sub version {
+    my $self = shift;
+    "sd ".$App::SD::VERSION;
+
+}
 
 sub print_header {
     my $self = shift;
     my $title = shift;
-    my $string =  "sd ".$App::SD::VERSION." - " .$title;
+    my $string =  join(' - ', $self->version, $title);
+    
     
     print "\n".$string . "\n";
     print '-' x ( length($string));
@@ -37,6 +43,7 @@ sub run {
 
 print <<EOF
 
+$cmd help intro       -  Getting started with SD
 $cmd help search      -  Searching for and displaying tickets
 $cmd help tickets     -  Working with tickets
 $cmd help comments    -  Working with ticket comments

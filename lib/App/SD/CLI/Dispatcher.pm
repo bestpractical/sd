@@ -14,6 +14,7 @@ rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 #on '' => run_command('Shell');
 
 under help => sub {
+    on intro   => run_command('Help::Intro');
     on about   => run_command('Help::About');
     on config  => run_command('Help::Config');
     on copying => run_command('Help::Copying');
