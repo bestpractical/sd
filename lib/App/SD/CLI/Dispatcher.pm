@@ -84,9 +84,7 @@ on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
     run($2, $self, @_);
 };
 
-warn "Going to redisp";
 redispatch_to('Prophet::CLI::Dispatcher');
-warn "Done redisp";
 
 sub run_command {Prophet::CLI::Dispatcher::run_command(@_) }
 
