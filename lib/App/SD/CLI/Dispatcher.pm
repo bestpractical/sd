@@ -70,6 +70,8 @@ under ticket => sub {
         on create => run_command('Ticket::Attachment::Create');
         on search => run_command('Ticket::Attachment::Search');
     };
+
+
 };
 
 under attachment => sub {
@@ -81,11 +83,20 @@ under attachment => sub {
 # 'sd ticket display --id 14' -> 'sd display --type ticket --id 14'
 on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
     my $self = shift;
-    $self->context->set_arg(type => $1);
-    run($2, $self, @_);
+    my $type = $1;
+    my $redispatch_to = $2;
+    $self->context->set_arg(type => $type);
+    run($redispatch_to, $self, @_);
 };
 
 redispatch_to('Prophet::CLI::Dispatcher');
+
+on qr/^(.*)$/ => sub {
+   my $self = shift;
+   my $command = $1;
+   die "The command you ran, '$command', could not be found. Perhaps running '$0 help' would help?\n";
+
+};
 
 sub run_command {Prophet::CLI::Dispatcher::run_command(@_) }
 
