@@ -13,7 +13,7 @@ print <<EOF
 
   Currently, the following configuration variables are available:
 
-  reporter_email = foo\@bar.com
+  email_address = foo\@bar.com
     Specifies an email address to use as the default for tickets'
     reported_by field.
 
