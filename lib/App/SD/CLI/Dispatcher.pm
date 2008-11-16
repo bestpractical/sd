@@ -3,13 +3,15 @@ package App::SD::CLI::Dispatcher;
 use Prophet::CLI::Dispatcher -base;
 use Moose;
 
+Prophet::CLI::Dispatcher->add_command_prefix('App::SD::CLI::Command');
+
 # "sd ?about" => "sd help about"
 rewrite qr/^\?(.*)/ => sub { "help $1" };
 
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
 rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 
-on undef => run_command('Shell');
+#on '' => run_command('Shell');
 
 under help => sub {
     on about   => run_command('Help::About');
@@ -82,20 +84,12 @@ on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
     run($2, $self, @_);
 };
 
-__PACKAGE__->dispatcher->add_rule(
-    Path::Dispatcher::Rule::Dispatch->new(
-        dispatcher => Prophet::CLI::Dispatcher->dispatcher,
-    ),
-);
+warn "Going to redisp";
+redispatch_to('Prophet::CLI::Dispatcher');
+warn "Done redisp";
 
-sub run_command { Prophet::CLI::Dispatcher::run_command(@_) }
+sub run_command {Prophet::CLI::Dispatcher::run_command(@_) }
 
-sub class_names {
-    my $self = shift;
-    my $name = shift;
-
-    ("App::SD::CLI::Command::$name", $self->SUPER::class_names($name, @_));
-}
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
