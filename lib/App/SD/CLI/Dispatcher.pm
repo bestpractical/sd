@@ -11,7 +11,6 @@ rewrite qr/^\?(.*)/ => sub { "help $1" };
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
 rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 
-#on '' => run_command('Shell');
 
 under help => sub {
     on intro   => run_command('Help::Intro');
@@ -90,6 +89,8 @@ on qr{^(ticket|comment|attachment) \s+ (.*)}xi => sub {
 };
 
 redispatch_to('Prophet::CLI::Dispatcher');
+
+on '' => run_command('Shell');
 
 on qr/^(.*)$/ => sub {
    my $self = shift;
