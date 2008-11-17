@@ -36,7 +36,7 @@ BEGIN {
 BEGIN {
     unless (eval 'use RT::Test (); 1') {
         diag $@;
-        plan skip_all => 'requires 3.7 to run tests.';
+        plan skip_all => 'requires RT 3.8 to run tests.';
     }
 }
 
