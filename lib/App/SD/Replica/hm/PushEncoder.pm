@@ -132,6 +132,35 @@ sub integrate_ticket_update {
     die "Couldn't integrate comment: ". $self->decode_error( $status );
 }
 
+sub integrate_attachment {
+    my $self = shift;
+    my ($change, $changeset) = validate_pos( @_, { isa => 'Prophet::Change' }, {isa => 'Prophet::ChangeSet'} );
+
+    unless ( $self->sync_source->user_info->{'pro_account'} ) {
+        warn "Pro account is required to push attachments";
+        return;
+    }
+
+    my %props = $self->translate_props( $change );
+    $props{'content'} = {
+        content => $props{'content'},
+        filename => delete $props{'name'},
+        content_type => delete $props{'content_type'},
+    };
+
+    my $ticket_id = $self->sync_source->remote_id_for_uuid( delete $props{'ticket'} )
+        or die "Couldn't get remote id of SD ticket";
+
+    my $status = $self->sync_source->hm->act(
+        'CreateTaskAttachment',
+        task_id => $ticket_id,
+        %props,
+    );
+    return $status->{'content'}{'id'} if $status->{'success'};
+
+    die "Couldn't integrate attachment: ". $self->decode_error( $status );
+}
+
 sub _recode_props_for_create {
     my $self = shift;
     my $attr = $self->_recode_props_for_integrate(@_);
