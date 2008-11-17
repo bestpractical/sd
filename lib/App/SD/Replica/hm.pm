@@ -142,6 +142,16 @@ sub find_matching_transactions {
 
 }
 
+sub user_info {
+    my $self = shift;
+    my $status = $self->hm->act(
+        'SearchUser',
+        email => $self->hm_username,
+    );
+    die $status->{'error'} unless $status->{'success'};
+    return $status->{'content'}{'search'}[0] || {};
+}
+
 sub _integrate_change {
     my $self = shift;
     my ( $change, $changeset ) = validate_pos(
