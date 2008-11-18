@@ -15,7 +15,7 @@ BEGIN {
     }
 }
 
-use Prophet::Test tests => 37;
+use Prophet::Test tests => 43;
 use App::SD::Test;
 
 no warnings 'once';
@@ -48,6 +48,8 @@ my $ticket = RT::Client::REST::Ticket->new(
     status  => 'new',
     subject => 'Fly Man',
 )->store( text => "Ticket Comment" );
+
+my $flyman_rt_id = $ticket->id;
 
 my ( $ret, $out, $err );
 ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_rt_url ] );
@@ -261,23 +263,54 @@ run_output_matches(
 ok( $ret, $out );
 like( $out, qr/Created comment/ );
 
-( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'resolve', $helium_id ] );
-ok( $ret, $out );
-like( $out, qr/ticket .* updated/ );
 
-( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
-ok( $ret, $out );
+{    # resolve a ticket
+    ( $ret, $out, $err )
+        = run_script( 'sd', [ 'ticket', 'resolve', $helium_id ] );
+    ok( $ret, $out );
+    like( $out, qr/ticket .* updated/ );
 
-( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
-ok( $ret, $out );
-like( $out, qr/No new changesets/ );
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
+    ok( $ret, $out );
 
-my $fetched_ticket = RT::Client::REST::Ticket->new(
-    rt => $rt,
-    id => $ticket->id
-)->retrieve;
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
+    ok( $ret, $out );
+    like( $out, qr/No new changesets/ );
 
-is( $fetched_ticket->status, "resolved" );
+    my $fetched_ticket = RT::Client::REST::Ticket->new(
+        rt => $rt,
+        id => $ticket->id
+    )->retrieve;
+
+    is( $fetched_ticket->status, "resolved" );
+}
+
+{    # delete a ticket for reals
+    ( $ret, $out, $err )
+        = run_script( 'sd', [ 'ticket','delete', $flyman_id]);
+    ok( $ret, $out );
+    like( $out, qr/ticket .* deleted/ );
+
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
+    ok( $ret, $out );
+    diag($out);
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
+    ok( $ret, $out );
+    like( $out, qr/No new changesets/ );
+
+    my $fetched_ticket = RT::Client::REST::Ticket->new(
+        rt => $rt,
+        id => $flyman_rt_id 
+    )->retrieve;
+
+    is( $fetched_ticket->status, "deleted" );
+
+}
+
+
+
+
+
 
 sub get_rt_ticket_attachments {
     my $ticket = shift;
