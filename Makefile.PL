@@ -18,7 +18,7 @@ features(
 
     'Hiveminder sync' => [
         -default => 0,
-        'Net::Jifty' => 0,
+        'Net::Jifty' => 0.09,
     ],
 );
 
