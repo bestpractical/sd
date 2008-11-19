@@ -163,6 +163,23 @@ sub integrate_attachment {
 
 sub _recode_props_for_create {
     my $self = shift;
+    my $attr = $self->__recode_props_for_create( @_ );
+
+    if ( $attr->{'requestor_id'} ) {
+        require Email::Address;
+        my @addresses = Email::Address->parse( $attr->{'requestor_id'} );
+        if ( @addresses > 1 ) {
+            #XXX, TODO: HM supports only one requestor, but it would be cool
+            # to add comment or something like that
+            warn "A ticket has more than one requestor when HM supports only one";
+            $attr->{'requestor_id'} = $addresses[0]->format;
+        }
+    }
+    return $attr;
+}
+
+sub __recode_props_for_create {
+    my $self = shift;
     my $attr = $self->_recode_props_for_integrate(@_);
 
     my $source_props = $self->sync_source->props;
