@@ -78,6 +78,9 @@ sub _translate_final_ticket_state {
 
     $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_}
         for qw(Queue id);
+    delete $ticket->{'Owner'} if lc($ticket->{'Owner'}) eq 'nobody';
+    $ticket->{'Owner'} = $self->resolve_user_id_to( email_address => $ticket->{'Owner'} )
+        if $ticket->{'Owner'};
     delete $ticket->{$_} for
         grep !defined $ticket->{$_} || $ticket->{$_} eq '',
         keys %$ticket;
