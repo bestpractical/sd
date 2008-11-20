@@ -300,18 +300,19 @@ sub _recode_txn_AddLink {
         $args{'txn'}->{'OldValue'}
     );
 
-    my $change = Prophet::Change->new(
-        {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
-            change_type => 'update_file'
-        }
-    );
-    $args{'changeset'}->add_change( { change => $change } );
+    my $change = Prophet::Change->new( {
+        record_type => 'ticket',
+        record_uuid => $self->sync_source->uuid_for_remote_id(
+            $args{'ticket'}->{$self->sync_source->uuid . '-id'}
+        ),
+        change_type => 'update_file',
+    } );
     $change->add_prop_change(
         name => $args{'txn'}->{'Field'},
         old  => $args{'ticket'}->{ $args{'txn'}->{'Field'} },
         new  => $new_state
     );
+    $args{'changeset'}->add_change( { change => $change } );
 }
 
 sub _recode_content_update {
