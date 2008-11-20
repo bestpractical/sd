@@ -58,6 +58,7 @@ sub run {
         $txn_counter++;
         $self->sync_source->log("Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of ". scalar @transactions);
         my $changeset = $self->transcode_one_txn( $txn, $tickets->{ $txn->{Ticket} }->{ticket} );
+        $changeset->created( $txn->{'Created'} );
         next unless $changeset->has_changes;
         unshift @changesets, $changeset;
     }
