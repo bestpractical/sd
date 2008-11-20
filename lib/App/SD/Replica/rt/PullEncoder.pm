@@ -81,7 +81,7 @@ sub _translate_final_ticket_state {
     delete $ticket->{$_} for
         grep !defined $ticket->{$_} || $ticket->{$_} eq '',
         keys %$ticket;
-    $ticket->{$_} = $self->date_to_iso( $ticket->{$_} )
+    $ticket->{$_} = $self->unix_time_to_iso( $ticket->{$_} )
         for qw(Created Resolved Told LastUpdated Due Starts Started);
     $ticket->{$_} =~ s/ minutes$//
         for grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
@@ -190,7 +190,7 @@ sub _recode_attachment_create {
         }
     );
     $change->add_prop_change( name => 'content_type', old  => undef, new  => $args{'attachment'}->{'ContentType'});
-    $change->add_prop_change( name => 'created', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
+    $change->add_prop_change( name => 'created', old  => undef, new  => $args{'txn'}->{'Created'} );
     $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email_address => $args{'attachment'}->{'Creator'}));
     $change->add_prop_change( name => 'content', old  => undef, new  => $args{'attachment'}->{'Content'});
     $change->add_prop_change( name => 'name', old  => undef, new  => $args{'attachment'}->{'Filename'});
@@ -321,12 +321,15 @@ sub _recode_content_update {
         change_type => 'add_file',
     } );
 
-    $change->add_prop_change( name => 'created', old  => undef, new  => $self->date_to_iso($args{'txn'}->{'Created'}));
-
-    $change->add_prop_change( name => 'type', old  => undef, new  => $args{'txn'}->{'Type'});
-    $change->add_prop_change( name => 'creator', old  => undef, new  => $self->resolve_user_id_to( email_address => $args{'txn'}->{'Creator'}));
-    $change->add_prop_change( name => 'content', old  => undef, new  => $args{'txn'}->{'Content'});
-    $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{ $self->sync_source->uuid . '-id'} ));
+    $change->add_prop_change( name => 'created', new  => $args{'txn'}->{'Created'});
+    $change->add_prop_change( name => 'type',    new  => $args{'txn'}->{'Type'});
+    $change->add_prop_change( name => 'creator', new  => $self->resolve_user_id_to(
+        email_address => $args{'txn'}->{'Creator'}
+    ) );
+    $change->add_prop_change( name => 'content', new  => $args{'txn'}->{'Content'});
+    $change->add_prop_change( name => 'ticket',  new  => $self->sync_source->uuid_for_remote_id(
+        $args{'ticket'}->{ $self->sync_source->uuid . '-id'}
+    ) );
     $args{'changeset'}->add_change( { change => $change } );
 }
 
@@ -434,7 +437,7 @@ memoize 'resolve_user_id_to';
 
 use HTTP::Date;
 
-sub date_to_iso {
+sub unix_time_to_iso {
     my $self = shift;
     my $date = shift;
 
