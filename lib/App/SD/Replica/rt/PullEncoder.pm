@@ -344,29 +344,28 @@ sub _recode_txn_AddWatcher {
     my $self = shift;
     my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
 
-    my $new_state = $args{'ticket'}->{ $args{'txn'}->{'Field'} };
+    my $type = $args{'txn'}->{'Field'};
 
-    $args{'ticket'}->{ $args{'txn'}->{'Field'} } = $self->warp_list_to_old_value(
-        $args{'ticket'}->{ $args{'txn'}->{'Field'} },
-
+    my $new_state = $args{'ticket'}->{ $type .'s' };
+    $args{'ticket'}->{ $type .'s' } = $self->warp_list_to_old_value(
+        $new_state,
         $self->resolve_user_id_to( email_address => $args{'txn'}->{'NewValue'} ),
         $self->resolve_user_id_to( email_address => $args{'txn'}->{'OldValue'} )
-
     );
 
-    my $change = Prophet::Change->new(
-        {   record_type   => 'ticket',
-            record_uuid   => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
-            change_type => 'update_file'
-        }
-    );
-    $args{'changeset'}->add_change( { change => $change } );
+    my $change = Prophet::Change->new({
+        record_type   => 'ticket',
+        record_uuid   => $self->sync_source->uuid_for_remote_id(
+            $args{'ticket'}->{$self->sync_source->uuid . '-id'}
+        ),
+        change_type => 'update_file'
+    } );
     $change->add_prop_change(
         name => $args{'txn'}->{'Field'},
-        old  => $args{'ticket'}->{ $args{'txn'}->{'Field'} },
+        old  => $args{'ticket'}->{ $args{'txn'}->{'Field'} .'s' },
         new  => $new_state
     );
-
+    $args{'changeset'}->add_change( { change => $change } );
 }
 
 *_recode_txn_DelWatcher = \&_recode_txn_AddWatcher;
@@ -456,6 +455,7 @@ our %PROP_MAP = (
     initialpriority => '_delete',
     finalpriority   => '_delete',
     told            => '_delete',
+    requestor       => 'reported_by',
     requestors      => 'reported_by',
     admincc         => 'admin_cc',
     refersto        => 'refers_to',
