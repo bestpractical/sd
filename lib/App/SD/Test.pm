@@ -186,7 +186,7 @@ sub get_ticket_info {
 
     if ( $res{'metadata'}{'id'} ) {
         @{ $res{'metadata'} }{'luid', 'uuid'} = (
-            $res{'metadata'}{'id'} =~ /^\d+\s+\(.*?\)\s*$/
+            $res{'metadata'}{'id'} =~ /^(\d+)\s+\((.*?)\)\s*$/
         );
     }
 
