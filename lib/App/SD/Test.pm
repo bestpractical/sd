@@ -8,7 +8,7 @@ use Test::More;
 use File::Spec;
 use Cwd qw/getcwd/;
 use base qw/Exporter/;
-our @EXPORT = qw(create_ticket_ok create_ticket_with_editor_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid);
+our @EXPORT = qw(create_ticket_ok create_ticket_with_editor_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid get_ticket_info);
 $ENV{'SD_CONFIG'} = 't/prophet_testing.conf';
 delete $ENV{'PROPHET_APP_CONFIG'};
 $ENV{'EDITOR'} = '/bin/true';
@@ -155,6 +155,42 @@ sub update_ticket_comment_with_editor_ok {
         [ 'ticket', 'comment', 'update', $comment_uuid ],
         [ 'Updated comment '.$comment_luid . ' ('. $comment_uuid .')']
     );
+}
+
+=head2 get_ticket_info LUID/UUID
+
+Returns a hash reference with information about ticket.
+
+=cut
+
+sub get_ticket_info {
+    my $id = shift;
+    my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [qw(ticket show --batch --id), $id ]);
+
+    my @lines = split /\n/, $out;
+
+    my %res;
+    my $section = '';
+    while ( defined( $_ = shift @lines ) ) {
+        if ( /^= ([A-Z]+)\s*$/ ) {
+            $section = lc $1;
+            next;
+        }
+        next unless $section;
+
+        if ( $section eq 'metadata' ) {
+            next unless /^(\w+):\s*(.*?)\s*$/;
+            $res{$section}{$1} = $2;
+        }
+    }
+
+    if ( $res{'metadata'}{'id'} ) {
+        @{ $res{'metadata'} }{'luid', 'uuid'} = (
+            $res{'metadata'}{'id'} =~ /^\d+\s+\(.*?\)\s*$/
+        );
+    }
+
+    return \%res;
 }
 
 =head2 set_editor SCRIPT
