@@ -7,8 +7,8 @@ sub warp_list_to_old_value {
     my $add          = shift;
     my $del          = shift;
 
-    my @new = grep { defined } split( /\s*,\s*/, $current_value );
-    my @old = (grep { defined $_ && $_ ne $add } @new, $del ) || ();
+    my @new = grep defined && length, split /\s*,\s*/, $current_value;
+    my @old = grep defined && length && $_ ne $add, (@new, $del);
     return join( ", ", @old );
 }
 
