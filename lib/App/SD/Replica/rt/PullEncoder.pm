@@ -288,6 +288,9 @@ sub _recode_txn_Create {
 }
 
 sub _recode_txn_AddLink {
+    # XXX, TODO: syncing links doesn't work
+    return;
+
     my $self      = shift;
     my %args      = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
     my $new_state = $args{'ticket'}->{ $args{'txn'}->{'Field'} };
