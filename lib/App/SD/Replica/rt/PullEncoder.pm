@@ -270,16 +270,16 @@ sub _recode_txn_Create {
     my $self = shift;
     my %args = validate( @_, {  txn => 1, ticket => 1, changeset => 1 } );
 
-    my $change = Prophet::Change->new(
-        {   record_type => 'ticket',
-            record_uuid => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{$self->sync_source->uuid . '-id'} ),
-            change_type => 'add_file'
-        }
-    );
+    my $change = Prophet::Change->new( {
+        record_type => 'ticket',
+        record_uuid => $self->sync_source->uuid_for_remote_id(
+            $args{'ticket'}->{$self->sync_source->uuid . '-id'}
+        ),
+        change_type => 'add_file'
+    } );
 
     $args{'changeset'}->add_change( { change => $change } );
     for my $name ( keys %{ $args{'ticket'} } ) {
-
         $change->add_prop_change(
             name => $name,
             old  => undef,
