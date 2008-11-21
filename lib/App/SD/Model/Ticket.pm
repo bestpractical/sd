@@ -6,9 +6,13 @@ use Term::ANSIColor;
 use HTTP::Date;
 
 use constant collection_class => 'App::SD::Collection::Ticket';
-#use constant type => 'ticket';
+use constant type => 'ticket';
 
-has type => ( default => 'ticket');
+
+sub default_prop_milestone { 
+    my $self = shift; 
+    return $self->app_handle->setting(label => 'default_milestone')->get()->[0];
+}
 
 =head2 default_prop_status
 
@@ -17,14 +21,15 @@ Returns a string of the default value of the C<status> prop.
 =cut
 
 
-sub default_prop_milestone { 
-    my $self = shift; 
-    return $self->app_handle->setting(label => 'default_milestone')->get()->[0];
-}
 
 sub default_prop_status { 
     my $self = shift; 
     return $self->app_handle->setting(label => 'default_status')->get()->[0];
+}
+
+sub has_active_status {
+    my $self = shift;
+    return 1 if grep { $_ eq $self->prop('status') } @{$self->app_handle->setting(label => 'active_statuses')->get()};
 }
 
 =head2 default_prop_reported_by

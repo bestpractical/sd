@@ -56,7 +56,7 @@ sub default_match {
     my $self = shift;
     my $ticket = shift;
 
-    return 1 if grep  { $_ eq $ticket->prop('status') } @{$self->app_handle->setting(label => 'active_statuses')->get()};
+    return 1 if $ticket->has_active_status();
     return 0;
 }
 
