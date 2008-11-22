@@ -5,7 +5,8 @@ copyright('2008 Best Practical Solutions, LLC');
 license('MIT');
 version_from('lib/App/SD.pm');
 requires('Time::Progress');
-requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Path::Class Class::Accessor Template::Declare::Tags Test::HTTP::Server::Simple JSON Test::WWW::Mechanize
+requires('Path::Class');
+requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Class::Accessor Template::Declare::Tags Test::HTTP::Server::Simple JSON Test::WWW::Mechanize
 requires('Moose'); # Moose::Role
 requires('HTTP::Date');
 
