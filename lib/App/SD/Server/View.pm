@@ -116,10 +116,29 @@ template '/bugs/open' => sub {
     }
 };
 
-template '/show_bug' => page {
+template 'show_bug' => page {
+        my $self = shift;
+        my $id = shift;
+        warn "SELF Is $self";
+        warn "ID IS $id";
+        warn $self->app_handle;
+        my $bug = App::SD::Model::Ticket->new(
+            app_handle => $self->app_handle,
+            handle     => $self->app_handle->handle
+        );
+        $bug->load(uuid =>$id);
 
+        title is $bug->luid.":".$bug->summary;
     } content {
-
+        my $self = shift;
+        my $id = shift;
+        my $bug = App::SD::Model::Ticket->new(
+            app_handle => $self->app_handle,
+            handle     => $self->app_handle->handle
+        );
+        $bug->load(uuid => $id);
+        h1 { 'this is a bug' };
+        p {$bug->prop('summary')};
     };
 
 sub bug_link {
