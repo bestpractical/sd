@@ -176,7 +176,7 @@ sub remote_uri_path_for_id {
 
 our %PROP_MAP = (
     owner_id                 => 'owner',
-    requestor_id             => 'reported_by',
+    requestor_id             => 'reporter',
     priority                 => 'priority_integer',
     completed_at             => 'completed',
     due                      => 'due',

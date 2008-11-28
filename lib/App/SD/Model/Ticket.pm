@@ -31,15 +31,15 @@ sub has_active_status {
     return 1 if grep { $_ eq $self->prop('status') } @{$self->app_handle->setting(label => 'active_statuses')->get()};
 }
 
-=head2 default_prop_reported_by
+=head2 default_prop_reporter
 
-Returns a string of the default value of the C<reported_by> prop.
+Returns a string of the default value of the C<reporter> prop.
 (Currently, this is the config variable C<email_address> or
 the environmental variable C<EMAIL>.)
 
 =cut
 
-sub default_prop_reported_by {
+sub default_prop_reporter {
     shift->app_handle->config->get('email_address') or $ENV{EMAIL}
 }
 
@@ -152,7 +152,7 @@ from first to last).
 =cut
 
 sub props_to_show {
-    ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reported_by', 'milestone', 'original_replica')
+    ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reporter', 'milestone', 'original_replica')
 }
 
 =head2 immutable_props

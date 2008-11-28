@@ -15,7 +15,7 @@ print <<EOF
 
   email_address = foo\@bar.com
     Specifies an email address to use as the default for tickets'
-    reported_by field.
+    reporter field.
 
   summary_format_ticket = %4s },\$luid | %-11.11s,status | %-60.60s,summary
     Specifies how to format ticket summaries (when listing tickets, e.g.).

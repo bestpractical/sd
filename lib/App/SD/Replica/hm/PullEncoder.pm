@@ -158,7 +158,7 @@ sub translate_props {
             $prop->name( $PROP_MAP{ lc( $prop->name ) } ) if $PROP_MAP{ lc( $prop->name ) };
             next if ( $prop->name eq '_delete' );
 
-            if ( $prop->name =~ /^(?:reported_by|owner|next_action_by)$/ ) {
+            if ( $prop->name =~ /^(?:reporter|owner|next_action_by)$/ ) {
                 $prop->old_value( $self->resolve_user_id_to_email( $prop->old_value ) );
                 $prop->new_value( $self->resolve_user_id_to_email( $prop->new_value ) );
             }
