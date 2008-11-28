@@ -6,14 +6,23 @@ use strict;
 require Prophet::Test;
 use Test::More;
 use File::Spec;
+use File::Temp ();
 use Cwd qw/getcwd/;
 use base qw/Exporter/;
 our @EXPORT = qw(create_ticket_ok create_ticket_with_editor_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid get_ticket_info);
-$ENV{'SD_CONFIG'} = 't/prophet_testing.conf';
 delete $ENV{'PROPHET_APP_CONFIG'};
 $ENV{'EDITOR'} = '/bin/true';
 
 our ($A, $B, $C, $D);
+
+BEGIN {
+    # create a blank config file so per-user configs don't break tests
+    my $tmp_config = File::Temp->new( UNLINK => 0 );
+    print $tmp_config '';
+    close $tmp_config;
+    print "setting SD_CONFIG to " . $tmp_config->filename . "\n";
+    $ENV{'SD_CONFIG'} = $tmp_config->filename;
+}
 
 =head2 create_ticket_ok ARGS
 
