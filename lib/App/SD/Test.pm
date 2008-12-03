@@ -9,7 +9,7 @@ use File::Spec;
 use File::Temp ();
 use Cwd qw/getcwd/;
 use base qw/Exporter/;
-our @EXPORT = qw(create_ticket_ok create_ticket_with_editor_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid get_ticket_info);
+our @EXPORT = qw(create_ticket_ok update_ticket_ok create_ticket_with_editor_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid get_ticket_info);
 delete $ENV{'PROPHET_APP_CONFIG'};
 $ENV{'EDITOR'} = '/bin/true';
 
@@ -44,7 +44,23 @@ sub create_ticket_ok {
     return ( $luid, $uuid );
 }
 
-=head2 create_ticket_ok ARGS
+=head2 update_ticket_ok ID ARGS
+
+Updates the ticket #ID, passing ARGS along to the update command.
+
+Returns nothing interesting.
+
+=cut
+
+sub update_ticket_ok {
+    my ($id, @args) = (@_);
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'update', $id, '--', @args ],
+        [qr/ticket \d+\s+\([^)]*\)\s+updated\./]
+    );
+}
+
+=head2 create_ticket_comment_ok ARGS
 
 Creates a new ticket comment, passing ARGS along to the creation command.
 
