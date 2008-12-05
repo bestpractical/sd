@@ -144,9 +144,12 @@ sub find_matching_transactions {
 
 sub user_info {
     my $self = shift;
+    my %args = @_;
+    unless ( keys %args ) {
+        %args = (email => $self->hm_username);
+    }
     my $status = $self->hm->act(
-        'SearchUser',
-        email => $self->hm_username,
+        'SearchUser', %args,
     );
     die $status->{'error'} unless $status->{'success'};
     return $status->{'content'}{'search'}[0] || {};
