@@ -1,6 +1,7 @@
 package App::SD::Replica::hm::PushEncoder;
 use Moose; 
 use Params::Validate;
+use Data::Dumper;
 use Path::Class;
 has sync_source => 
     ( isa => 'App::SD::Replica::hm',
@@ -58,25 +59,76 @@ sub integrate_ticket_create {
 
     # Build up a ticket object out of all the record's attributes
 
-    my $task = $self->sync_source->hm->create(
-        'Task',
+    my %args = (
         owner           => 'me',
         group           => 0,
-        requestor       => 'me',
         complete        => 0,
         will_complete   => 1,
         repeat_stacking => 0,
         %{ $self->_recode_props_for_create($change) }
     );
+
+    my $hm_user = $self->sync_source->user_info;
+
+    my @requesters;
+    if ( $args{'requestor_id'} ) {
+        require Email::Address;
+
+        my $pusher_is_requester = 0;
+
+        @requesters = Email::Address->parse( $args{'requestor_id'} );
+        @requesters = grep { lc($_->address) eq lc($hm_user->{'email'})? do{ $pusher_is_requester = 1; 0 } : 1 }
+            @requesters;
+
+        unless ( $pusher_is_requester ) {
+# XXX: this doesn't work, HM is too protective
+#            unless ( $hm_user->{'pro_account'} ) {
+#                warn "Only pro accounts can set requestor in HM";
+                $args{'requestor_id'} = $hm_user->{'email'};
+#            }
+#            else {
+#                $args{'requestor_id'} = shift(@requesters)->format;
+#            }
+        } else {
+            $args{'requestor_id'} = $hm_user->{'email'};
+        }
+        if ( @requesters ) {
+            warn "A ticket has more than one requestor when HM supports only one";
+        }
+    }
+
+    my $task = $self->sync_source->hm->create(
+        'Task', %args
+    );
     unless ( $task->{'success'} ) {
         die "Couldn't create a task: ". $self->decode_error( $task );
     }
+    my $tid = $task->{content}->{id};
 
-    my $txns = $self->sync_source->hm->search( 'TaskTransaction', task_id => $task->{content}->{id} );
+    if ( @requesters ) {
+        my $email = $self->comment_as_email( {
+            creator => $hm_user->{'email'},
+            content => "Additional requestors: "
+                . join( ', ', map $_->format, @requesters ),
+        } );
+        my $status = $self->sync_source->hm->act(
+            'CreateTaskEmail',
+            task_id => $tid,
+            message => $email->as_string,
+        );
+        warn "Couldn't add a comment on the recently created HM task"
+            unless $status->{'success'};
+    }
+
+    my $txns = $self->sync_source->hm->search( 'TaskTransaction', task_id => $tid );
 
     # lalala
-    $self->sync_source->record_pushed_transaction( transaction => $txns->[0]->{id}, changeset => $changeset );
-    return $task->{content}->{id};
+    $self->sync_source->record_pushed_transaction(
+        transaction => $txns->[0]->{id},
+        changeset => $changeset,
+    );
+
+    return $tid;
 }
 
 sub decode_error {
@@ -116,20 +168,63 @@ sub integrate_ticket_update {
     my $self = shift;
     my ($change, $changeset) = validate_pos( @_, { isa => 'Prophet::Change' }, {isa => 'Prophet::ChangeSet'} );
 
-    my %props = $self->translate_props( $change );
-    return unless %props;
+    my %args = $self->translate_props( $change );
+    return unless keys %args;
 
-    my $ticket_id = $self->sync_source->remote_id_for_uuid( $change->record_uuid )
+    my $tid = $self->sync_source->remote_id_for_uuid( $change->record_uuid )
         or die "Couldn't get remote id of SD ticket";
 
-    my $status = $self->sync_source->hm->act(
-        'UpdateTask',
-        id => $ticket_id,
-        %props,
-    );
-    return $status->{'content'}{'id'} if $status->{'success'};
+    my ($seen_current, @new_requestors) = (0);
+    if ( $args{'requestor_id'} ) {
+        my $task = $self->sync_source->hm->read('Task', id => $tid );
+        my $current_requestor = $self->sync_source->user_info(
+            id => $task->{'requester_id'}
+        );
 
-    die "Couldn't integrate ticket update: ". $self->decode_error( $status );
+        require Email::Address;
+        @new_requestors = Email::Address->parse( delete $args{'requestor_id'} );
+        @new_requestors = grep {
+            (lc($_->address) eq lc($current_requestor->{'email'}))
+                ? do { $seen_current = 1; 0; }
+                : 1
+        } @new_requestors;
+
+        unless ( $seen_current ) {
+            warn "Requestor can not be changed in HM";
+        }
+        if ( (@new_requestors && $seen_current) || @new_requestors > 1 ) {
+            warn "Can not set more than one requestor in HM";
+        }
+    }
+
+    my $txn_id;
+    if ( keys %args ) {
+        my $status = $self->sync_source->hm->act(
+            'UpdateTask', id => $tid, %args,
+        );
+        die "Couldn't integrate ticket update: ". $self->decode_error( $status )
+            unless $status->{'success'};
+        $txn_id = $status->{'content'}{'id'};
+    }
+
+    if ( @new_requestors ) {
+        my $hm_user = $self->sync_source->user_info;
+        my $email = $self->comment_as_email( {
+            creator => $hm_user->{'email'},
+            content => ($seen_current? "New requestors in addition to the current: " : "Requestors have been changed: ")
+                . join( ', ', map $_->format, @new_requestors ),
+        } );
+        my $status = $self->sync_source->hm->act(
+            'CreateTaskEmail',
+            task_id => $tid,
+            message => $email->as_string,
+        );
+        warn "Couldn't add a comment on the recently created HM task"
+            unless $status->{'success'};
+        $txn_id = $status->{'content'}{'id'} if $status->{'content'}{'id'};
+    }
+
+    return $txn_id;
 }
 
 sub integrate_attachment {
@@ -162,23 +257,6 @@ sub integrate_attachment {
 }
 
 sub _recode_props_for_create {
-    my $self = shift;
-    my $attr = $self->__recode_props_for_create( @_ );
-
-    if ( $attr->{'requestor_id'} ) {
-        require Email::Address;
-        my @addresses = Email::Address->parse( $attr->{'requestor_id'} );
-        if ( @addresses > 1 ) {
-            #XXX, TODO: HM supports only one requestor, but it would be cool
-            # to add comment or something like that
-            warn "A ticket has more than one requestor when HM supports only one";
-            $attr->{'requestor_id'} = $addresses[0]->format;
-        }
-    }
-    return $attr;
-}
-
-sub __recode_props_for_create {
     my $self = shift;
     my $attr = $self->_recode_props_for_integrate(@_);
 
