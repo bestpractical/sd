@@ -145,15 +145,21 @@ sub find_matching_transactions {
 sub user_info {
     my $self = shift;
     my %args = @_;
-    unless ( keys %args ) {
-        %args = (email => $self->hm_username);
-    }
+    return $self->_user_info(
+        keys %args? %args : email => $self->hm_username
+    );
+}
+
+sub _user_info {
+    my $self = shift;
+    my %args = @_;
     my $status = $self->hm->act(
         'SearchUser', %args,
     );
     die $status->{'error'} unless $status->{'success'};
     return $status->{'content'}{'search'}[0] || {};
 }
+memoize '_user_info';
 
 sub _integrate_change {
     my $self = shift;
