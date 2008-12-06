@@ -109,16 +109,6 @@ sub recode_update {
     return $res;
 }
 
-sub resolve_user_id_to_email {
-    my $self = shift;
-    my $id   = shift;
-    return undef unless ($id);
-
-    return $self->sync_source->hm->email_of($id);
-}
-
-memoize 'resolve_user_id_to_email';
-
 sub warp_list_to_old_value {
     my $self       = shift;
     my $task_value = shift || '';
@@ -159,8 +149,12 @@ sub translate_props {
             next if ( $prop->name eq '_delete' );
 
             if ( $prop->name =~ /^(?:reporter|owner|next_action_by)$/ ) {
-                $prop->old_value( $self->resolve_user_id_to_email( $prop->old_value ) );
-                $prop->new_value( $self->resolve_user_id_to_email( $prop->new_value ) );
+                $prop->old_value( $self->sync_source->user_info( 
+                    id => $prop->old_value
+                )->{'email'} );
+                $prop->new_value( $self->sync_source->user_info( 
+                    id => $prop->new_value
+                )->{'email'} );
             }
 
             # XXX, TODO, FIXME: this doesn't work any more as id stored as SOURCE_UUID-id property
