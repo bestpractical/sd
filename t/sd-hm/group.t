@@ -4,6 +4,7 @@ use strict;
 use Prophet::Test;
 use App::SD::Test;
 use File::Path qw(rmtree);
+$ENV{'EMAIL'} = 'onlooker@example.com';
 
 BEGIN {
     if ( $ENV{'JIFTY_APP_ROOT'} ) {

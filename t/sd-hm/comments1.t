@@ -3,6 +3,7 @@ use warnings;
 use strict;
 use Prophet::Test;
 use App::SD::Test;
+$ENV{'EMAIL'} = 'onlooker@example.com';
 
 BEGIN {
     if ( $ENV{'JIFTY_APP_ROOT'} ) {
