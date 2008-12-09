@@ -7,6 +7,32 @@ has sync_source =>
     ( isa => 'App::SD::Replica::hm',
       is => 'rw');
 
+sub integrate_changes {
+    my $self = shift;
+    my ( $changeset ) = validate_pos(
+        @_, { isa => 'Prophet::ChangeSet' }
+    );
+
+    my @changes = $changeset->changes;
+    foreach my $change ( splice @changes ) {
+        # don't push internal records
+        next if $change->record_type =~ /^__/;
+
+        # integrate 'create ticket' earlier than other changes
+        if ( $change->record_type eq 'ticket'
+            and $change->change_type eq 'add_file'
+        ) {
+            $self->integrate_change( $change, $changeset );
+        } else {
+            push @changes, $change;
+        }
+    }
+
+    foreach my $change ( @changes ) {
+        $self->integrate_change( $change, $changeset );
+    }
+}
+
 
 sub integrate_change {
     my $self = shift;
@@ -103,6 +129,7 @@ sub integrate_ticket_create {
     unless ( $task->{'success'} ) {
         die "Couldn't create a task: ". $self->decode_error( $task );
     }
+
     my $tid = $task->{content}->{id};
 
     if ( @requesters ) {

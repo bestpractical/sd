@@ -161,20 +161,16 @@ sub _user_info {
 }
 memoize '_user_info';
 
-sub _integrate_change {
-    my $self = shift;
-    my ( $change, $changeset ) = validate_pos(
-        @_,
-        { isa => 'Prophet::Change' },
-        { isa => 'Prophet::ChangeSet' }
+sub integrate_changes {
+    my ($self, $changeset) = validate_pos(
+        @_, {isa => 'Prophet::Replica'}, { isa => 'Prophet::ChangeSet' }
     );
 
-    # don't push internal records
-    return if $change->record_type =~ /^__/;
-
     require App::SD::Replica::hm::PushEncoder;
-    my $recoder = App::SD::Replica::hm::PushEncoder->new( { sync_source => $self } );
-    $recoder->integrate_change($change,$changeset);
+    my $recoder = App::SD::Replica::hm::PushEncoder->new( {
+        sync_source => $self,
+    } );
+    return $recoder->integrate_changes($changeset);
 }
 
 sub remote_uri_path_for_id {
