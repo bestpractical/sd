@@ -146,7 +146,7 @@ sub user_info {
     my $self = shift;
     my %args = @_;
     return $self->_user_info(
-        keys %args? %args : email => $self->hm_username
+        keys %args? (%args) : (email => $self->hm_username)
     );
 }
 
