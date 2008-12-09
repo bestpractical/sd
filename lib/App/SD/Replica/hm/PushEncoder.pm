@@ -43,7 +43,7 @@ sub integrate_change {
             return undef;
         }
 
-        $self->sync_source->record_pushed_transactions(
+        $self->sync_source->record_pushed_transaction(
             ticket    => $id,
             changeset => $changeset
         );

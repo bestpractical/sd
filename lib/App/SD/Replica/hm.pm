@@ -115,7 +115,7 @@ sub find_matching_tasks {
     return $status->{content}{tasks};
 }
 
-sub record_pushed_transactions {
+sub record_pushed_transaction {
 
     # don't need this for hm
 }

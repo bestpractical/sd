@@ -25,7 +25,7 @@ sub setup {
     # ...
 }
 
-sub record_pushed_transactions {}
+sub record_pushed_transaction {}
 
 # XXX record_pushed_tikcet should go up to the base class
 
