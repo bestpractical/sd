@@ -174,8 +174,8 @@ sub integrate_ticket_update {
     my $tid = $self->sync_source->remote_id_for_uuid( $change->record_uuid )
         or die "Couldn't get remote id of SD ticket";
 
-    my ($seen_current, @new_requestors) = (0);
-    if ( $args{'requestor_id'} ) {
+    my ($seen_current, $dropped_all, @new_requestors) = (0, 0);
+    if ( exists $args{'requestor_id'} && defined $args{'requestor_id'} && length $args{'requestor_id'} ) {
         my $task = $self->sync_source->hm->read('Task', id => $tid );
         my $current_requestor = $self->sync_source->user_info(
             id => $task->{'requester_id'}
@@ -196,6 +196,11 @@ sub integrate_ticket_update {
             warn "Can not set more than one requestor in HM";
         }
     }
+    elsif ( exists $args{'requestor_id'} ) {
+        $dropped_all = 1;
+        delete $args{'requestor_id'};
+        warn "Requestor can not be empty in HM";
+    }
 
     my $txn_id;
     if ( keys %args ) {
@@ -208,23 +213,42 @@ sub integrate_ticket_update {
     }
 
     if ( @new_requestors ) {
-        my $hm_user = $self->sync_source->user_info;
-        my $email = $self->comment_as_email( {
-            creator => $hm_user->{'email'},
-            content => ($seen_current? "New requestors in addition to the current: " : "Requestors have been changed: ")
-                . join( ', ', map $_->format, @new_requestors ),
-        } );
-        my $status = $self->sync_source->hm->act(
-            'CreateTaskEmail',
-            task_id => $tid,
-            message => $email->as_string,
+        my $comment_id = $self->record_comment(
+            task => $tid,
+            content => 
+                ($seen_current
+                    ? "New requestors in addition to the current: "
+                    : "Requestors have been changed: "
+                ) . join( ', ', map $_->format, @new_requestors ),
         );
-        warn "Couldn't add a comment on the recently created HM task"
-            unless $status->{'success'};
-        $txn_id = $status->{'content'}{'id'} if $status->{'content'}{'id'};
+        $txn_id = $comment_id if $comment_id;
+    }
+    elsif ( $dropped_all ) {
+        my $comment_id = $self->record_comment(
+            task => $tid,
+            content => "All requestors have been deleted",
+        );
+        $txn_id = $comment_id if $comment_id;
     }
 
     return $txn_id;
+}
+
+sub record_comment {
+    my $self = shift;
+    my %args = @_;
+    my $tid  = delete $args{'task'};
+    $args{'creator'} ||= $self->sync_source->user_info->{'email'};
+
+    my $email = $self->comment_as_email( \%args );
+    my $status = $self->sync_source->hm->act(
+        'CreateTaskEmail',
+        task_id => $tid,
+        message => $email->as_string,
+    );
+    warn "Couldn't add a comment on the recently created HM task"
+        unless $status->{'success'};
+    return $status->{'content'}{'id'};
 }
 
 sub integrate_attachment {
