@@ -1,13 +1,18 @@
 package App::SD::Server::Dispatcher;
 use Prophet::Server::Dispatcher -base;
 
-on qr'^GET/bug/([\w\d-]+)' => sub {
-    my $self = shift; 
-    warn "my bug is $1";
-    $self->show_template('show_bug', $1); 
-    
+under 'GET' => sub {
+    on qr'^milestone/([\w\d-]+)$' => sub {
+        my $milestone = $1;
+        shift->show_template( 'milestone', $milestone );
+
     };
-on qr'^GET/(.*)$' => sub {show_template($1)->(@_)};
+
+    on qr'^issue/([\w\d-]+)' => sub {
+        my $self = shift;
+        $self->show_template( 'show_issue', $1 );
+    };
+};
 
 redispatch_to 'Prophet::Server::Dispatcher';
 

@@ -7,6 +7,11 @@ use HTTP::Date;
 
 use constant collection_class => 'App::SD::Collection::Ticket';
 has type => ( default => 'ticket');
+__PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment', by => 'ticket');
+__PACKAGE__->register_reference( attachments => 'App::SD::Collection::Attachment', by => 'ticket');
+
+
+
 
 sub default_prop_milestone { 
     my $self = shift; 
@@ -18,8 +23,6 @@ sub default_prop_milestone {
 Returns a string of the default value of the C<status> prop.
 
 =cut
-
-
 
 sub default_prop_status { 
     my $self = shift; 
@@ -87,28 +90,52 @@ C<$args{errors}{status}> to an error message and returns false.
 
 sub validate_prop_status {
     my ( $self, %args ) = @_;
-    return $self->_validate_prop_from_setting('status', 'statuses', \%args);
+    return $self->validate_prop_from_recommended_values( 'status', \%args );
 }
-
 
 sub validate_prop_milestone {
     my ( $self, %args ) = @_;
+    return $self->validate_prop_from_recommended_values( 'milestone', \%args );
+}
+
+sub validate_prop_from_recommended_values {
+    my $self = shift;
+    my $prop = shift;
+    my $args = shift;
+
+    if ( my @options = $self->recommended_values_for_prop($prop) ) {
+        return 1 if scalar grep { $args->{props}{$prop} eq $_ } @options;
+
+        $args->{errors}{$prop}
+            = "'" . $args->{props}->{$prop} . "' is not a valid $prop";
+        return 0;
+    }
     return 1;
-    return $self->_validate_prop_from_setting('milestone', 'milestones', \%args);
+
 }
 
 
-sub _validate_prop_from_setting {
-    my ( $self, $prop, $setting, $args ) = @_;
-    # XXX: validater not called when a value is unset, so can't do mandatory check here
-    return 1 if scalar grep { $args->{props}{$prop} eq $_ }
-            @{ $self->app_handle->setting( label => $setting )->get() };
 
-    $args->{errors}{$prop} = "'" . $args->{props}->{$prop} . "' is not a valid $prop";
-    return 0;
+
+sub recommended_values_for_prop {
+    my $self = shift;
+    my $prop = shift;
+
+    if (my $code = $self->can("_recommended_values_for_prop_".$prop)) {
+        $code->($self, @_);
+    } else {
+        return undef;
+    }
+    
 }
 
+sub _recommended_values_for_prop_milestone {
+   return @{ shift->app_handle->setting( label => 'milestones' )->get() };
+}
 
+sub _recommended_values_for_prop_status {
+   return @{ shift->app_handle->setting( label => 'statuses' )->get() };
+}
 
 =head2 color_prop_status $value
 
@@ -193,8 +220,6 @@ sub is_overdue {
     return $now > $then;
 }
 
-__PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment', by => 'ticket');
-__PACKAGE__->register_reference( attachments => 'App::SD::Collection::Attachment', by => 'ticket');
 
 __PACKAGE__->meta->make_immutable;
 no Moose;

@@ -27,19 +27,19 @@ template 'style' => sub {
   font-family: sans-serif;
 }
 
-div.buglist {
+div.issue_list {
 
  border: 1px solid grey;
   -moz-border-radius: 0.5em;
    -webkit-botder-radius: 0.5em;
    }
 
-   div.buglist ul {
+   div.issue_list ul {
    list-style-type:none;
 
    }
 
-   div.buglist ul li {
+   div.issue_list ul li {
    clear: both;
    padding-bottom: 2em;
    border-bottom: 1px solid #ccc;
@@ -50,23 +50,23 @@ div.buglist {
 
    
 
-   div.buglist ul li span {
+   div.issue_list ul li span {
 
      float: left;
    padding: 0.2em;
      }
 
-div.buglist ul li span.summary {
+div.issue_list ul li span.summary {
   width: 70%;
 
 }
 
-div.buglist ul li span.bug-link {
+div.issue_list ul li span.issue-link {
   width: 2em;
   text-align: right;
 }
 
-div.buglist ul li span.status {
+div.issue_list ul li span.status {
    width: 3em;
 
 }
@@ -77,36 +77,84 @@ div.buglist ul li span.status {
 
 template '/' => page {'SD'}
 content {
-    p {'sd is a P2P bug tracking system.'};
-    show('/bugs/open');
+    p {'sd is a P2P issue tracking system.'};
+    show('milestones');
+    show('/issues/open');
 
 };
 
-template '/bugs/open' => sub {
+template 'milestones' => sub {
     my $self = shift;
-    my $bugs = App::SD::Collection::Ticket->new(
+    my $milestones = $self->app_handle->setting( label => 'milestones' )->get();
+
+    div { { class is 'pagesection'};
+        h2 { 'Current milestones' };
+        ul{
+    foreach my $milestone (@$milestones) {
+            li {
+                a {{ href is '/milestone/'.$milestone} $milestone }
+
+            }    
+
+    }
+        }
+    }
+
+
+
+
+
+};
+
+template 'milestone' => page { 'Milestone: '.$_[1] } content {
+    my $self = shift;
+    my $milestone = shift;
+
+    h1 { $milestone };
+    h2 { 'Open issues for this milestone' } ;
+
+    $self->show_issues(sub { (shift->prop('milestone')||'') eq $milestone}); 
+    
+    };
+
+sub show_issues {
+    my $self     = shift;
+    my $callback = shift;
+
+    my $issues = App::SD::Collection::Ticket->new(
         app_handle => $self->app_handle,
         handle     => $self->app_handle->handle
     );
-    $bugs->matching( sub { my $item = shift; 
-         
-    return $item->has_active_status ? 1 : 0; 
-    
-    });
-    h2 {'Open bugs'};
+    $issues->matching($callback);
+    show( '/issue_list', $issues );
+}
 
+
+
+
+template '/issues/open' => sub {
+    my $self = shift;
+    h2 {'Open issues'};
+
+    $self->show_issues (sub { my $item = shift; return $item->has_active_status ? 1 : 0; });
+
+};
+
+private template 'issue_list' => sub {
+    my $self = shift;
+    my $issues = shift;
     div {
-        class is 'buglist';
+        class is 'issue_list';
         
-        for my $bug (@$bugs) {
+        for my $issue (@$issues) {
             ul {
 
                 li {
 
-                    bug_link( $bug => $bug->luid );
-                    span { class is 'status';  $bug->prop('status') };
-                    span { class is 'summary'; $bug->prop('summary') };
-                    span { class is 'created'; $bug->prop('created') };
+                    issue_link( $issue => $issue->luid );
+                    span { class is 'status';  $issue->prop('status') };
+                    span { class is 'summary'; $issue->prop('summary') };
+                    span { class is 'created'; $issue->prop('created') };
 
                 }
 
@@ -116,40 +164,111 @@ template '/bugs/open' => sub {
     }
 };
 
-template 'show_bug' => page {
+template 'show_issue' => page {
         my $self = shift;
         my $id = shift;
-        warn "SELF Is $self";
-        warn "ID IS $id";
-        warn $self->app_handle;
-        my $bug = App::SD::Model::Ticket->new(
+        my $issue = App::SD::Model::Ticket->new(
             app_handle => $self->app_handle,
             handle     => $self->app_handle->handle
         );
-        $bug->load(uuid =>$id);
+        $issue->load(uuid =>$id);
 
-        title is $bug->luid.":".$bug->summary;
+       $issue->luid.":".$issue->prop('summary');
     } content {
         my $self = shift;
         my $id = shift;
-        my $bug = App::SD::Model::Ticket->new(
+        my $issue = App::SD::Model::Ticket->new(
             app_handle => $self->app_handle,
             handle     => $self->app_handle->handle
         );
-        $bug->load(uuid => $id);
-        h1 { 'this is a bug' };
-        p {$bug->prop('summary')};
+        $issue->load(uuid => $id);
+        h1 { 'this is a issue' };
+        p {$issue->prop('summary')};
+
+        my $props = $issue->get_props;
+        dl { { class is 'issue-props'};
+        for my $key (sort keys %$props) {
+            dt{ $key };
+            dd { $props->{$key}};
+        }
+        };
+
+        show ( 'issue_attachments' => $issue);
+        show ( 'issue_comments' => $issue);
+        show ( 'issue_history' => $issue);
+
     };
 
-sub bug_link {
-    my $bug   = shift;
+
+sub _by_creation_date { $a->prop('created') cmp $b->prop('created') };
+
+template issue_attachments => sub {
+    my $self = shift;
+    my $issue = shift;
+
+
+};
+template issue_history => sub {
+    my $self = shift;
+    my $issue = shift;
+
+   
+    h2 { 'History'};
+    
+    ul {
+    for my $changeset  (sort {$a->created cmp $b->created}  $issue->changesets) {
+        li {
+            ul { 
+                li { $changeset->created. " ". $changeset->creator };
+                li { $changeset->original_sequence_no. ' @ ' . $changeset->original_source_uuid };
+            
+                for my $change ($changeset->changes) {
+                    next unless $change->record_uuid eq $issue->uuid;
+                    li {
+                        ul {
+                            map { li {$_->summary} } $change->prop_changes;
+                        };
+                    }
+                
+            }
+        }
+    }
+}
+    };
+
+};
+
+template issue_comments => sub {
+    my $self = shift;
+    my $issue = shift;
+    my @comments = sort _by_creation_date @{$issue->comments};
+    if (@comments) {
+
+        h2 { 'Comments'};
+
+        ul {
+        for my $comment (@comments) {
+            li { 
+span {
+ $comment->prop('created') ." " .
+$comment->prop('creator') }
+blockquote { $comment->prop('content');};
+        }
+    }
+    }}
+ 
+};
+
+
+sub issue_link {
+    my $issue   = shift;
     my $label = shift;
     span {
-        class is 'bug-link';
+        class is 'issue-link';
         a {
             {
-                class is 'bug';
-                href is '/bug/' . $bug->uuid;
+                class is 'issue';
+                href is '/issue/' . $issue->uuid;
             };
             $label;
         }
