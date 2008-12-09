@@ -6,7 +6,7 @@ use App::SD::Test;
 
 BEGIN {
     if ( $ENV{'JIFTY_APP_ROOT'} ) {
-        plan tests => 22;
+        plan tests => 29;
         require File::Temp;
         $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
         diag $ENV{'PROPHET_REPO'};
@@ -87,6 +87,23 @@ diag("only one requestor");
     is( $comments->count, 2, "there are two comments" );
     my $comment = do { $comments->next; $comments->next->formatted_body };
     like( $comment, qr/test\@localhost/, "there is comment" );
+}
+
+diag("from requestor to no requestor");
+{
+    flush_sd();
+    my ($luid, $uuid) = create_ticket_ok(qw(--summary YATTA --status new --reporter onlooker@example.com));
+    update_ticket_ok($uuid, '--reporter', '');
+    my ($ret, $out, $err) = run_script( 'sd', ['push', '--to', $sd_hm_url] );
+    diag $err;
+
+    my $task = load_new_hm_task();
+    is $task->requestor->email, 'onlooker@example.com', 'correct email';
+
+    my $comments = $task->comments;
+    is( $comments->count, 2, "there are two comments" );
+    my $comment = do { $comments->next; $comments->next->formatted_body };
+    like( $comment, qr/All requestors have been deleted/, "there is comment" );
 }
 
 sub flush_sd {
