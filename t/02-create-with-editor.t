@@ -27,7 +27,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
         'status: new',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
-        'reported_by: ' . $ENV{EMAIL},
+        'reporter: ' . $ENV{EMAIL},
         'milestone: alpha',
         "original_replica: $replica_uuid",
     ]

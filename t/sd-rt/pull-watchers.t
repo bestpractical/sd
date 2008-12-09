@@ -86,7 +86,7 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
     ok $sd_tid, 'pulled ticket';
 
     my $info = get_ticket_info($sd_tid);
-    is $info->{'metadata'}{'reported_by'}, 'test@localhost',
+    is $info->{'metadata'}{'reporter'}, 'test@localhost',
         'correct requestor';
 
     my ($res) = $ticket->SetStatus('deleted');
@@ -113,7 +113,7 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
     ok $sd_tid, 'pulled ticket';
 
     my $info = get_ticket_info($sd_tid);
-    is $info->{'metadata'}{'reported_by'}, 'another@localhost, test@localhost',
+    is $info->{'metadata'}{'reporter'}, 'another@localhost, test@localhost',
         'correct requestors';
 
     my ($res) = $ticket->SetStatus('deleted');
@@ -143,7 +143,7 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
     ok $sd_tid, 'pulled ticket';
 
     my $info = get_ticket_info($sd_tid);
-    is $info->{'metadata'}{'reported_by'}, 'another@localhost, test@localhost',
+    is $info->{'metadata'}{'reporter'}, 'another@localhost, test@localhost',
         'correct requestor';
 
     ($res) = $ticket->SetStatus('deleted');
@@ -171,7 +171,7 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
     ok $sd_tid, 'pulled ticket';
 
     my $info = get_ticket_info($sd_tid);
-    is $info->{'metadata'}{'reported_by'}, 'test@localhost',
+    is $info->{'metadata'}{'reporter'}, 'test@localhost',
         'correct requestor';
 
     my ($res) = $ticket->AddWatcher( Type => 'Requestor', Email => 'another@localhost' );
@@ -180,7 +180,7 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
     ($ret, $out, $err) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
     $info = get_ticket_info($sd_tid);
-    is $info->{'metadata'}{'reported_by'}, 'another@localhost, test@localhost',
+    is $info->{'metadata'}{'reporter'}, 'another@localhost, test@localhost',
         'correct requestor';
 
     ($res) = $ticket->SetStatus('deleted');
@@ -207,7 +207,7 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
     ok $sd_tid, 'pulled ticket';
 
     my $info = get_ticket_info($sd_tid);
-    ok !$info->{'metadata'}{'reported_by'}, 'correct requestor';
+    ok !$info->{'metadata'}{'reporter'}, 'correct requestor';
 
     my ($res) = $ticket->AddWatcher( Type => 'Requestor', Email => 'another@localhost' );
     ok $res, "added requestor";
@@ -215,7 +215,7 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
     ($ret, $out, $err) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
     $info = get_ticket_info($sd_tid);
-    is $info->{'metadata'}{'reported_by'}, 'another@localhost',
+    is $info->{'metadata'}{'reporter'}, 'another@localhost',
         'correct requestor';
 
     ($res) = $ticket->SetStatus('deleted');
@@ -245,7 +245,7 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
     ok $sd_tid, 'pulled ticket';
 
     my $info = get_ticket_info($sd_tid);
-    is $info->{'metadata'}{'reported_by'}, 'another@localhost',
+    is $info->{'metadata'}{'reporter'}, 'another@localhost',
         'correct requestor';
 
     ($res) = $ticket->SetStatus('deleted');
@@ -273,7 +273,7 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
     ok $sd_tid, 'pulled ticket';
 
     my $info = get_ticket_info($sd_tid);
-    is $info->{'metadata'}{'reported_by'}, 'test@localhost',
+    is $info->{'metadata'}{'reporter'}, 'test@localhost',
         'correct requestor';
 
     my ($res) = $ticket->DeleteWatcher( Type => 'Requestor', Email => 'test@localhost' );
@@ -282,7 +282,7 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
     ($ret, $out, $err) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
 
     $info = get_ticket_info($sd_tid);
-    ok !$info->{'metadata'}{'reported_by'}, 'correct requestor';
+    ok !$info->{'metadata'}{'reporter'}, 'correct requestor';
 }
 
 sub flush_sd {
