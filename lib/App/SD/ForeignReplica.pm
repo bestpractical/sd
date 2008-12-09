@@ -95,7 +95,12 @@ sub remote_id_for_uuid {
         handle => $self->app_handle->handle,
         type   => 'ticket'
     );
-    $ticket->load( $uuid_or_luid =~ /^\d+$/? 'luid': 'uuid', $uuid_or_luid );
+    $ticket->load( $uuid_or_luid =~ /^\d+$/? 'luid': 'uuid', $uuid_or_luid )
+        or do {
+            warn "couldn't load ticket #$uuid_or_luid";
+            return undef
+        };
+
     my $prop = $self->uuid . '-id';
     my $id = $ticket->prop( $prop )
         or warn "ticket #$uuid_or_luid has no property '$prop'";
