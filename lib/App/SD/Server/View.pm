@@ -5,6 +5,7 @@ package App::SD::Server::View;
 use Template::Declare::Tags;
 use Prophet::Server::ViewHelpers;
 use base 'Prophet::Server::View';
+use Prophet::Web::Menu;
 
 use App::SD::Model::Ticket;
 use App::SD::Collection::Ticket;
@@ -131,6 +132,16 @@ sub show_issues {
 
 
 
+template footer => sub { "SD $SD::VERSION - Issue tracking for the distributed age"};
+
+template header => sub {
+    my $self = shift;
+    my $args = shift;
+    my $title = shift @$args;
+    outs_raw($self->nav->render_as_yui_menubar);
+    h1 { $title };
+};
+
 
 template '/issues/open' => sub {
     my $self = shift;
@@ -173,7 +184,7 @@ template 'show_issue' => page {
         );
         $issue->load(uuid =>$id);
 
-       $issue->luid.":".$issue->prop('summary');
+       $issue->luid.": ".$issue->prop('summary');
     } content {
         my $self = shift;
         my $id = shift;
@@ -182,9 +193,23 @@ template 'show_issue' => page {
             handle     => $self->app_handle->handle
         );
         $issue->load(uuid => $id);
-        h1 { 'this is a issue' };
         p {$issue->prop('summary')};
 
+
+        show issue_basics      => $issue;
+        show issue_attachments => $issue;
+        show issue_comments    => $issue;
+        show issue_history     => $issue;
+
+    };
+
+
+sub _by_creation_date { $a->prop('created') cmp $b->prop('created') };
+
+
+private template 'issue_basics' => sub {
+    my $self = shift;
+    my $issue = shift;
         my $props = $issue->get_props;
         dl { { class is 'issue-props'};
         for my $key (sort keys %$props) {
@@ -192,16 +217,7 @@ template 'show_issue' => page {
             dd { $props->{$key}};
         }
         };
-
-        show ( 'issue_attachments' => $issue);
-        show ( 'issue_comments' => $issue);
-        show ( 'issue_history' => $issue);
-
-    };
-
-
-sub _by_creation_date { $a->prop('created') cmp $b->prop('created') };
-
+};
 template issue_attachments => sub {
     my $self = shift;
     my $issue = shift;

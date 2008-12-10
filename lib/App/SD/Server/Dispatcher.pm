@@ -1,6 +1,15 @@
 package App::SD::Server::Dispatcher;
 use Prophet::Server::Dispatcher -base;
 
+on qr'.' => sub {
+    my $self = shift;
+    $self->server->nav->child( home => label => 'Home', url => '/');
+    $self->server->nav->child( create => label => 'New issue', url => '/issue/new');
+    $self->server->nav->child( milestones => label => 'Milestones', url => '/milestones');
+    next_rule;
+
+};
+
 under 'GET' => sub {
     on qr'^milestone/([\w\d-]+)$' => sub {
         my $milestone = $1;
