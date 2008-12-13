@@ -155,28 +155,39 @@ template '/issues/open' => sub {
 };
 
 private template 'issue_list' => sub {
-    my $self = shift;
+    my $self   = shift;
     my $issues = shift;
-    div {
-        class is 'issue_list';
-        
+    my $id = substr(rand(10),2); # hack  to get a unique id
+    table {
+        { class is 'tablesorter'; id is $id; };
+        thead {     
+            row {
+            th { 'id'};
+            th {'Status'};
+            th {'Summary'};
+            th {'Created'};
+            }
+        };
+        tbody {
         for my $issue (@$issues) {
-            ul {
+            row {
 
-                li {
-
-                    issue_link( $issue => $issue->luid );
-                    span { class is 'status';  $issue->prop('status') };
-                    span { class is 'summary'; $issue->prop('summary') };
-                    span { class is 'created'; $issue->prop('created') };
+                cell { issue_link( $issue => $issue->luid );};
+                cell{ class is 'status';  $issue->prop('status') };
+                cell { class is 'summary'; $issue->prop('summary') };
+                cell { class is 'created'; $issue->prop('created') };
 
                 }
 
             }
-
+        };
+        };
+         script {outs_raw(qq{
+            \$(document).ready(function() { \$("#@{[$id]}").tablesorter(); } ); 
+        });
         }
-    }
-};
+        
+        };
 
 template 'show_issue' => page {
         my $self = shift;
