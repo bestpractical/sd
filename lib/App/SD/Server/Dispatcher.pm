@@ -3,9 +3,20 @@ use Prophet::Server::Dispatcher -base;
 
 on qr'.' => sub {
     my $self = shift;
-    $self->server->nav->child( home => label => 'Home', url => '/');
+    my $issues = $self->server->nav->child( issues => label => 'Issues', url => '/issues');
+    $issues->child( go => label => '<form method="GET" action="/issue"><a href="#">Show issue # <input type=text name=id size=3></a></form>', escape_label => 0);
+    my $milestones = $self->server->nav->child( milestones => label => 'Milestones', url => '/milestones');
+    
+
+    my $items = $self->server->app_handle->setting( label => 'milestones' )->get();
+    
+    foreach my $item (@$items) {
+        $milestones->child( $item => label => $item, url => '/milestone/'.$item);
+    }
     $self->server->nav->child( create => label => 'New issue', url => '/issue/new');
-    $self->server->nav->child( milestones => label => 'Milestones', url => '/milestones');
+    $self->server->nav->child( home => label => 'Home', url => '/');
+
+
     next_rule;
 
 };
@@ -15,6 +26,16 @@ under 'GET' => sub {
         my $milestone = $1;
         shift->show_template( 'milestone', $milestone );
 
+    };
+    on qr'^issue/?$' => sub {
+        my $self = shift;
+        my $id = $self->server->cgi->param('id');
+        if ($id) {
+            $self->server->_send_redirect( to => "/issue/$id" );
+
+        } else {
+            next_rule;
+        }
     };
 
     on qr'^issue/([\w\d-]+)' => sub {

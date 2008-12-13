@@ -2,32 +2,27 @@ use warnings;
 use strict;
 
 package App::SD::Server::View;
+use base 'Prophet::Server::View';
+
 use Template::Declare::Tags;
 use Prophet::Server::ViewHelpers;
-use base 'Prophet::Server::View';
-use Prophet::Web::Menu;
 
 use App::SD::Model::Ticket;
 use App::SD::Collection::Ticket;
 
-template head => sub {
-    my $self = shift;
-    my $args = shift;
-    head {
-        title { shift @$args };
-        show('style');
-    }
 
-};
+template '/css/sd.css' => sub {
 
-template 'style' => sub {
-
-    style {
         outs_raw( '
-    body {
+
+
+body {
   font-family: sans-serif;
 }
 
+h1 {
+    clear: both;
+}
 div.issue_list {
 
  border: 1px solid grey;
@@ -72,19 +67,32 @@ div.issue_list ul li span.status {
 
 }
 
+ul.page-nav {
+    float: right;
+}
+
+ul.page-nav a {
+
+}
+
+
 ' );
-    }
 };
 
 template '/' => page {'SD'}
 content {
     p {'sd is a P2P issue tracking system.'};
-    show('milestones');
+    show('milestone_list');
     show('/issues/open');
 
 };
 
-template 'milestones' => sub {
+template 'milestones' => page {
+    show 'milestone_list';
+    }
+
+
+template 'milestone_list' => sub {
     my $self = shift;
     my $milestones = $self->app_handle->setting( label => 'milestones' )->get();
 
@@ -101,17 +109,12 @@ template 'milestones' => sub {
         }
     }
 
-
-
-
-
 };
 
 template 'milestone' => page { 'Milestone: '.$_[1] } content {
     my $self = shift;
     my $milestone = shift;
 
-    h1 { $milestone };
     h2 { 'Open issues for this milestone' } ;
 
     $self->show_issues(sub { (shift->prop('milestone')||'') eq $milestone}); 
@@ -132,13 +135,13 @@ sub show_issues {
 
 
 
-template footer => sub { "SD $SD::VERSION - Issue tracking for the distributed age"};
+template footer => sub { "SD $App::SD::VERSION - Issue tracking for the distributed age"};
 
 template header => sub {
     my $self = shift;
     my $args = shift;
     my $title = shift @$args;
-    outs_raw($self->nav->render_as_yui_menubar);
+    outs_raw($self->nav->render_as_menubar);
     h1 { $title };
 };
 
@@ -182,7 +185,7 @@ template 'show_issue' => page {
             app_handle => $self->app_handle,
             handle     => $self->app_handle->handle
         );
-        $issue->load(uuid =>$id);
+        $issue->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
        $issue->luid.": ".$issue->prop('summary');
     } content {
@@ -192,7 +195,7 @@ template 'show_issue' => page {
             app_handle => $self->app_handle,
             handle     => $self->app_handle->handle
         );
-        $issue->load(uuid => $id);
+        $issue->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
         p {$issue->prop('summary')};
 
 
