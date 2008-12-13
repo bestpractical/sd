@@ -61,8 +61,7 @@ sub add_prop_change {
         $args{'previous_state'}->{ $field } = $old;
     } else {
         $args{'previous_state'}->{ $field } = $old;
-        warn $args{'previous_state'}->{ $field } . " != " . $new . "\n\n"
-            . YAML::Dump( \%args );
+        warn $args{'previous_state'}->{ $field } . " != " . $new . "\n\n";
     }
 
     $args{change}->add_prop_change( name => $field, old => $old, new => $new );
