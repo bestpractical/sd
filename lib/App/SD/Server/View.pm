@@ -89,7 +89,7 @@ content {
 
 template 'milestones' => page {
     show 'milestone_list';
-    }
+};
 
 
 template 'milestone_list' => sub {
@@ -133,7 +133,28 @@ sub show_issues {
     show( '/issue_list', $issues );
 }
 
+template new_issue => page {
+    my $self = shift;
+    title is 'Create a new issue';
 
+    form {
+        my $f = function(
+            record =>
+                App::SD::Model::Ticket->new( app_handle => $self->app_handle ),
+            action => 'create',
+            name => 'create-ticket'
+        );
+        for my $prop (
+            'summary', 'status',  'owner',    'created',
+            'due',     'creator', 'reporter', 'milestone'
+            )
+        {
+
+            div { widget( function => $f, prop => $prop ) };
+        }
+        input { attr { label => 'save', type => 'submit' } };
+    };
+};
 
 template footer => sub { "SD $App::SD::VERSION - Issue tracking for the distributed age"};
 

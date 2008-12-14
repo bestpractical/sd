@@ -1,6 +1,17 @@
 package App::SD::Server::Dispatcher;
 use Prophet::Server::Dispatcher -base;
 
+on qr '.' => sub {
+    my $self = shift;
+    if (my $result = $self->server->result->get('create-ticket')) {
+            if ($result->success) {
+                $self->server->_send_redirect( to => '/issue/'.$result->record_uuid);
+               }
+    }
+    next_rule;
+
+};
+
 on qr'.' => sub {
     my $self = shift;
     my $issues = $self->server->nav->child( issues => label => 'Issues', url => '/issues');
