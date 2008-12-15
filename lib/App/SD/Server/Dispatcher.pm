@@ -38,12 +38,16 @@ under 'GET' => sub {
         shift->show_template( 'milestone', $milestone );
 
     };
+
+    on qr'^issue/new' => sub {
+        shift->show_template( 'new_issue');
+
+    };
+
     on qr'^issue/?$' => sub {
         my $self = shift;
-        my $id = $self->server->cgi->param('id');
-        if ($id) {
+        if (my $id = $self->server->cgi->param('id') ) {
             $self->server->_send_redirect( to => "/issue/$id" );
-
         } else {
             next_rule;
         }

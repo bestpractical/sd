@@ -98,37 +98,6 @@ sub validate_prop_milestone {
     return $self->validate_prop_from_recommended_values( 'milestone', \%args );
 }
 
-sub validate_prop_from_recommended_values {
-    my $self = shift;
-    my $prop = shift;
-    my $args = shift;
-
-    if ( my @options = $self->recommended_values_for_prop($prop) ) {
-        return 1 if scalar grep { $args->{props}{$prop} eq $_ } @options;
-
-        $args->{errors}{$prop}
-            = "'" . $args->{props}->{$prop} . "' is not a valid $prop";
-        return 0;
-    }
-    return 1;
-
-}
-
-
-
-
-sub recommended_values_for_prop {
-    my $self = shift;
-    my $prop = shift;
-
-    if (my $code = $self->can("_recommended_values_for_prop_".$prop)) {
-        $code->($self, @_);
-    } else {
-        return undef;
-    }
-    
-}
-
 sub _recommended_values_for_prop_milestone {
    return @{ shift->app_handle->setting( label => 'milestones' )->get() };
 }

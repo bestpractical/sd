@@ -8,6 +8,7 @@ use Template::Declare::Tags;
 use Prophet::Server::ViewHelpers;
 
 use App::SD::Model::Ticket;
+use App::SD::Model::Comment;
 use App::SD::Collection::Ticket;
 
 
@@ -23,7 +24,7 @@ body {
 h1 {
     clear: both;
 }
-div.issue_list {
+ul.issue_list {
 
  border: 1px solid grey;
   -moz-border-radius: 0.5em;
@@ -133,6 +134,50 @@ sub show_issues {
     show( '/issue_list', $issues );
 }
 
+template update_issue => page {
+    my $self = shift;
+    my $uuid = shift;
+    title is 'Update an issue';
+
+    form {
+        my $f = function(
+            record =>
+                App::SD::Model::Ticket->new( app_handle => $self->app_handle, uuid => $uuid),
+            action => 'update',
+            order => 1,
+            name => 'edit-ticket'
+        );
+        for my $prop (
+            'summary', 'status',  'owner',    'created',
+            'due',     'creator', 'reporter', 'milestone'
+            ) {
+
+            div { widget( function => $f, prop => $prop ) };
+        }
+        h2 { 'Comments' };
+
+        my $c = function(
+            record => App::SD::Model::Comment->new(     
+                    app_handle => $self->app_handle ),
+            action => 'create',
+            order => 2,
+            name => 'create-ticket-comment'
+        );
+
+            param_from_function(
+                function      => $c,
+                prop          => 'ticket',
+                from_function => $f,
+                from_result   => 'record_uuid'
+            );
+        for my $prop (qw(content)) {
+
+            div { widget( function => $c, prop => $prop)};
+        }
+
+        input { attr { label => 'save', type => 'submit' } };
+    };
+};
 template new_issue => page {
     my $self = shift;
     title is 'Create a new issue';
@@ -142,16 +187,37 @@ template new_issue => page {
             record =>
                 App::SD::Model::Ticket->new( app_handle => $self->app_handle ),
             action => 'create',
+            order => 1,
             name => 'create-ticket'
         );
         for my $prop (
             'summary', 'status',  'owner',    'created',
             'due',     'creator', 'reporter', 'milestone'
-            )
-        {
+            ) {
 
             div { widget( function => $f, prop => $prop ) };
         }
+        h2 { 'Comments' };
+
+        my $c = function(
+            record => App::SD::Model::Comment->new(     
+                    app_handle => $self->app_handle ),
+            action => 'create',
+            order => 2,
+            name => 'create-ticket-comment'
+        );
+
+            param_from_function(
+                function      => $c,
+                prop          => 'ticket',
+                from_function => $f,
+                from_result   => 'record_uuid'
+            );
+        for my $prop (qw(content)) {
+
+            div { widget( function => $c, prop => $prop)};
+        }
+
         input { attr { label => 'save', type => 'submit' } };
     };
 };
@@ -290,24 +356,21 @@ template issue_history => sub {
 };
 
 template issue_comments => sub {
-    my $self = shift;
-    my $issue = shift;
-    my @comments = sort _by_creation_date @{$issue->comments};
+    my $self     = shift;
+    my $issue    = shift;
+    my @comments = sort  @{ $issue->comments };
     if (@comments) {
-
-        h2 { 'Comments'};
-
+        h2 {'Comments'};
         ul {
-        for my $comment (@comments) {
-            li { 
-span {
- $comment->prop('created') ." " .
-$comment->prop('creator') }
-blockquote { $comment->prop('content');};
+            for my $comment (@comments) {
+                li {
+                    span { $comment->prop('created') . " " . $comment->prop('creator'); }
+                    blockquote { $comment->prop('content'); };
+                }
+            }
         }
     }
-    }}
- 
+
 };
 
 
