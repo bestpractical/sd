@@ -19,7 +19,7 @@ use App::SD::Replica::rt;
 
 =head2 setup
 
-Open a connection to the SVN source identified by C<$self->url>.
+Open a connection to the source identified by C<$self->url>.
 
 =cut
 

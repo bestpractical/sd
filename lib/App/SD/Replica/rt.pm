@@ -84,7 +84,7 @@ sub _integrate_change {
 
 =head2 uuid
 
-Return the replica SVN repository's UUID
+Return the replica's UUID
 
 =cut
 
