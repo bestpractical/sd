@@ -15,8 +15,8 @@ print <<EOF
   export PROPHET_USER=name
     Use 'name' as the creator of changesets
 
-  export EMAIL=jesse@example.com
-    Use jesse@example.com as the default email address for reporting 
+  export EMAIL=jesse\@example.com
+    Use jesse\@example.com as the default email address for reporting 
     issues
 
   export PROPHET_REPLICA_TYPE=prophet
