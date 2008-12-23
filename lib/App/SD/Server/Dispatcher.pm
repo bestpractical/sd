@@ -53,7 +53,12 @@ under 'GET' => sub {
         }
     };
 
-    on qr'^issue/([\w\d-]+)' => sub {
+    on qr'^issue/([\w\d-]+)/edit$' => sub {
+        my $self = shift;
+        $self->show_template( 'edit_issue', $1 );
+
+    };
+    on qr'^issue/([\w\d-]+)/?$' => sub {
         my $self = shift;
         $self->show_template( 'show_issue', $1 );
     };

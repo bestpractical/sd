@@ -19,11 +19,35 @@ template '/css/sd.css' => sub {
 
 body {
   font-family: sans-serif;
+  background: #601;
+  margin: 0;
+  padding: 0;
+}
+    
+div.page {
+    align: center;
+    max-width: 800px;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-bottom: 2em;
+}
+
+div.project-name {
+    padding-top: 1em;
+    font-style: italic;
+    font-family: serif;
+    
 }
 
 h1 {
-    clear: both;
+    padding-top:  0.5em;
 }
+
 ul.issue_list {
 
  border: 1px solid grey;
@@ -53,6 +77,18 @@ ul.issue_list {
    padding: 0.2em;
      }
 
+table.tablesorter thead th {
+color: #1133AA;
+}
+table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp, table.tablesorter thead tr th:hover {
+    background-color: #ccc;
+}
+ th.headerSortUp,
+ th.headerSortDown {
+    background: #ccc;
+}
+
+
 div.issue_list ul li span.summary {
   width: 70%;
 
@@ -70,25 +106,93 @@ div.issue_list ul li span.status {
 
 ul.page-nav {
     float: right;
+   margin-right: -1em;
 }
 
 ul.page-nav a {
 
 }
 
+textarea:focus, input:focus {
+    background-color: #eec; 
+    }
+
+
+input[type=submit] {
+    background: #1133AA;
+    color: #fff;
+    margin: 0.5em;
+    padding: 0.5em;
+    position: relative;
+    top: 1em;
+    left: 38.5em;
+}
+
+input[type=submit]:hover {
+background: #002299; 
+}
+
+
+textarea.prop-content {
+    height: 10em;
+    width: 40em;
+
+}
+
+label.prop-content {
+    display: none;
+}
+
+div.widget label {
+    display: inline-block;
+    width: 6em;
+    font-size: 0.8em;
+    text-align: right;
+    padding-right: 0.5em;
+}
+div.widget div.value {
+    display: inline-block;
+    
+
+}
+div.widget {
+    padding: 0.5em;
+}
+
+
+ul.page-nav li {
+    background: #ddd;
+    border: 0;
+}
+
+ul.page-nav li:hover,
+ul.page-nav li.sfHover,
+ul.page-nav a:focus,
+ul.page-nav a:hover, ul.page-nav a:active
+{ 
+    background: #ccc;
+}
+
+ul.page-nav {
+    padding: 0;
+    background: #601;
+
+}
+
+ul.page-nav a {
+    border-top: 1px solid #eee;
+}
 
 ' );
 };
 
-template '/' => page {'SD'}
+template '/' => page {'Open issues'}
 content {
-    p {'sd is a P2P issue tracking system.'};
-    show('milestone_list');
     show('/issues/open');
 
 };
 
-template 'milestones' => page {
+template 'milestones' => page {'Project milestones'} content {
     show 'milestone_list';
 };
 
@@ -98,7 +202,6 @@ template 'milestone_list' => sub {
     my $milestones = $self->app_handle->setting( label => 'milestones' )->get();
 
     div { { class is 'pagesection'};
-        h2 { 'Current milestones' };
         ul{
     foreach my $milestone (@$milestones) {
             li {
@@ -134,15 +237,38 @@ sub show_issues {
     show( '/issue_list', $issues );
 }
 
-template update_issue => page {
+template edit_issue => page {
+
     my $self = shift;
-    my $uuid = shift;
-    title is 'Update an issue';
+        my $id = shift;
+        my $issue = App::SD::Model::Ticket->new(
+            app_handle => $self->app_handle,
+            handle     => $self->app_handle->handle
+        );
+        $issue->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
+
+       $issue->luid.": ".$issue->prop('summary');
+
+
+
+} content {
+    my $self = shift;
+        my $id = shift;
+        my $issue = App::SD::Model::Ticket->new(
+            app_handle => $self->app_handle,
+            handle     => $self->app_handle->handle
+        );
+        $issue->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
+
+       title is $issue->luid.": ".$issue->prop('summary');
+
+    ul { {class is 'actions'};
+        li { a {{ href is '/issue/'.$issue->uuid.''}; 'Show'}; };
+    };
 
     form {
         my $f = function(
-            record =>
-                App::SD::Model::Ticket->new( app_handle => $self->app_handle, uuid => $uuid),
+            record => $issue,
             action => 'update',
             order => 1,
             name => 'edit-ticket'
@@ -152,7 +278,7 @@ template update_issue => page {
             'due',     'creator', 'reporter', 'milestone'
             ) {
 
-            div { widget( function => $f, prop => $prop ) };
+            div { { class is 'widget $prop'}; widget( function => $f, prop => $prop ) };
         }
         h2 { 'Comments' };
 
@@ -161,7 +287,7 @@ template update_issue => page {
                     app_handle => $self->app_handle ),
             action => 'create',
             order => 2,
-            name => 'create-ticket-comment'
+            name => 'update-ticket-comment'
         );
 
             param_from_function(
@@ -172,17 +298,17 @@ template update_issue => page {
             );
         for my $prop (qw(content)) {
 
-            div { widget( function => $c, prop => $prop)};
+            div { widget( function => $c, prop => $prop, type => 'textarea', autocomplete => 0)};
         }
 
         input { attr { label => 'save', type => 'submit' } };
     };
 };
-template new_issue => page {
+template new_issue => page {'Create a new ticket'} content {
     my $self = shift;
-    title is 'Create a new issue';
 
-    form {
+    form { { class is 'create-ticket'};
+
         my $f = function(
             record =>
                 App::SD::Model::Ticket->new( app_handle => $self->app_handle ),
@@ -195,7 +321,8 @@ template new_issue => page {
             'due',     'creator', 'reporter', 'milestone'
             ) {
 
-            div { widget( function => $f, prop => $prop ) };
+            div { {class is 'widget '.$prop};
+                 widget( function => $f, prop => $prop ) };
         }
         h2 { 'Comments' };
 
@@ -215,28 +342,35 @@ template new_issue => page {
             );
         for my $prop (qw(content)) {
 
-            div { widget( function => $c, prop => $prop)};
+            div { widget( function => $c, prop => $prop, type => 'textarea', autocomplete => 0)};
         }
 
         input { attr { label => 'save', type => 'submit' } };
     };
 };
 
-template footer => sub { "SD $App::SD::VERSION - Issue tracking for the distributed age"};
+template footer => sub { 
+
+    div { id is 'project-versions';
+outs("SD $App::SD::VERSION - Issue tracking for the distributed age - ".
+            " Prophet $Prophet::VERSION");
+
+    }
+};
 
 template header => sub {
     my $self = shift;
-    my $args = shift;
-    my $title = shift @$args;
+    my @args = shift;
+    my $title = shift @args;
     outs_raw($self->nav->render_as_menubar);
+    div { class is 'project-name';
+            "SD for ".$self->app_handle->setting( label => 'project_name' )->get()->[0]};
     h1 { $title };
 };
 
 
 template '/issues/open' => sub {
     my $self = shift;
-    h2 {'Open issues'};
-
     $self->show_issues (sub { my $item = shift; return $item->has_active_status ? 1 : 0; });
 
 };
@@ -294,8 +428,9 @@ template 'show_issue' => page {
             handle     => $self->app_handle->handle
         );
         $issue->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
-        p {$issue->prop('summary')};
-
+    ul { {class is 'actions'};
+        li { a {{ href is '/issue/'.$issue->uuid.'/edit'}; 'Edit'}; };
+    };
 
         show issue_basics      => $issue;
         show issue_attachments => $issue;
@@ -312,10 +447,14 @@ private template 'issue_basics' => sub {
     my $self = shift;
     my $issue = shift;
         my $props = $issue->get_props;
-        dl { { class is 'issue-props'};
+        div { { class is 'issue-props'};
         for my $key (sort keys %$props) {
-            dt{ $key };
-            dd { $props->{$key}};
+            div { class is 'widget'; 
+                label{ $key };
+            div { { class is 'value '.$key}; $props->{$key};
+        
+            } 
+            }
         }
         };
 };
