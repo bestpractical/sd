@@ -43,7 +43,7 @@ sub BUILD {
     $self->rt->login( username => $username, password => $password );
 }
 
-sub record_pushed_transaction {
+sub record_pushed_transactions {
     my $self = shift;
     my %args = validate( @_,
         { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
