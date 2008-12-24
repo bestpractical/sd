@@ -360,8 +360,7 @@ outs("SD $App::SD::VERSION - Issue tracking for the distributed age - ".
 
 template header => sub {
     my $self = shift;
-    my @args = shift;
-    my $title = shift @args;
+    my $title = shift;
     outs_raw($self->nav->render_as_menubar);
     div { class is 'project-name';
             "SD for ".$self->app_handle->setting( label => 'project_name' )->get()->[0]};
