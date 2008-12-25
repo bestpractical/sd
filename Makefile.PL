@@ -1,5 +1,5 @@
 use inc::Module::Install;
-name('sd');
+name('SD');
 author('Jesse Vincent and Chia-Liang Kao');
 copyright('2008 Best Practical Solutions, LLC');
 license('MIT');
@@ -29,5 +29,4 @@ install_script('bin/sd');
 # Include subdirectory tests too.
 tests("t/*.t t/*/*.t");
 
-auto_install();
 &WriteAll;
