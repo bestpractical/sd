@@ -8,7 +8,7 @@ BEGIN {
 
 }
 
-use Prophet::Test tests => 10;
+use Prophet::Test tests => 14;
 use Test::WWW::Mechanize;
 use JSON;
 
@@ -36,7 +36,7 @@ is( $ua->content, '["__prophet_db_settings","ticket"]' );
 
 $ua->get_ok( url( 'records', 'ticket', $uuid . ".json" ) );
 
-TODO {
+TODO: {
     local $TODO =" need to set created date";
 is( $ua->content, '{"original_replica":"'.$t->handle->uuid.'","creator":"'.$t->default_prop_creator.'","summary":"The server works","status":"new"}' );
 };
@@ -47,7 +47,7 @@ is( $ua->status, '404' );
 $ua->post_ok( url( 'records', 'ticket', $uuid . ".json" ), { status => 'open' } );
 
 $ua->get_ok( url( 'records', 'ticket', $uuid . ".json" ) );
-TODO {
+TODO: {
     local $TODO =" need to set created date";
     is( $ua->content, '{"original_replica":"'.$t->handle->uuid.'","creator":"'.$t->default_prop_creator.'","summary":"The server works","status":"new"}' );
 };
