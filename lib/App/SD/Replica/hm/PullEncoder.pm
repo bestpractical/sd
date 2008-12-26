@@ -8,9 +8,27 @@ has sync_source => (
     is => 'rw',
 );
 
-our $DEBUG = $Prophet::Handle::DEBUG;
 
 sub run {
+    my $self = shift;
+    my %args = validate(@_,
+        {   after    => 1,
+            callback => 1,
+            });
+    my $first_rev = ( $args{'after'} + 1 ) || 1;
+
+    for my $task ( @{ $self->find_matching_tasks } ) {
+        my $changesets = $self->_recode_task(
+            task         => $task,
+            transactions => $self->find_matching_transactions(
+                task => $task->{id}, starting_transaction => $first_rev
+            ),
+        );
+        $args{'callback'}->($_) for @$changesets;
+    }
+}
+
+sub _recode_task {
     my $self = shift;
     my %args = validate( @_, { task => 1, transactions => 1 } );
 
@@ -47,6 +65,52 @@ sub run {
         unshift @changesets, $changeset if $changeset->has_changes;
     }
     return \@changesets;
+}
+
+sub find_matching_tasks {
+    my $self = shift;
+    my %args = ();
+
+    if ( my $props = $self->sync_source->props ) {
+        while ( my ($k, $v) = each %$props ) { $args{$k} = $v }
+    }
+
+    unless ( keys %args ) {
+        %args = (
+            owner        => 'me',
+            group        => 0,
+            requestor    => 'me',
+            not_complete => 1,
+        );
+    }
+
+    my $status = $self->sync_source->hm->act( 'TaskSearch', %args );
+    unless ( $status->{'success'} ) {
+        die "couldn't search";
+    }
+    return $status->{content}{tasks};
+}
+
+# hiveminder transaction ~= prophet changeset
+# hiveminder taskhistory ~= prophet change
+# hiveminder taskemail ~= prophet change
+sub find_matching_transactions {
+    my $self = shift;
+    my %args = validate( @_, { task => 1, starting_transaction => 1 } );
+
+    my $txns = $self->sync_source->hm->search( 'TaskTransaction', task_id => $args{task} ) || [];
+    my @matched;
+    for my $txn (@$txns) {
+        next if $txn->{'id'} < $args{'starting_transaction'};    # Skip things we've pushed
+
+        next if $self->sync_source->prophet_has_seen_transaction( $txn->{'id'} );
+
+        $txn->{history_entries} = $self->sync_source->hm->search( 'TaskHistory', transaction_id => $txn->{'id'} );
+        $txn->{email_entries}   = $self->sync_source->hm->search( 'TaskEmail',   transaction_id => $txn->{'id'} );
+        push @matched, $txn;
+    }
+    return \@matched;
+
 }
 
 sub add_prop_change {

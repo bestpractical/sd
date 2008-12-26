@@ -8,6 +8,9 @@ use File::Temp 'tempdir';
 use Memoize;
 
 use constant scheme => 'rt';
+use constant pull_encoder => 'App::SD::Replica::rt::PullEncoder';
+use constant push_encoder => 'App::SD::Replica::rt::PushEncoder';
+
 
 use Prophet::ChangeSet;
 
@@ -94,19 +97,6 @@ sub uuid {
 
 }
 
-sub traverse_changesets {
-    my $self = shift;
-    my %args = validate( @_,
-        {   after    => 1,
-            callback => 1,
-        }
-    );
-
-    require App::SD::Replica::rt::PullEncoder;
-    my $recoder = App::SD::Replica::rt::PullEncoder->new( { sync_source => $self } );
-    $recoder->run( query => $self->rt_query, after => $args{'after'}, callback => $args{'callback'});
-
-}
 
 sub remote_uri_path_for_id {
     my $self = shift;

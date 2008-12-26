@@ -14,6 +14,9 @@ has hm_username => ( isa => 'Str', is => 'rw');
 has props => ( isa => 'HashRef[Str]', is => 'rw');
 
 use constant scheme => 'hm';
+use constant pull_encoder => 'App::SD::Replica::hm::PullEncoder';
+use constant push_encoder => 'App::SD::Replica::hm::PushEncoder';
+
 use App::SD::Replica::rt;
 
 
@@ -67,79 +70,8 @@ sub uuid {
     return $self->uuid_for_url( join( '/', $self->remote_url, $self->hm_username ) );
 }
 
-sub traverse_changesets {
-    my $self = shift;
-    my %args = validate(
-        @_,
-        {   after    => 1,
-            callback => 1,
-        }
-    );
-
-    my $first_rev = ( $args{'after'} + 1 ) || 1;
-
-    require App::SD::Replica::hm::PullEncoder;
-    my $recoder = App::SD::Replica::hm::PullEncoder->new( { sync_source => $self } );
-    for my $task ( @{ $self->find_matching_tasks } ) {
-        my $changesets = $recoder->run(
-            task         => $task,
-            transactions => $self->find_matching_transactions(
-                task => $task->{id}, starting_transaction => $first_rev
-            ),
-        );
-        $args{'callback'}->($_) for @$changesets;
-    }
-}
-
-sub find_matching_tasks {
-    my $self = shift;
-    my %args = ();
-
-    if ( my $props = $self->props ) {
-        while ( my ($k, $v) = each %$props ) { $args{$k} = $v }
-    }
-
-    unless ( keys %args ) {
-        %args = (
-            owner        => 'me',
-            group        => 0,
-            requestor    => 'me',
-            not_complete => 1,
-        );
-    }
-
-    my $status = $self->hm->act( 'TaskSearch', %args );
-    unless ( $status->{'success'} ) {
-        die "couldn't search";
-    }
-    return $status->{content}{tasks};
-}
-
 sub record_pushed_transactions {
-
     # don't need this for hm
-}
-
-# hiveminder transaction ~= prophet changeset
-# hiveminder taskhistory ~= prophet change
-# hiveminder taskemail ~= prophet change
-sub find_matching_transactions {
-    my $self = shift;
-    my %args = validate( @_, { task => 1, starting_transaction => 1 } );
-
-    my $txns = $self->hm->search( 'TaskTransaction', task_id => $args{task} ) || [];
-    my @matched;
-    for my $txn (@$txns) {
-        next if $txn->{'id'} < $args{'starting_transaction'};    # Skip things we've pushed
-
-        next if $self->prophet_has_seen_transaction( $txn->{'id'} );
-
-        $txn->{history_entries} = $self->hm->search( 'TaskHistory', transaction_id => $txn->{'id'} );
-        $txn->{email_entries}   = $self->hm->search( 'TaskEmail',   transaction_id => $txn->{'id'} );
-        push @matched, $txn;
-    }
-    return \@matched;
-
 }
 
 sub user_info {

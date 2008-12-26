@@ -47,6 +47,19 @@ sub record_pushed_transaction {
     );
 }
 
+sub traverse_changesets {
+    my $self = shift;
+    my %args = validate( @_,
+        {   after    => 1,
+            callback => 1,
+        }
+    );
+
+    Prophet::App->require( $self->pull_encoder());
+    my $recoder = $self->pull_encoder->new( { sync_source => $self } );
+    $recoder->run(after => $args{'after'}, callback => $args{'callback'});
+
+}
 
 sub remote_uri_path_for_id {
     die "your subclass needds to implement this to be able to map a remote id to /ticket/id or soemthing";
