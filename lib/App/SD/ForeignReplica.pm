@@ -22,6 +22,26 @@ and was pushed to RT or originated in RT and has already been pulled to the prop
 
 my $TXN_METATYPE = 'txn-source';
 
+
+
+sub integrate_change {
+    my $self = shift;
+    my ( $change, $changeset ) = validate_pos(
+        @_,
+        { isa => 'Prophet::Change' },
+        { isa => 'Prophet::ChangeSet' }
+    );
+
+    # don't push internal records
+    return if $change->record_type =~ /^__/;
+
+    Prophet::App->require( $self->push_encoder());
+    my $recoder = $self->push_encoder->new( { sync_source => $self } );
+    $recoder->integrate_change($change,$changeset);
+}
+
+
+
 sub _txn_storage {
     my $self = shift;
     return $self->state_handle->metadata_storage( $TXN_METATYPE,

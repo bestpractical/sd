@@ -68,23 +68,6 @@ sub record_pushed_transactions {
         );
     }
 }
-
-sub _integrate_change {
-    my $self = shift;
-    my ( $change, $changeset ) = validate_pos(
-        @_,
-        { isa => 'Prophet::Change' },
-        { isa => 'Prophet::ChangeSet' }
-    );
-
-    # don't push internal records
-    return if $change->record_type =~ /^__/;
-
-    require App::SD::Replica::rt::PushEncoder;
-    my $recoder = App::SD::Replica::rt::PushEncoder->new( { sync_source => $self } );
-    $recoder->integrate_change($change,$changeset);
-}
-
 =head2 uuid
 
 Return the replica's UUID
