@@ -215,15 +215,41 @@ template 'milestone_list' => sub {
 
 };
 
-template 'milestone' => page { 'Milestone: '.$_[1] } content {
-    my $self = shift;
+template 'no_component' => sub {show 'component' => undef};
+
+template 'component' => page { 'Component: ' . ( $_[1] || '<i>none</i>' ) }
+content {
+    my $self      = shift;
+    my $component = shift;
+
+    h2 {'Open issues for this component'};
+
+    $self->show_issues(
+        sub {my $item = shift;
+            ( ( $item->prop('component') || '' ) eq $component && $item->has_active_status )
+                ? 1
+                : 0;
+        }
+    );
+};
+
+template 'no_milestone' => sub { show 'milestone' => undef };
+template 'milestone' => page { 'Milestone: ' . ( $_[1] || '<i>none</i>' ) }
+content {
+    my $self      = shift;
     my $milestone = shift;
 
-    h2 { 'Open issues for this milestone' } ;
+    h2 {'Open issues for this milestone'};
 
-    $self->show_issues(sub { (shift->prop('milestone')||'') eq $milestone}); 
-    
-    };
+    $self->show_issues(
+        sub {my $item = shift;
+            ( ( $item->prop('milestone') || '' ) eq ($milestone || '') && $item->has_active_status )
+                ? 1
+                : 0;
+        }
+    );
+
+};
 
 sub show_issues {
     my $self     = shift;

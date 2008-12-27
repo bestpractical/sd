@@ -16,14 +16,21 @@ on qr'.' => sub {
     my $self = shift;
     my $issues = $self->server->nav->child( issues => label => 'Issues', url => '/issues');
     $issues->child( go => label => '<form method="GET" action="/issue"><a href="#">Show issue # <input type=text name=id size=3></a></form>', escape_label => 0);
-    my $milestones = $self->server->nav->child( milestones => label => 'Milestones', url => '/milestones');
-    
 
+
+    my $milestones = $issues->child( milestones => label => 'Milestones', url => '/milestones');
     my $items = $self->server->app_handle->setting( label => 'milestones' )->get();
-    
     foreach my $item (@$items) {
         $milestones->child( $item => label => $item, url => '/milestone/'.$item);
     }
+    
+    my $components = $issues->child( components => label => 'Components', url => '/components');
+    my $items = $self->server->app_handle->setting( label => 'components' )->get();
+    foreach my $item (@$items) {
+        $components->child( $item => label => $item, url => '/component/'.$item);
+    }
+
+
     $self->server->nav->child( create => label => 'New issue', url => '/issue/new');
     $self->server->nav->child( home => label => 'Home', url => '/');
 
@@ -41,10 +48,10 @@ on 'records' => sub { next_rule(); };
 
 
 under 'GET' => sub {
-    on qr'^milestone/([\w\d-]+)$' => sub {
-        my $milestone = $1;
-        shift->show_template( 'milestone', $milestone );
-
+    on qr'^(milestone|component)/([\w\d-]+)$' => sub {
+        my $name = $1;
+        my $type = $2;
+        shift->show_template( $name => $type );
     };
 
     on qr'^issue/new' => sub {
