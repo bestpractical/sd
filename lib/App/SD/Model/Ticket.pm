@@ -12,6 +12,10 @@ __PACKAGE__->register_reference( attachments => 'App::SD::Collection::Attachment
 
 
 
+sub default_prop_component { 
+    my $self = shift; 
+    return $self->app_handle->setting(label => 'default_component')->get()->[0];
+}
 
 sub default_prop_milestone { 
     my $self = shift; 
@@ -93,6 +97,11 @@ sub validate_prop_status {
     return $self->validate_prop_from_recommended_values( 'status', \%args );
 }
 
+sub validate_prop_component {
+    my ( $self, %args ) = @_;
+    return $self->validate_prop_from_recommended_values( 'component', \%args );
+}
+
 sub validate_prop_milestone {
     my ( $self, %args ) = @_;
     return $self->validate_prop_from_recommended_values( 'milestone', \%args );
@@ -104,6 +113,10 @@ sub _recommended_values_for_prop_milestone {
 
 sub _recommended_values_for_prop_status {
    return @{ shift->app_handle->setting( label => 'statuses' )->get() };
+}
+
+sub _recommended_values_for_prop_component {
+   return @{ shift->app_handle->setting( label => 'components' )->get() };
 }
 
 =head2 color_prop_status $value
@@ -148,7 +161,7 @@ from first to last).
 =cut
 
 sub props_to_show {
-    ('id', 'summary', 'status', 'owner', 'created', 'due', 'creator', 'reporter', 'milestone', 'original_replica')
+    ('id', 'summary', 'status', 'milestone', 'component', 'owner', 'created', 'due', 'creator', 'reporter', 'original_replica')
 }
 
 =head2 immutable_props
