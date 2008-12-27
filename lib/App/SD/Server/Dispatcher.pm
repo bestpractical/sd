@@ -32,6 +32,14 @@ on qr'.' => sub {
 
 };
 
+
+under 'POST' => sub {
+on 'records' => sub { next_rule(); };
+    on qr'^issue/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect(to => '/issue/'.$1); };
+    on qr'^(.*)$' => sub { shift->server->_send_redirect(to => $1); }
+};
+
+
 under 'GET' => sub {
     on qr'^milestone/([\w\d-]+)$' => sub {
         my $milestone = $1;
