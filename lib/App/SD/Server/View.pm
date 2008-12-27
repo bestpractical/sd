@@ -274,8 +274,7 @@ template edit_issue => page {
             name => 'edit-ticket'
         );
         for my $prop (
-            'summary', 'status',  'owner',    'created',
-            'due',     'creator', 'reporter', 'milestone'
+            'summary', 'status', 'milestone', 'component',  'owner',  'due',     'reporter'
             ) {
 
             div { { class is 'widget $prop'}; widget( function => $f, prop => $prop ) };
@@ -317,8 +316,9 @@ template new_issue => page {'Create a new ticket'} content {
             name => 'create-ticket'
         );
         for my $prop (
-            'summary', 'status',  'owner',    'created',
-            'due',     'creator', 'reporter', 'milestone'
+            'summary', 'status', 'milestone', 'component',  
+            'reporter',
+            'owner',  'due',     
             ) {
 
             div { {class is 'widget '.$prop};
