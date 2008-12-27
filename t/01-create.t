@@ -32,10 +32,11 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $yatta_id ],
         "id: $yatta_id ($yatta_uuid)",
         'summary: YATTA',
         'status: new',
+        'milestone: alpha',
+        'component: core',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
         'reporter: ' . $ENV{EMAIL},
-        'milestone: alpha',
         "original_replica: " . replica_uuid,
     ]
 );

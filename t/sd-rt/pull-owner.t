@@ -15,7 +15,7 @@ BEGIN {
     }
 }
 
-use Prophet::Test tests => 47;
+use Prophet::Test tests => 26;
 use App::SD::Test;
 
 no warnings 'once';

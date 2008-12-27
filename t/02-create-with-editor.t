@@ -25,10 +25,11 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
         "id: $ticket_id ($ticket_uuid)",
         'summary: creating tickets with an editor is totally awesome',
         'status: new',
+        'milestone: alpha',
+        'component: core',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
         'reporter: ' . $ENV{EMAIL},
-        'milestone: alpha',
         "original_replica: $replica_uuid",
     ]
 );
