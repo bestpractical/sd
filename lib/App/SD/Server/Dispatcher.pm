@@ -1,12 +1,16 @@
 package App::SD::Server::Dispatcher;
 use Prophet::Server::Dispatcher -base;
 
+on qr'(.*)' => sub {
+
+        next_rule;
+        };
 on qr '.' => sub {
     my $self = shift;
-    if (my $result = $self->server->result->get('create-ticket')) {
-            if ($result->success) {
-                $self->server->_send_redirect( to => '/issue/'.$result->record_uuid);
-               }
+    if ( my $result = $self->server->result->get('create-ticket') ) {
+        if ( $result->success ) {
+            $self->server->_send_redirect( to => '/issue/' . $result->record_uuid );
+        }
     }
     next_rule;
 
@@ -40,14 +44,14 @@ on qr'.' => sub {
 };
 
 
-under 'POST' => sub {
-on 'records' => sub { next_rule(); };
-    on qr'^issue/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect(to => '/issue/'.$1); };
-    on qr'^(.*)$' => sub { shift->server->_send_redirect(to => $1); }
+under ['POST'] => sub {
+    on qr'^POST/issue/([\w\d-]+)/edit$' =>
+        sub { shift->server->_send_redirect( to => '/issue/' . $1 ); };
+    on qr'^POST/(?!records)/(.*)$' => sub { shift->server->_send_redirect( to => $1 ); }
 };
 
 
-under 'GET' => sub {
+under ['GET'] => sub {
     on qr'^(milestone|component)/([\w\d-]+)$' => sub {
         my $name = $1;
         my $type = $2;
