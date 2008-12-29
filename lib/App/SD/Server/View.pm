@@ -32,84 +32,85 @@ div.page {
     padding: 0;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 1em;
+    margin-bottom: 1em;
     padding-left: 1em;
     padding-right: 1em;
     padding-bottom: 2em;
+    -moz-border-radius: 1em;
+    -webkit-border-radius: 1em;
 }
 
 div.project-name {
     padding-top: 1em;
     font-style: italic;
     font-family: serif;
-    
 }
 
 h1 {
-    padding-top:  0.5em;
+   padding-top:  0.5em;
 }
 
-ul.issue_list {
-
- border: 1px solid grey;
-  -moz-border-radius: 0.5em;
-   -webkit-botder-radius: 0.5em;
-   }
-
-   div.issue_list ul {
+div.issue_list ul {
    list-style-type:none;
+}
 
-   }
-
-   div.issue_list ul li {
+div.issue_list ul li {
    clear: both;
    padding-bottom: 2em;
    border-bottom: 1px solid #ccc;
    margin-bottom: 1em;
+}
 
- 
-   }
-
-   
-
-   div.issue_list ul li span {
-
-     float: left;
+div.issue_list ul li span {
+   float: left;
    padding: 0.2em;
-     }
+}
 
 table.tablesorter thead th {
-color: #1133AA;
+    color: #1133AA;
 }
-table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp, table.tablesorter thead tr th:hover {
+
+table.tablesorter thead tr .headerSortDown, 
+table.tablesorter thead tr .headerSortUp, 
+table.tablesorter thead tr th:hover {
     background-color: #ccc;
 }
- th.headerSortUp,
- th.headerSortDown {
+
+th.headerSortUp,
+th.headerSortDown {
     background: #ccc;
 }
 
+ul.issue_list {
+    border: 1px solid grey;
+    -moz-border-radius: 0.5em;
+    -webkit-botder-radius: 0.5em;
+}
 
 div.issue_list ul li span.summary {
-  width: 70%;
-
+    width: 70%;
 }
 
 div.issue_list ul li span.issue-link {
-  width: 2em;
-  text-align: right;
+    width: 2em;
+    text-align: right;
 }
 
 div.issue_list ul li span.status {
-   width: 3em;
-
+    width: 3em;
 }
+
 
 ul.page-nav {
     float: right;
-   margin-right: -1em;
+    margin-top: 0.5em;
+    font-size: 0.7em;
 }
 
-ul.page-nav a {
+
+ul.page-nav li ul li {
+    backgrond: #c00;
 
 }
 
@@ -129,7 +130,7 @@ input[type=submit] {
 }
 
 input[type=submit]:hover {
-background: #002299; 
+    background: #002299; 
 }
 
 
