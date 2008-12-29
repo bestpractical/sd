@@ -45,9 +45,10 @@ on qr'.' => sub {
 
 
 under ['POST'] => sub {
-    on qr'^POST/issue/([\w\d-]+)/edit$' =>
-        sub { shift->server->_send_redirect( to => '/issue/' . $1 ); };
-    on qr'^POST/(?!records)/(.*)$' => sub { shift->server->_send_redirect( to => $1 ); }
+    on 'records' => sub { next_rule;}
+    on qr'^POST/issue/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/issue/' . $1 ); };
+    #on qr'^POST/(?!records)/(.*)$' => sub { shift->server->_send_redirect( to => $1 ); }
+    on qr'^POST/(.*)$' => sub { shift->server->_send_redirect( to => $1 ); }
 };
 
 
@@ -58,28 +59,19 @@ under ['GET'] => sub {
         shift->show_template( $name => $type );
     };
 
-    on qr'^issue/new' => sub {
-        shift->show_template( 'new_issue');
+    under ['issue'] => sub {
+        on '' => sub {
+            my $self = shift;
+            if ( my $id = $self->server->cgi->param('id') ) {
+                $self->server->_send_redirect( to => "/issue/$id" );
+            } else {
+                next_rule;
+            }
+        };
 
-    };
-
-    on qr'^issue/?$' => sub {
-        my $self = shift;
-        if (my $id = $self->server->cgi->param('id') ) {
-            $self->server->_send_redirect( to => "/issue/$id" );
-        } else {
-            next_rule;
-        }
-    };
-
-    on qr'^issue/([\w\d-]+)/edit$' => sub {
-        my $self = shift;
-        $self->show_template( 'edit_issue', $1 );
-
-    };
-    on qr'^issue/([\w\d-]+)/?$' => sub {
-        my $self = shift;
-        $self->show_template( 'show_issue', $1 );
+        on 'new'                 => sub { shift->show_template('new_issue') };
+        on qr'^([\w\d-]+)/edit$' => sub { shift->show_template( 'edit_issue', $1 ) };
+        on qr'^([\w\d-]+)/?$'    => sub { shift->show_template( 'show_issue', $1 ) };
     };
 };
 
