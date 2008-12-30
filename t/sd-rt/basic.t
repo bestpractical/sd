@@ -32,6 +32,8 @@ BEGIN {
 
 my $IMAGE_FILE = qw|t/data/bplogo.gif|;
 
+$RT::Test::SKIP_REQUEST_WORK_AROUND = 1;
+
 my ( $url, $m ) = RT::Test->started_ok;
 
 use RT::Client::REST;
