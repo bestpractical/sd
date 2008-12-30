@@ -45,7 +45,7 @@ on qr'.' => sub {
 
 
 under ['POST'] => sub {
-    on 'records' => sub { next_rule;}
+    on 'records' => sub { next_rule;};
     on qr'^POST/issue/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/issue/' . $1 ); };
     #on qr'^POST/(?!records)/(.*)$' => sub { shift->server->_send_redirect( to => $1 ); }
     on qr'^POST/(.*)$' => sub { shift->server->_send_redirect( to => $1 ); }
