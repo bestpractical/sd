@@ -97,9 +97,11 @@ sub _translate_final_ticket_state {
     }
 
     $ticket->{$_} = $self->unix_time_to_iso( $ticket->{$_} )
-        for qw(Created Resolved Told LastUpdated Due Starts Started);
+        for grep defined $ticket->{$_}, qw(Created Resolved Told LastUpdated Due Starts Started);
+
     $ticket->{$_} =~ s/ minutes$//
         for grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
+
     $ticket->{'Status'} =~ s/^(resolved|rejected)$/closed/;
 
     # delete undefined and empty fields
