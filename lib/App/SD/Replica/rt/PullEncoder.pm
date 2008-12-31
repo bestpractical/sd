@@ -459,6 +459,7 @@ our %PROP_MAP = (
     told            => '_delete',
     requestor       => 'reporter',
     requestors      => 'reporter',
+    cc              => 'cc',
     admincc         => 'admin_cc',
     refersto        => 'refers_to',
     referredtoby    => 'referred_to_by',
