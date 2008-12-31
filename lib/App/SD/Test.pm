@@ -190,7 +190,7 @@ Returns a hash reference with information about ticket.
 
 sub get_ticket_info {
     my $id = shift;
-    my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [qw(ticket show --batch --id), $id ]);
+    my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [qw(ticket show --batch --verbose --id), $id ]);
 
     my @lines = split /\n/, $out;
 
