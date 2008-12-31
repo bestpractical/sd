@@ -73,6 +73,11 @@ sub _translate_final_ticket_state {
     my $self   = shift;
     my $ticket = shift;
 
+    # undefine empty fields, we'll delete after cleaning
+    $ticket->{$_} = undef for
+        grep defined $ticket->{$_} && $ticket->{$_} eq '',
+        keys %$ticket;
+
     $ticket->{'id'} =~ s/^ticket\///g;
 
     $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_}
@@ -88,6 +93,12 @@ sub _translate_final_ticket_state {
     $ticket->{$_} =~ s/ minutes$//
         for grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
     $ticket->{'Status'} =~ s/^(resolved|rejected)$/closed/;
+
+    # delete undefined and empty fields
+    delete $ticket->{$_} for
+        grep !defined $ticket->{$_} || $ticket->{$_} eq '',
+        keys %$ticket;
+
     return $ticket;
 }
 
