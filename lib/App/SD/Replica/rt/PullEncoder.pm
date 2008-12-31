@@ -82,12 +82,20 @@ sub _translate_final_ticket_state {
 
     $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_}
         for qw(Queue id);
+
     delete $ticket->{'Owner'} if lc($ticket->{'Owner'}) eq 'nobody';
     $ticket->{'Owner'} = $self->resolve_user_id_to( email_address => $ticket->{'Owner'} )
         if $ticket->{'Owner'};
-    delete $ticket->{$_} for
-        grep !defined $ticket->{$_} || $ticket->{$_} eq '',
-        keys %$ticket;
+
+    # normalize names of watchers to variant with suffix 's'
+    foreach my $field (qw(Requestor Cc AdminCc)) {
+        if ( defined $ticket->{$field} && defined $ticket->{$field .'s'} ) {
+            die "It's impossible! Ticket has '$field' and '${field}s'";
+        } elsif ( defined $ticket->{$field} ) {
+            $ticket->{$field .'s'} = delete $ticket->{$field};
+        }
+    }
+
     $ticket->{$_} = $self->unix_time_to_iso( $ticket->{$_} )
         for qw(Created Resolved Told LastUpdated Due Starts Started);
     $ticket->{$_} =~ s/ minutes$//
