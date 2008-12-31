@@ -161,7 +161,14 @@ from first to last).
 =cut
 
 sub props_to_show {
-    ('id', 'summary', 'status', 'milestone', 'component', 'owner', 'created', 'due', 'creator', 'reporter', 'original_replica')
+    my $self = shift;
+    my $args = shift || {};
+    return qw(
+        id summary status milestone component owner
+        created due creator reporter original_replica
+    ) unless $args->{'verbose'};
+
+    return $self->declared_props;
 }
 
 =head2 immutable_props
