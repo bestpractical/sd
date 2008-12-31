@@ -40,7 +40,7 @@ sub run {
         $self->sync_source->log(
             "Fetching ticket $id - $counter of " . scalar @tickets
         );
-        $tickets->{$id}->{ticket} = $self->_translate_final_ticket_state(
+        $tickets->{ $id } = $self->_translate_final_ticket_state(
             $self->sync_source->rt->show( type => 'ticket', id => $id )
         );
         push @transactions, @{
@@ -56,7 +56,7 @@ sub run {
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
         $txn_counter++;
         $self->sync_source->log("Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of ". scalar @transactions);
-        my $changeset = $self->transcode_one_txn( $txn, $tickets->{ $txn->{Ticket} }->{ticket} );
+        my $changeset = $self->transcode_one_txn( $txn, $tickets->{ $txn->{Ticket} } );
         $changeset->created( $txn->{'Created'} );
         next unless $changeset->has_changes;
         unshift @changesets, $changeset;
