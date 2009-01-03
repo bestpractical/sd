@@ -12,7 +12,7 @@ SD is a peer to peer ticket tracking system built on the Prophet
 distributed database. SD is designed to make it easy to work with tickets
 and to share ticket databases with your collaborators.
 
-To get started with SD, you need an ticket database. To get an issue 
+To get started with SD, you need an ticket database. To get an ticket 
 database, you have two options: You can clone an existing database
 or start a new one.
 

@@ -92,7 +92,7 @@ div.ticket_list ul li span.summary {
     width: 70%;
 }
 
-div.ticket_list ul li span.issue-link {
+div.ticket_list ul li span.ticket-link {
     width: 2em;
     text-align: right;
 }
@@ -261,7 +261,7 @@ sub show_tickets {
         handle     => $self->app_handle->handle
     );
     $tickets->matching($callback);
-    show( '/ticket_list', $issues );
+    show( '/ticket_list', $tickets );
 }
 
 template edit_ticket => page {
@@ -274,7 +274,7 @@ template edit_ticket => page {
         );
         $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       $ticket->luid.": ".$issue->prop('summary');
+       $ticket->luid.": ".$ticket->prop('summary');
 
 
 
@@ -287,10 +287,10 @@ template edit_ticket => page {
         );
         $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       title is $ticket->luid.": ".$issue->prop('summary');
+       title is $ticket->luid.": ".$ticket->prop('summary');
 
     ul { {class is 'actions'};
-        li { a {{ href is '/ticket/'.$issue->uuid.''}; 'Show'}; };
+        li { a {{ href is '/ticket/'.$ticket->uuid.''}; 'Show'}; };
     };
 
     form {
@@ -416,10 +416,10 @@ private template 'ticket_list' => sub {
             }
         };
         tbody {
-        for my $ticket (@$issues) {
+        for my $ticket (@$tickets) {
             row {
 
-                cell { ticket_link( $issue => $issue->luid );};
+                cell { ticket_link( $ticket => $ticket->luid );};
                 cell{ class is 'status';  $ticket->prop('status') };
                 cell { class is 'summary'; $ticket->prop('summary') };
                 cell { class is 'created'; $ticket->prop('created') };
@@ -445,7 +445,7 @@ template 'show_ticket' => page {
         );
         $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       $ticket->luid.": ".$issue->prop('summary');
+       $ticket->luid.": ".$ticket->prop('summary');
     } content {
         my $self = shift;
         my $id = shift;
@@ -455,13 +455,13 @@ template 'show_ticket' => page {
         );
         $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
     ul { {class is 'actions'};
-        li { a {{ href is '/ticket/'.$issue->uuid.'/edit'}; 'Edit'}; };
+        li { a {{ href is '/ticket/'.$ticket->uuid.'/edit'}; 'Edit'}; };
     };
 
-        show ticket_basics      => $issue;
-        show ticket_attachments => $issue;
-        show ticket_comments    => $issue;
-        show ticket_history     => $issue;
+        show ticket_basics      => $ticket;
+        show ticket_attachments => $ticket;
+        show ticket_comments    => $ticket;
+        show ticket_history     => $ticket;
 
     };
 
@@ -547,7 +547,7 @@ sub ticket_link {
         a {
             {
                 class is 'ticket';
-                href is '/ticket/' . $issue->uuid;
+                href is '/ticket/' . $ticket->uuid;
             };
             $label;
         }

@@ -18,8 +18,8 @@ on qr '.' => sub {
 
 on qr'.' => sub {
     my $self = shift;
-    my $tickets = $self->server->nav->child( issues => label => 'Issues', url => '/issues');
-    $tickets->child( go => label => '<form method="GET" action="/issue"><a href="#">Show issue # <input type=text name=id size=3></a></form>', escape_label => 0);
+    my $tickets = $self->server->nav->child( tickets => label => 'Issues', url => '/tickets');
+    $tickets->child( go => label => '<form method="GET" action="/ticket"><a href="#">Show ticket # <input type=text name=id size=3></a></form>', escape_label => 0);
 
 
     my $milestones = $tickets->child( milestones => label => 'Milestones', url => '/milestones');
@@ -35,7 +35,7 @@ on qr'.' => sub {
     }
 
 
-    $self->server->nav->child( create => label => 'New ticket', url => '/issue/new');
+    $self->server->nav->child( create => label => 'New ticket', url => '/ticket/new');
     $self->server->nav->child( home => label => 'Home', url => '/');
 
 
@@ -46,7 +46,7 @@ on qr'.' => sub {
 
 under 'POST' => sub {
     on 'records' => sub { next_rule;};
-    on qr'^POST/ticket/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/issue/' . $1 ); };
+    on qr'^POST/ticket/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/ticket/' . $1 ); };
     on qr'^POST/(.*)$' => sub { shift->server->_send_redirect( to => $1 ); }
 };
 
