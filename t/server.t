@@ -9,7 +9,6 @@ BEGIN {
 
 }
 
-
 use Prophet::Test tests => 16;
 use App::SD::Server;
 use Test::WWW::Mechanize;
@@ -17,9 +16,9 @@ use JSON;
 
 use_ok('App::SD::Model::Ticket');
 use_ok('App::SD::CLI');
-my $cli = App::SD::CLI->new;
+my $cli        = App::SD::CLI->new;
 my $app_handle = $cli->app_handle;
-my $ua  = Test::WWW::Mechanize->new();
+my $ua         = Test::WWW::Mechanize->new();
 
 my $url_root = start_server();
 
@@ -65,23 +64,18 @@ TODO: {
             . '","summary":"The server works","status":"new"}' );
 }
 
-$ua->get_ok( url());
-like($ua->content, qr/SD for Your SD Project/);
-
-
+$ua->get_ok( url() );
+like( $ua->content, qr/SD for Your SD Project/ );
 
 sub start_server {
     my $server_cli = App::SD::CLI->new();
     my $s          = App::SD::Server->new();
     unshift @App::SD::Server::ISA, 'Test::HTTP::Server::Simple';
     $server_cli->handle()->initialize;
-    $s->port(int(rand(10000)+1024));
+    $s->port( int( rand(10000) + 1024 ) );
     $s->app_handle( $server_cli->app_handle );
     my $url_root = $s->started_ok("start up my web server");
     return $url_root;
 }
-
-
-
 
 1;
