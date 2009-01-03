@@ -67,6 +67,12 @@ TODO: {
 $ua->get_ok( url() );
 like( $ua->content, qr/SD for Your SD Project/ );
 
+
+
+$ua->follow_link( text_regex => qr/New ticket/);
+$ua->content_contains ('Create a new ticket');
+
+
 sub start_server {
     my $server_cli = App::SD::CLI->new();
     my $s          = App::SD::Server->new();

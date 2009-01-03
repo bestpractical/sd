@@ -8,7 +8,7 @@ sub run {
     $self->print_header('About SD');
 
 print <<EOF
-sd is a peer-to-peer replicated issue tracking system built on the
+sd is a peer-to-peer replicated ticket tracking system built on the
 Prophet dataabase and synchronization framework. sd is designed for
 inter-organization replication and sharing, as well as offline
 operation.  For more information, join us at http://syncwith.us.

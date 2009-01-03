@@ -51,18 +51,18 @@ h1 {
    padding-top:  0.5em;
 }
 
-div.issue_list ul {
+div.ticket_list ul {
    list-style-type:none;
 }
 
-div.issue_list ul li {
+div.ticket_list ul li {
    clear: both;
    padding-bottom: 2em;
    border-bottom: 1px solid #ccc;
    margin-bottom: 1em;
 }
 
-div.issue_list ul li span {
+div.ticket_list ul li span {
    float: left;
    padding: 0.2em;
 }
@@ -82,22 +82,22 @@ th.headerSortDown {
     background: #ccc;
 }
 
-ul.issue_list {
+ul.ticket_list {
     border: 1px solid grey;
     -moz-border-radius: 0.5em;
     -webkit-botder-radius: 0.5em;
 }
 
-div.issue_list ul li span.summary {
+div.ticket_list ul li span.summary {
     width: 70%;
 }
 
-div.issue_list ul li span.issue-link {
+div.ticket_list ul li span.issue-link {
     width: 2em;
     text-align: right;
 }
 
-div.issue_list ul li span.status {
+div.ticket_list ul li span.status {
     width: 3em;
 }
 
@@ -187,9 +187,9 @@ ul.page-nav a {
 ' );
 };
 
-template '/' => page {'Open issues'}
+template '/' => page {'Open tickets'}
 content {
-    show('/issues/open');
+    show('/tickets/open');
 
 };
 
@@ -223,9 +223,9 @@ content {
     my $self      = shift;
     my $component = shift;
 
-    h2 {'Open issues for this component'};
+    h2 {'Open tickets for this component'};
 
-    $self->show_issues(
+    $self->show_tickets(
         sub {my $item = shift;
             ( ( $item->prop('component') || '' ) eq $component && $item->has_active_status )
                 ? 1
@@ -240,9 +240,9 @@ content {
     my $self      = shift;
     my $milestone = shift;
 
-    h2 {'Open issues for this milestone'};
+    h2 {'Open tickets for this milestone'};
 
-    $self->show_issues(
+    $self->show_tickets(
         sub {my $item = shift;
             ( ( $item->prop('milestone') || '' ) eq ($milestone || '') && $item->has_active_status )
                 ? 1
@@ -252,50 +252,50 @@ content {
 
 };
 
-sub show_issues {
+sub show_tickets {
     my $self     = shift;
     my $callback = shift;
 
-    my $issues = App::SD::Collection::Ticket->new(
+    my $tickets = App::SD::Collection::Ticket->new(
         app_handle => $self->app_handle,
         handle     => $self->app_handle->handle
     );
-    $issues->matching($callback);
-    show( '/issue_list', $issues );
+    $tickets->matching($callback);
+    show( '/ticket_list', $issues );
 }
 
-template edit_issue => page {
+template edit_ticket => page {
 
     my $self = shift;
         my $id = shift;
-        my $issue = App::SD::Model::Ticket->new(
+        my $ticket = App::SD::Model::Ticket->new(
             app_handle => $self->app_handle,
             handle     => $self->app_handle->handle
         );
-        $issue->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
+        $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       $issue->luid.": ".$issue->prop('summary');
+       $ticket->luid.": ".$issue->prop('summary');
 
 
 
 } content {
     my $self = shift;
         my $id = shift;
-        my $issue = App::SD::Model::Ticket->new(
+        my $ticket = App::SD::Model::Ticket->new(
             app_handle => $self->app_handle,
             handle     => $self->app_handle->handle
         );
-        $issue->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
+        $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       title is $issue->luid.": ".$issue->prop('summary');
+       title is $ticket->luid.": ".$issue->prop('summary');
 
     ul { {class is 'actions'};
-        li { a {{ href is '/issue/'.$issue->uuid.''}; 'Show'}; };
+        li { a {{ href is '/ticket/'.$issue->uuid.''}; 'Show'}; };
     };
 
     form {
         my $f = function(
-            record => $issue,
+            record => $ticket,
             action => 'update',
             order => 1,
             name => 'edit-ticket'
@@ -330,7 +330,7 @@ template edit_issue => page {
         input { attr { label => 'save', type => 'submit' } };
     };
 };
-template new_issue => page {'Create a new ticket'} content {
+template new_ticket => page {'Create a new ticket'} content {
     my $self = shift;
 
     form { { class is 'create-ticket'};
@@ -395,15 +395,15 @@ template header => sub {
 };
 
 
-template '/issues/open' => sub {
+template '/tickets/open' => sub {
     my $self = shift;
-    $self->show_issues (sub { my $item = shift; return $item->has_active_status ? 1 : 0; });
+    $self->show_tickets (sub { my $item = shift; return $item->has_active_status ? 1 : 0; });
 
 };
 
-private template 'issue_list' => sub {
+private template 'ticket_list' => sub {
     my $self   = shift;
-    my $issues = shift;
+    my $tickets = shift;
     my $id = substr(rand(10),2); # hack  to get a unique id
     table {
         { class is 'tablesorter'; id is $id; };
@@ -416,13 +416,13 @@ private template 'issue_list' => sub {
             }
         };
         tbody {
-        for my $issue (@$issues) {
+        for my $ticket (@$issues) {
             row {
 
-                cell { issue_link( $issue => $issue->luid );};
-                cell{ class is 'status';  $issue->prop('status') };
-                cell { class is 'summary'; $issue->prop('summary') };
-                cell { class is 'created'; $issue->prop('created') };
+                cell { ticket_link( $issue => $issue->luid );};
+                cell{ class is 'status';  $ticket->prop('status') };
+                cell { class is 'summary'; $ticket->prop('summary') };
+                cell { class is 'created'; $ticket->prop('created') };
 
                 }
 
@@ -436,32 +436,32 @@ private template 'issue_list' => sub {
         
         };
 
-template 'show_issue' => page {
+template 'show_ticket' => page {
         my $self = shift;
         my $id = shift;
-        my $issue = App::SD::Model::Ticket->new(
+        my $ticket = App::SD::Model::Ticket->new(
             app_handle => $self->app_handle,
             handle     => $self->app_handle->handle
         );
-        $issue->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
+        $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       $issue->luid.": ".$issue->prop('summary');
+       $ticket->luid.": ".$issue->prop('summary');
     } content {
         my $self = shift;
         my $id = shift;
-        my $issue = App::SD::Model::Ticket->new(
+        my $ticket = App::SD::Model::Ticket->new(
             app_handle => $self->app_handle,
             handle     => $self->app_handle->handle
         );
-        $issue->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
+        $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
     ul { {class is 'actions'};
-        li { a {{ href is '/issue/'.$issue->uuid.'/edit'}; 'Edit'}; };
+        li { a {{ href is '/ticket/'.$issue->uuid.'/edit'}; 'Edit'}; };
     };
 
-        show issue_basics      => $issue;
-        show issue_attachments => $issue;
-        show issue_comments    => $issue;
-        show issue_history     => $issue;
+        show ticket_basics      => $issue;
+        show ticket_attachments => $issue;
+        show ticket_comments    => $issue;
+        show ticket_history     => $issue;
 
     };
 
@@ -469,11 +469,11 @@ template 'show_issue' => page {
 sub _by_creation_date { $a->prop('created') cmp $b->prop('created') };
 
 
-private template 'issue_basics' => sub {
+private template 'ticket_basics' => sub {
     my $self = shift;
-    my $issue = shift;
-        my $props = $issue->get_props;
-        div { { class is 'issue-props'};
+    my $ticket = shift;
+        my $props = $ticket->get_props;
+        div { { class is 'ticket-props'};
         for my $key (sort keys %$props) {
             div { class is 'widget'; 
                 label{ $key };
@@ -484,28 +484,28 @@ private template 'issue_basics' => sub {
         }
         };
 };
-template issue_attachments => sub {
+template ticket_attachments => sub {
     my $self = shift;
-    my $issue = shift;
+    my $ticket = shift;
 
 
 };
-template issue_history => sub {
+template ticket_history => sub {
     my $self = shift;
-    my $issue = shift;
+    my $ticket = shift;
 
    
     h2 { 'History'};
     
     ul {
-    for my $changeset  (sort {$a->created cmp $b->created}  $issue->changesets) {
+    for my $changeset  (sort {$a->created cmp $b->created}  $ticket->changesets) {
         li {
             ul { 
                 li { $changeset->created. " ". $changeset->creator };
                 li { $changeset->original_sequence_no. ' @ ' . $changeset->original_source_uuid };
             
                 for my $change ($changeset->changes) {
-                    next unless $change->record_uuid eq $issue->uuid;
+                    next unless $change->record_uuid eq $ticket->uuid;
                     li {
                         ul {
                             map { li {$_->summary} } $change->prop_changes;
@@ -520,10 +520,10 @@ template issue_history => sub {
 
 };
 
-template issue_comments => sub {
+template ticket_comments => sub {
     my $self     = shift;
-    my $issue    = shift;
-    my @comments = sort  @{ $issue->comments };
+    my $ticket    = shift;
+    my @comments = sort  @{ $ticket->comments };
     if (@comments) {
         h2 {'Comments'};
         ul {
@@ -539,15 +539,15 @@ template issue_comments => sub {
 };
 
 
-sub issue_link {
-    my $issue   = shift;
+sub ticket_link {
+    my $ticket   = shift;
     my $label = shift;
     span {
-        class is 'issue-link';
+        class is 'ticket-link';
         a {
             {
-                class is 'issue';
-                href is '/issue/' . $issue->uuid;
+                class is 'ticket';
+                href is '/ticket/' . $issue->uuid;
             };
             $label;
         }

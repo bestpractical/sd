@@ -8,11 +8,11 @@ sub run {
     my $cmd = $self->_get_cmd_name;
 
 print <<EOF
-SD is a peer to peer issue tracking system built on the Prophet 
-distributed database. SD is designed to make it easy to work with issues
-and to share issue databases with your collaborators.
+SD is a peer to peer ticket tracking system built on the Prophet 
+distributed database. SD is designed to make it easy to work with tickets
+and to share ticket databases with your collaborators.
 
-To get started with SD, you need an issue database. To get an issue 
+To get started with SD, you need an ticket database. To get an issue 
 database, you have two options: You can clone an existing database
 or start a new one.
 
@@ -20,11 +20,11 @@ SD will store its local database replica in the ".sd" directory in your
 home directory. You can override this behaviour by setting the SD_REPO
 environment variable.
 
-To clone an issue database:
+To clone an ticket database:
 
     $cmd clone --from http://example.com/path/to/sd
 
-To start a new issue database:
+To start a new ticket database:
 
     $cmd init
 

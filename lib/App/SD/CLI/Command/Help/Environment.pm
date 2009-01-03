@@ -17,7 +17,7 @@ print <<EOF
 
   export EMAIL=jesse\@example.com
     Use jesse\@example.com as the default email address for reporting 
-    issues
+    tickets
 
   export PROPHET_REPLICA_TYPE=prophet
     Use the prophet native replica type. In the future other backend
