@@ -10,6 +10,16 @@ sub _default_summary_format { '%s,$uuid | %s,content'}
 
 augment declared_props => sub {'content'};
 
+sub canonicalize_props {
+    my $self = shift;
+    my $props = shift;
+    $self->SUPER::canonicalize_props($props);
+
+    unless ($props->{content}) {
+        delete $props->{$_} for keys %$props;
+    }
+}
+
 
 #has SVK::Model::Ticket;
 
