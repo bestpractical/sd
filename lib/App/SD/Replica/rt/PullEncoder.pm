@@ -102,7 +102,7 @@ sub _translate_final_ticket_state {
     $ticket->{$_} =~ s/ minutes$//
         for grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
 
-    $ticket->{'Status'} =~ s/^(resolved|rejected)$/closed/;
+    $ticket->{'Status'} =~ $self->translate_status($ticket->{'Status'});
 
     # delete undefined and empty fields
     delete $ticket->{$_} for
@@ -234,9 +234,6 @@ sub _recode_txn_Status {
     my %args = validate( @_, { txn => 1, ticket => 1, changeset => 1 } );
 
     $args{txn}->{'Type'} = 'Set';
-        for my $type(qw(NewValue OldValue)) {
-                $args{'txn'}->{$type} =~ s/^(resolved|rejected)$/closed/;
-        }
     return $self->_recode_txn_Set(%args);
 }
 
@@ -267,6 +264,9 @@ sub _recode_txn_Set {
             $old = $1;
             $new = $current_queue;
         }
+    } elsif ( $field eq 'Status' ) {
+        $new = $self->translate_status($new);
+        $old = $self->translate_status($old); 
 
     } elsif ( $field eq 'Owner' ) {
         $new = $self->resolve_user_id_to( email_address => $new );
@@ -503,6 +503,16 @@ our %PROP_MAP = (
     starts          => '_delete',
     started         => '_delete',
 );
+
+sub translate_status {
+    my $self = shift;
+    my $status = shift;
+
+    $status =~ s/^resolved$/closed/;
+    
+
+    return $status;
+}
 
 sub translate_prop_names {
     my $self      = shift;
