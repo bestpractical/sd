@@ -44,22 +44,21 @@ on qr'.' => sub {
 };
 
 
-under ['POST'] => sub {
+under 'POST' => sub {
     on 'records' => sub { next_rule;};
     on qr'^POST/issue/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/issue/' . $1 ); };
-    #on qr'^POST/(?!records)/(.*)$' => sub { shift->server->_send_redirect( to => $1 ); }
     on qr'^POST/(.*)$' => sub { shift->server->_send_redirect( to => $1 ); }
 };
 
 
-under ['GET'] => sub {
+under 'GET' => sub {
     on qr'^(milestone|component)/([\w\d-]+)$' => sub {
         my $name = $1;
         my $type = $2;
         shift->show_template( $name => $type );
     };
 
-    under ['issue'] => sub {
+    under 'issue' => sub {
         on '' => sub {
             my $self = shift;
             if ( my $id = $self->server->cgi->param('id') ) {
