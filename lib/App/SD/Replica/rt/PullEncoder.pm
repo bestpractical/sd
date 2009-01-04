@@ -118,13 +118,11 @@ Returns an RT::Client ticket collection for all tickets found matching your QUER
 
 =cut
 
-
 sub find_matching_tickets {
     my $self = shift;
     my ($query) = validate_pos(@_, 1);
     return $self->sync_source->rt->search( type => 'ticket', query => $query );
 }
-
 
 =head2 find_matching_transactions { ticket => $id, starting_transaction => $num }
 
@@ -141,7 +139,7 @@ sub find_matching_transactions {
 
     for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $args{'ticket'} ) ) {
         next if $txn < $args{'starting_transaction'}; # Skip things we've pushed
-        next if $self->sync_source->prophet_has_seen_transaction($txn);
+        next if $self->sync_source->prophet_has_seen_foreign_transaction($txn, $args{'ticket'});
         my $txn_hash = $rt_handle->get_transaction(
             parent_id => $args{'ticket'},
             id        => $txn,
@@ -201,7 +199,6 @@ sub transcode_one_txn {
 
     return $changeset;
 }
-
 
 sub _recode_attachment_create {
     my $self   = shift;

@@ -94,6 +94,7 @@ sub find_matching_tasks {
 # hiveminder transaction ~= prophet changeset
 # hiveminder taskhistory ~= prophet change
 # hiveminder taskemail ~= prophet change
+#
 sub find_matching_transactions {
     my $self = shift;
     my %args = validate( @_, { task => 1, starting_transaction => 1 } );
@@ -103,7 +104,7 @@ sub find_matching_transactions {
     for my $txn (@$txns) {
         next if $txn->{'id'} < $args{'starting_transaction'};    # Skip things we've pushed
 
-        next if $self->sync_source->prophet_has_seen_transaction( $txn->{'id'} );
+        next if $self->sync_source->prophet_has_seen_foreign_transaction( $txn->{'id'}, $args{task} );
 
         $txn->{history_entries} = $self->sync_source->hm->search( 'TaskHistory', transaction_id => $txn->{'id'} );
         $txn->{email_entries}   = $self->sync_source->hm->search( 'TaskEmail',   transaction_id => $txn->{'id'} );
@@ -171,32 +172,6 @@ sub recode_update {
     }
     return $res;
 }
-
-sub warp_list_to_old_value {
-    my $self       = shift;
-    my $task_value = shift || '';
-    my $add        = shift;
-    my $del        = shift;
-
-    my @new = split( /\s*,\s*/, $task_value );
-    my @old = grep { $_ ne $add } @new, $del;
-    return join( ", ", @old );
-}
-
-our $MONNUM = {
-    Jan => 1,
-    Feb => 2,
-    Mar => 3,
-    Apr => 4,
-    May => 5,
-    Jun => 6,
-    Jul => 7,
-    Aug => 8,
-    Sep => 9,
-    Oct => 10,
-    Nov => 11,
-    Dec => 12
-};
 
 sub translate_props {
     my $self      = shift;

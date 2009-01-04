@@ -4,26 +4,26 @@ use Params::Validate;
 
 extends 'Prophet::ForeignReplica';
 
-=head2 prophet_has_seen_transaction $transaction_id
+=head2 prophet_has_seen_foreign_transaction $transaction_id $foreign_record_id
 
 Given an transaction id, will return true if this transaction originated in Prophet 
 and was pushed to RT or originated in RT and has already been pulled to the prophet replica.
 
+
+This is a mapping of all the transactions we have pushed to the
+remote replica we'll only ever care about remote sequence #s greater
+than the last transaction # we've pulled from the remote replica
+once we've done a pull from the remote replica, we can safely expire
+all records of this type for the remote replica (they'll be
+obsolete)
+
+We use this cache to avoid integrating changesets we've pushed to the remote replica when doing a subsequent pull
+
 =cut
 
-# This is a mapping of all the transactions we have pushed to the
-# remote replica we'll only ever care about remote sequence #s greater
-# than the last transaction # we've pulled from the remote replica
-# once we've done a pull from the remote replica, we can safely expire
-# all records of this type for the remote replica (they'll be
-# obsolete)
-
-# we use this cache to avoid integrating changesets we've pushed to the remote replica when doing a subsequent pull
-
-
-sub prophet_has_seen_transaction {
+sub prophet_has_seen_foreign_transaction {
     my $self = shift;
-    my ($id) = validate_pos( @_, 1 );
+    my ($id, $record) = validate_pos( @_, 1, 1);
     return $self->_changeset_id_storage->( $self->uuid . '-txn-' . $id );
 }
 
@@ -34,7 +34,9 @@ Given a change (and the changeset it's part of), this routine will load
 the push encoder for the foreign replica's type and call integrate_change
 on it.
 
-To avoid publishing prophet-private data, It skips any change whos record_type starts with '__'.
+To avoid publishing prophet-private data, It skips any change with a record type
+that record_type starts with '__'.
+
 This is probably a bug.
 
 =cut

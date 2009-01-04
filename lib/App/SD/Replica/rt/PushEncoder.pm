@@ -18,8 +18,7 @@ sub integrate_change {
     local $@;
     eval {
         if (    $change->record_type eq 'ticket'
-            and $change->change_type eq 'add_file' 
-    )
+            and $change->change_type eq 'add_file' )
         {
             $id = $self->integrate_ticket_create( $change, $changeset );
             $self->sync_source->record_remote_id_for_pushed_record(
@@ -27,19 +26,25 @@ sub integrate_change {
                 remote_id => $id
             );
 
-        } elsif ( $change->record_type eq 'attachment'
-            and $change->change_type eq 'add_file' 
-        
-        ) {
+        }
+        elsif (
+                $change->record_type eq 'attachment'
+            and $change->change_type eq 'add_file'
+
+          )
+        {
             $id = $self->integrate_attachment( $change, $changeset );
-        } elsif ( $change->record_type eq 'comment' 
-            and $change->change_type eq 'add_file' 
-        ) {
+        }
+        elsif ( $change->record_type eq 'comment'
+            and $change->change_type eq 'add_file' )
+        {
             $id = $self->integrate_comment( $change, $changeset );
-        } elsif ( $change->record_type eq 'ticket' ) {
+        }
+        elsif ( $change->record_type eq 'ticket' ) {
             $id = $self->integrate_ticket_update( $change, $changeset );
 
-        } else {
+        }
+        else {
             return undef;
         }
 
@@ -62,8 +67,9 @@ sub integrate_ticket_update {
     );
 
     # Figure out the remote site's ticket ID for this change's record
-    my $remote_ticket_id = $self->sync_source->remote_id_for_uuid( $change->record_uuid );
-    my $ticket           = RT::Client::REST::Ticket->new(
+    my $remote_ticket_id =
+      $self->sync_source->remote_id_for_uuid( $change->record_uuid );
+    my $ticket = RT::Client::REST::Ticket->new(
         rt => $self->sync_source->rt,
         id => $remote_ticket_id,
         %{ $self->_recode_props_for_integrate($change) }

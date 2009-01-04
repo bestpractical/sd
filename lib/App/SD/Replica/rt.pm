@@ -51,23 +51,29 @@ sub record_pushed_transactions {
     my %args = validate( @_,
         { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
 
-    for my $txn (
-        reverse RT::Client::REST::Ticket->new(
+    # walk through every transaction on the ticket, starting with the latest
+    for my $txn ( reverse RT::Client::REST::Ticket->new(
             rt => $self->rt,
-            id => $args{'ticket'}
-        )->transactions->get_iterator->()
-        )
-    {
-        last
-            if $txn->id <= $self->last_changeset_from_source(
+            id => $args{'ticket'})->transactions->get_iterator->()) {
+
+        # if the transaction id is older than the id of the last changeset
+        # we got from the original source of this changeset, we're done
+        last if $txn->id <= $self->last_changeset_from_source(
                     $args{changeset}->original_source_uuid
             );
+
+        # if the transaction from RT is more recent than the most recent
+        # transaction we got from the original source of the changeset
+        # then we should record that we sent that transaction upstream
+        # XXX TODO - THIS IS WRONG - we should only be recording transactions we pushed
         $self->record_pushed_transaction(
             transaction => $txn->id,
             changeset   => $args{'changeset'}
         );
     }
 }
+
+
 =head2 uuid
 
 Return the replica's UUID
