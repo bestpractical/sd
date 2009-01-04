@@ -9,7 +9,7 @@ BEGIN {
 
 }
 
-use Prophet::Test tests => 16;
+use Prophet::Test tests => 17;
 use App::SD::Server;
 use Test::WWW::Mechanize;
 use JSON;
