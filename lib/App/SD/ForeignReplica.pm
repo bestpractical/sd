@@ -20,9 +20,24 @@ and was pushed to RT or originated in RT and has already been pulled to the prop
 
 # we use this cache to avoid integrating changesets we've pushed to the remote replica when doing a subsequent pull
 
-my $TXN_METATYPE = 'txn-source';
+
+sub prophet_has_seen_transaction {
+    my $self = shift;
+    my ($id) = validate_pos( @_, 1 );
+    return $self->_changeset_id_storage->( $self->uuid . '-txn-' . $id );
+}
 
 
+=head2 integrate_change $change $changeset
+
+Given a change (and the changeset it's part of), this routine will load
+the push encoder for the foreign replica's type and call integrate_change
+on it.
+
+To avoid publishing prophet-private data, It skips any change whos record_type starts with '__'.
+This is probably a bug.
+
+=cut
 
 sub integrate_change {
     my $self = shift;
@@ -42,15 +57,10 @@ sub integrate_change {
 
 
 
+my $TXN_METATYPE = 'txn-source';
 sub _changeset_id_storage {
     my $self = shift;
     return $self->state_handle->metadata_storage( $TXN_METATYPE, 'prophet-txn-source' );
-}
-
-sub prophet_has_seen_transaction {
-    my $self = shift;
-    my ($id) = validate_pos( @_, 1 );
-    return $self->_changeset_id_storage->( $self->uuid . '-txn-' . $id );
 }
 
 sub record_pushed_transaction {
