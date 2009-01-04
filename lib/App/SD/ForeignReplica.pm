@@ -4,29 +4,6 @@ use Params::Validate;
 
 extends 'Prophet::ForeignReplica';
 
-=head2 prophet_has_seen_foreign_transaction $transaction_id $foreign_record_id
-
-Given an transaction id, will return true if this transaction originated in Prophet 
-and was pushed to RT or originated in RT and has already been pulled to the prophet replica.
-
-
-This is a mapping of all the transactions we have pushed to the
-remote replica we'll only ever care about remote sequence #s greater
-than the last transaction # we've pulled from the remote replica
-once we've done a pull from the remote replica, we can safely expire
-all records of this type for the remote replica (they'll be
-obsolete)
-
-We use this cache to avoid integrating changesets we've pushed to the remote replica when doing a subsequent pull
-
-=cut
-
-sub prophet_has_seen_foreign_transaction {
-    my $self = shift;
-    my ($id, $record) = validate_pos( @_, 1, 1);
-    return $self->_changeset_id_storage->( $self->uuid . '-txn-' . $id );
-}
-
 
 =head2 integrate_change $change $changeset
 
@@ -60,22 +37,52 @@ sub integrate_change {
 
 
 my $TXN_METATYPE = 'txn-source';
-sub _changeset_id_storage {
+sub _foreign_txn_id_storage {
     my $self = shift;
     return $self->state_handle->metadata_storage( $TXN_METATYPE, 'prophet-txn-source' );
 }
+
+=head2 record_pushed_transaction $foreign_transaction_id, $changeset
+
+Record that this replica was the original source of $foreign_transaction_id (with changeset $changeset)
+
+=cut
 
 sub record_pushed_transaction {
     my $self = shift;
     my %args = validate( @_,
         { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
 
-    $self->_changeset_id_storage->(
+    $self->_foreign_txn_id_storage->(
         $self->uuid . '-txn-' . $args{transaction},
         join( ':',
             $args{changeset}->original_source_uuid,
             $args{changeset}->original_sequence_no )
     );
+}
+
+=head2 prophet_has_seen_foreign_transaction $transaction_id $foreign_record_id
+
+Given an transaction id, will return true if this transaction originated in Prophet 
+and was pushed to RT or originated in RT and has already been pulled to the prophet replica.
+
+
+This is a mapping of all the transactions we have pushed to the
+remote replica we'll only ever care about remote sequence #s greater
+than the last transaction # we've pulled from the remote replica
+once we've done a pull from the remote replica, we can safely expire
+all records of this type for the remote replica (they'll be
+obsolete)
+
+We use this cache to avoid integrating changesets we've pushed to the 
+remote replica when doing a subsequent pull
+
+=cut
+
+sub prophet_has_seen_foreign_transaction {
+    my $self = shift;
+    my ($id, $record) = validate_pos( @_, 1, 1);
+    return $self->_foreign_txn_id_storage->( $self->uuid . '-txn-' . $id );
 }
 
 sub traverse_changesets {

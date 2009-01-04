@@ -102,8 +102,12 @@ sub find_matching_transactions {
     my $txns = $self->sync_source->hm->search( 'TaskTransaction', task_id => $args{task} ) || [];
     my @matched;
     for my $txn (@$txns) {
-        next if $txn->{'id'} < $args{'starting_transaction'};    # Skip things we've pushed
 
+        # Skip things we know we don't want
+        next if $txn->{'id'} < $args{'starting_transaction'};    
+        
+        
+        # Skip things we've pushed
         next if $self->sync_source->prophet_has_seen_foreign_transaction( $txn->{'id'}, $args{task} );
 
         $txn->{history_entries} = $self->sync_source->hm->search( 'TaskHistory', transaction_id => $txn->{'id'} );

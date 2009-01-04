@@ -138,8 +138,13 @@ sub find_matching_transactions {
     my $rt_handle = $self->sync_source->rt;
 
     for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $args{'ticket'} ) ) {
-        next if $txn < $args{'starting_transaction'}; # Skip things we've pushed
+        # Skip things we know we've already pulled
+        next if $txn < $args{'starting_transaction'}; 
+        
+        # Skip things we've pushed
         next if $self->sync_source->prophet_has_seen_foreign_transaction($txn, $args{'ticket'});
+
+
         my $txn_hash = $rt_handle->get_transaction(
             parent_id => $args{'ticket'},
             id        => $txn,
