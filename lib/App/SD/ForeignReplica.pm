@@ -42,16 +42,15 @@ sub integrate_change {
 
 
 
-sub _txn_storage {
+sub _changeset_id_storage {
     my $self = shift;
-    return $self->state_handle->metadata_storage( $TXN_METATYPE,
-        'prophet-txn-source' );
+    return $self->state_handle->metadata_storage( $TXN_METATYPE, 'prophet-txn-source' );
 }
 
 sub prophet_has_seen_transaction {
     my $self = shift;
     my ($id) = validate_pos( @_, 1 );
-    return $self->_txn_storage->( $self->uuid . '-txn-' . $id );
+    return $self->_changeset_id_storage->( $self->uuid . '-txn-' . $id );
 }
 
 sub record_pushed_transaction {
@@ -59,7 +58,7 @@ sub record_pushed_transaction {
     my %args = validate( @_,
         { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
 
-    $self->_txn_storage->(
+    $self->_changeset_id_storage->(
         $self->uuid . '-txn-' . $args{transaction},
         join( ':',
             $args{changeset}->original_source_uuid,
@@ -86,28 +85,35 @@ sub remote_uri_path_for_id {
 
 }
 
+=head2 uuid_for_remote_id $id
+
+lookup the uuid for the remote record id. If we don't find it, 
+construct it out of the remote url and the remote uri path for the record id;
+
+=cut
+
+
 sub uuid_for_remote_id {
     my ( $self, $id ) = @_;
+
+
     return $self->_lookup_uuid_for_remote_id($id)
-        || $self->uuid_for_url(
-        $self->remote_url . $self->remote_uri_path_for_id($id) );
+        || $self->uuid_for_url( $self->remote_url . $self->remote_uri_path_for_id($id) );
 }
 
 sub _lookup_uuid_for_remote_id {
     my $self = shift;
     my ($id) = validate_pos( @_, 1 );
 
-    return $self->_remote_id_storage(
-        $self->uuid_for_url(
-            $self->remote_url . $self->remote_uri_path_for_id($id)
-        )
+    return $self->_remote_record_id_storage(
+        $self->uuid_for_url( $self->remote_url . $self->remote_uri_path_for_id($id))
     );
 }
 
 sub _set_uuid_for_remote_id {
     my $self = shift;
     my %args = validate( @_, { uuid => 1, remote_id => 1 } );
-    return $self->_remote_id_storage(
+    return $self->_remote_record_id_storage(
         $self->uuid_for_url(
                   $self->remote_url
                 . $self->remote_uri_path_for_id( $args{'remote_id'} )
@@ -116,10 +122,10 @@ sub _set_uuid_for_remote_id {
     );
 }
 
-# This cache stores uuids for tickets we've synced from a remote RT
+# This mapping table stores uuids for tickets we've synced from a remote database
 # Basically, if we created the ticket to begin with, then we'll know its uuid
-# if we pulled the ticket from RT then its uuid will be generated based on a UUID-from-ticket-url scheme
-# This cache is PERMANENT. - aka not a cache but a mapping table
+# if we pulled the ticket from the foreign replica then its uuid will be generated
+# based on a UUID-from-ticket-url scheme
 
 sub remote_id_for_uuid {
     my ( $self, $uuid_or_luid ) = @_;
@@ -159,8 +165,15 @@ sub _set_remote_id_for_uuid {
 }
 
 
-# XXX TODO, rename this
-sub record_pushed_ticket {
+=head2 record_remote_id_for_pushed_record
+
+When pushing a record created within the prophet cloud to a foreign replica, we
+need to do bookkeeping to record the prophet uuid to remote id mapping.
+
+=cut
+
+
+sub record_remote_id_for_pushed_record {
     my $self = shift;
     my %args = validate(
         @_,

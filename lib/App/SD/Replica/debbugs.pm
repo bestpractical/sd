@@ -27,20 +27,6 @@ sub setup {
 
 sub record_pushed_transactions {}
 
-# XXX record_pushed_tikcet should go up to the base class
-
-sub record_pushed_ticket {
-    my $self = shift;
-    my %args = validate(
-        @_,
-        {   uuid      => 1,
-            remote_id => 1,
-        }
-    );
-    $self->_set_uuid_for_remote_id(%args);
-    $self->_set_remote_id_for_uuid(%args);
-}
-
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;

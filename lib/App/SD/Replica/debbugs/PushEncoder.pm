@@ -28,7 +28,7 @@ sub integrate_change {
     )
         {
             $id = $self->integrate_ticket_create( $change, $changeset );
-            $self->sync_source->record_pushed_ticket(
+            $self->sync_source->record_remote_id_for_pushed_record(
                 uuid      => $change->record_uuid,
                 remote_id => $id
             );
