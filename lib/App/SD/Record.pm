@@ -15,7 +15,7 @@ sub canonicalize_prop_created {
     my $self = shift;
     my %args = validate(@_, { props => 1, errors => 1});
 
-    # has the record been created yet? if so, we don't want to try to
+    # has the record been created yet? if not, we don't want to try to
     # get its properties
     my $props = $self->uuid ? $self->get_props : {};
 
