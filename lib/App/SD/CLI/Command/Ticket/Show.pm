@@ -29,7 +29,7 @@ override run => sub {
         for my $comment (@comments) {
             my $creator = $comment->prop('creator');
             my $created = $comment->prop('created');
-            my $content = $comment->prop('content');
+            my $content = $comment->prop('content') || '';
             print "$creator: " if $creator;
             print "$created\n$content\n\n";
         }
