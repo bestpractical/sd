@@ -19,6 +19,7 @@ print <<EOF
 
   summary_format_ticket = %4s },\$luid | %-11.11s,status | %-60.60s,summary
     Specifies how to format ticket summaries (when listing tickets, e.g.).
+    (See also: help summary_format_ticket.)
 EOF
 
 }

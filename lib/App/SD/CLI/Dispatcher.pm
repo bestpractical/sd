@@ -17,6 +17,7 @@ under help => sub {
     on about   => run_command('Help::About');
     on config  => run_command('Help::Config');
     on copying => run_command('Help::Copying');
+    on summary_format_ticket => run_command('Help::summary_format_ticket');
 
     on [ ['author', 'authors'] ]         => run_command('Help::Authors');
     on [ ['environment', 'env'] ]        => run_command('Help::Environment');
