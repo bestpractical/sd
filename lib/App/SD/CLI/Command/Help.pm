@@ -51,6 +51,10 @@ $cmd help attachments -  Working with ticket attachments
 $cmd help sync        -  Publishing and importing ticket databases
 $cmd help environment -  Environment variables which affect sd
 $cmd help config      -  Database configuration variables
+$cmd help summary_format_ticket  -  Details of this config variable
+
+Running '$cmd help' on a specific command should also redirect you
+to the proper help file.
 
 EOF
 
