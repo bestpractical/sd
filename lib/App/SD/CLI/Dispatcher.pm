@@ -62,8 +62,8 @@ under ticket => sub {
     };
 
     under comment => sub {
-        on create => run_command('Ticket::Comment::Create');
-        on update => run_command('Ticket::Comment::Update');
+        on [ [ 'new', 'create' ] ] => run_command('Ticket::Comment::Create');
+        on [ [ 'update', 'edit' ] ] => run_command('Ticket::Comment::Update');
     };
 
     under attachment => sub {

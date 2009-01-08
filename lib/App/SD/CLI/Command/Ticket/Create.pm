@@ -15,9 +15,8 @@ override run => sub {
     my @prop_set = $self->prop_set;
     my $record = $self->_get_record_object;
 
-    # only invoke editor if no props specified on the commandline or edit arg # specified
-   return super() if (@{$self->prop_set} && !$self->has_arg('edit'));
-
+    # only invoke editor if no props specified on the commandline or edit arg specified
+    return super() if (@{$self->prop_set} && !$self->has_arg('edit'));
 
     my $template_to_edit = $self->create_record_template();
 
