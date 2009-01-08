@@ -4,25 +4,30 @@ extends 'App::SD::CLI::Command::Help';
 
 sub run {
     my $self = shift;
-    $self->print_header('Working with tickets');
+    $self->print_header('Creating and Updating tickets');
     my $cmd = $self->_get_cmd_name;
 
 print <<EOF
     $cmd ticket create
-      Invokes a text editor with a ticket creation template
+      Invokes a text editor with a ticket creation template.
 
     $cmd ticket create -- summary="This is a summary" status=open
-      Create a new ticket non-interactively
+      Create a new ticket non-interactively.
 
     $cmd ticket update 123 -- status=closed
-      Sets the status of the ticket with local id 123 to closed 
+      Sets the status of the ticket with local id 123 to closed.
 
     $cmd ticket resolve 123
-      Sets the status of the ticket with local id 123 to closed 
+      Sets the status of the ticket with local id 123 to closed.
+
+    $cmd ticket resolve 123 --edit
+      Sets the status of the ticket with local id 123 to closed,
+      allowing you to edit any properties in an editor and
+      optionally add a comment in the process.
 
     $cmd ticket update fad5849a-67f1-11dd-bde1-5b33d3ff2799 -- status=closed
-      Sets the status of the ticket with uuid 
-      fad5849a-67f1-11dd-bde1-5b33d3ff2799 to closed 
+      Sets the status of the ticket with uuid
+      fad5849a-67f1-11dd-bde1-5b33d3ff2799 to closed.
 EOF
 
 }

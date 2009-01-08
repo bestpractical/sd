@@ -15,8 +15,15 @@ print <<EOF
     $cmd ticket attachment list 456
       Show all attachemnts on ticket 456.
 
+    $cmd ticket attachment show 567
+      Show the properties of attachment 567 (including the content).
+
     $cmd ticket attachment content 567
       Send the content of attachment 567 to STDOUT.
+
+    $cmd ticket attachment content 567 > to_apply.patch
+      Save the contents of attachment 567 to a file so the patch
+      can be applied.
 EOF
 
 }

@@ -15,11 +15,18 @@ print <<EOF
     $cmd ticket comment 456 --file=myfile
       Add a comment to the ticket with id 456, using the content of 'myfile'.
 
+    $cmd ticket comment 456 --content="The text of the comment."
+      Add a comment to the ticket with id 456, specifying its content on
+      the commandline.
+
     $cmd ticket comment list
       List all ticket comments.
 
     $cmd ticket comment show 4
       Show ticket comment 4 and all metadata.
+
+    $cmd ticket comments 9
+      Show all comments belonging to the ticket with id 9.
 EOF
 
 }

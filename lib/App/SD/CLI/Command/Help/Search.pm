@@ -12,7 +12,8 @@ print <<EOF
       List all tickets with a status that does not match 'closed'.
 
     $cmd ticket search --regex abc
-      List all tickets with content matching 'abc'.
+      List all tickets with content matching 'abc'. Regular
+      expressions are Perl regexes.
 
     $cmd ticket search -- status!=closed summary =~ http 
       List all tickets with a status that does match closed
@@ -22,17 +23,18 @@ print <<EOF
        List all tickets with a status that does not match 'closed', 
        grouped by owner.
 
-    $cmd ticket show 1234
+    $cmd ticket basics 1234
       Show basic information for the ticket with local id 1234.
 
-    $cmd ticket details 1234
+    $cmd ticket show 1234
       Show basic information and history for the ticket with local id 1234.
+      ('details' is an alias for 'show')
 
     $cmd ticket history 1234
       Show history for the ticket with local id 1234.
 
     $cmd ticket delete 1234
-      Deletes ticket with local id 1234.
+      Delete ticket with local id 1234.
 EOF
 
 }

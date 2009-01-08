@@ -1,4 +1,3 @@
-
 package App::SD::CLI::Command::Help::Sync;
 use Moose;
 extends 'App::SD::CLI::Command::Help';
@@ -43,6 +42,20 @@ print <<EOF
       PUBLIC WRITE ACCESS via HTTP POST.  This command will make your
       replica modifiable, browsable and pullable by ANYONE with remote
       access to your computer.
+
+    SD can sync to external systems as well as itself. Currently,
+    there are foreign replica types for RT (http://bestpractical.com/rt)
+    and Hiveminder (http://hiveminder.com/). If you're interested in
+    building a replica type for your bug tracker, you should get
+    in touch with SD's developers (see http://syncwith.us/contact).
+
+    $cmd push --to rt:http://rt3.fsck.com|rt3|Owner='jesse'
+      Push changes to the given foreign replica. Foreign replica
+      schemas will vary based on the replica type.
+
+    $cmd pull --from rt:http://rt3.fsck.com|rt3|Owner='jesse'
+      Pull changes from a foreign replica to be merged into the
+      local replica.
 EOF
 
 }
