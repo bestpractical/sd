@@ -36,7 +36,7 @@ sub integrate_change {
 
 
 
-my $TXN_METATYPE = 'txn-source';
+my $TXN_METATYPE = 'txns-pushed-to-foreign-dbs';
 sub _foreign_txn_id_storage {
     my $self = shift;
     return $self->state_handle->metadata_storage( $TXN_METATYPE, 'prophet-txn-source' );
@@ -51,17 +51,17 @@ Record that this replica was the original source of $foreign_transaction_id (wit
 sub record_pushed_transaction {
     my $self = shift;
     my %args = validate( @_,
-        { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
+        { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' }, record => 1 } );
 
     $self->_foreign_txn_id_storage->(
-        $self->uuid . '-txn-' . $args{transaction},
+        $self->uuid . '-record-'.$args{record}. '-txn-' . $args{transaction},
         join( ':',
             $args{changeset}->original_source_uuid,
             $args{changeset}->original_sequence_no )
     );
 }
 
-=head2 prophet_has_seen_foreign_transaction $transaction_id $foreign_record_id
+=head2 foreign_transaction_originated_locally $transaction_id $foreign_record_id
 
 Given an transaction id, will return true if this transaction originated in Prophet 
 and was pushed to RT or originated in RT and has already been pulled to the prophet replica.
@@ -79,10 +79,10 @@ remote replica when doing a subsequent pull
 
 =cut
 
-sub prophet_has_seen_foreign_transaction {
+sub foreign_transaction_originated_locally {
     my $self = shift;
     my ($id, $record) = validate_pos( @_, 1, 1);
-    return $self->_foreign_txn_id_storage->( $self->uuid . '-txn-' . $id );
+    return $self->_foreign_txn_id_storage->( $self->uuid .'-record-'.$record. '-txn-' .$id );
 }
 
 sub traverse_changesets {

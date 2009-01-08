@@ -142,7 +142,7 @@ sub find_matching_transactions {
         next if $txn < $args{'starting_transaction'}; 
         
         # Skip things we've pushed
-        next if $self->sync_source->prophet_has_seen_foreign_transaction($txn, $args{'ticket'});
+        next if $self->sync_source->foreign_transaction_originated_locally($txn, $args{'ticket'});
 
 
         my $txn_hash = $rt_handle->get_transaction(

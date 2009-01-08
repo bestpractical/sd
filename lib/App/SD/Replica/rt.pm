@@ -68,7 +68,8 @@ sub record_pushed_transactions {
         # XXX TODO - THIS IS WRONG - we should only be recording transactions we pushed
         $self->record_pushed_transaction(
             transaction => $txn->id,
-            changeset   => $args{'changeset'}
+            changeset   => $args{'changeset'},
+            record      => $args{'ticket'}
         );
     }
 }

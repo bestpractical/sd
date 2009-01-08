@@ -108,7 +108,7 @@ sub find_matching_transactions {
         
         
         # Skip things we've pushed
-        next if $self->sync_source->prophet_has_seen_foreign_transaction( $txn->{'id'}, $args{task} );
+        next if $self->sync_source->foreign_transaction_originated_locally( $txn->{'id'}, $args{task} );
 
         $txn->{history_entries} = $self->sync_source->hm->search( 'TaskHistory', transaction_id => $txn->{'id'} );
         $txn->{email_entries}   = $self->sync_source->hm->search( 'TaskEmail',   transaction_id => $txn->{'id'} );
