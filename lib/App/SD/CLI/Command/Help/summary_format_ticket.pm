@@ -19,8 +19,8 @@ summary_format_ticket = %5.5s },\$luid | %8.8s,status | %-52.52s,summary
 Let's deconstruct this example. It consists of three pairs. The first pair is
 '%5.5s },\$luid'. The first item of the pair should look somewhat familiar to
 anyone who's programmed in Perl or C before. It consists of a format string,
-like that used in C's printf function and Perl's sprintf function, and can be
-prefixed or followed by any other characters (' }' in this case).
+like that used in Perl's and C's printf function, and can be prefixed or
+followed by any other characters (' }' in this case).
 
 The second item is the property to be formatted. It can be any ticket property,
 but if you want the local uid (luid) or the universal uid (uuid), it must be
