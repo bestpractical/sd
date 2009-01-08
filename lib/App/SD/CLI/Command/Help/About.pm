@@ -9,25 +9,24 @@ sub run {
 
 print <<EOF
 sd is a peer-to-peer replicated ticket tracking system built on the
-Prophet dataabase and synchronization framework. sd is designed for
+Prophet database and synchronization framework. sd is designed for
 inter-organization replication and sharing, as well as offline
-operation.  For more information, join us at http://syncwith.us.
-
-AUTHORS: (in alphabetical order)
+operation. For more information, join us at http://syncwith.us/.
 
 sd was originally conceived and designed by Jesse Vincent and Chia-liang
 Kao at Best Practical Solutions. Many others have contributed to sd.
 For a full author list, type:
+
     $cmd help authors
 
 sd is open-source software, distributed under the terms of the MIT
-license.  You are free to use this software, modify it and redistribute
+license. You are free to use this software, modify it and redistribute
 your changed version. You are not required to share your changes
 to this software, however, the authors would appreciate it if you
 would contribute improvements so that they may be shared with the
 community. For license details, type:
-    $cmd help copying
 
+    $cmd help copying
 EOF
 
 }

@@ -12,7 +12,7 @@ SD is a peer to peer ticket tracking system built on the Prophet
 distributed database. SD is designed to make it easy to work with tickets
 and to share ticket databases with your collaborators.
 
-To get started with SD, you need an ticket database. To get an ticket 
+To get started with SD, you need a ticket database. To get an ticket 
 database, you have two options: You can clone an existing database
 or start a new one.
 
@@ -20,7 +20,7 @@ SD will store its local database replica in the ".sd" directory in your
 home directory. You can override this behaviour by setting the SD_REPO
 environment variable.
 
-To clone an ticket database:
+To clone a ticket database:
 
     $cmd clone --from http://example.com/path/to/sd
 
@@ -37,9 +37,8 @@ To publish your database:
     $cmd publish --to joeuser\@myhost.example.com:public_html/mydb
 
 To learn a bit more about what you can do with SD:
-    
-    $cmd help
 
+    $cmd help
 EOF
 
 }

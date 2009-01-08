@@ -8,31 +8,31 @@ sub run {
     my $cmd = $self->_get_cmd_name;
 
 print <<EOF
- $cmd ticket search
-     List all tickets with a status that does not match 'closed'
- 
- $cmd ticket search --regex abc
-     List all tickets with content matching 'abc'
- 
- $cmd ticket search -- status!=closed summary =~ http 
-     List all tickets with a status that does match closed
-     and a summary matching 'http'
+    $cmd ticket search
+      List all tickets with a status that does not match 'closed'.
 
- $cmd ticket search --group owner
-      List all tickets with a status that does not match 'closed', 
-      grouped by owner
+    $cmd ticket search --regex abc
+      List all tickets with content matching 'abc'.
 
- $cmd ticket show 1234
-     Show basic information for the ticket with local id 1234
- 
- $cmd ticket details 1234
-     Show basic information and history for the ticket with local id 1234
- 
- $cmd ticket history 1234
-     Show history for the ticket with local id 1234
- 
- $cmd ticket delete 1234
-     Deletes ticket with local id 1234
+    $cmd ticket search -- status!=closed summary =~ http 
+      List all tickets with a status that does match closed
+      and a summary matching 'http'.
+
+    $cmd ticket search --group owner
+       List all tickets with a status that does not match 'closed', 
+       grouped by owner.
+
+    $cmd ticket show 1234
+      Show basic information for the ticket with local id 1234.
+
+    $cmd ticket details 1234
+      Show basic information and history for the ticket with local id 1234.
+
+    $cmd ticket history 1234
+      Show history for the ticket with local id 1234.
+
+    $cmd ticket delete 1234
+      Deletes ticket with local id 1234.
 EOF
 
 }

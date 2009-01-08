@@ -8,16 +8,15 @@ sub run {
     my $cmd = $self->_get_cmd_name;
 
 print <<EOF
-== Working with ticket attachments
- 
- $cmd ticket attachment create 456 --file bugfix.patch
-     Create a new attachment on this ticket from the file 'bugfix.patch'.    
- 
- $cmd ticket attachment list 456
-     Show all attachemnts on ticket 456
- 
- $cmd ticket attachment content 567
-     Send the content of attachment 567 to STDOUT
+
+    $cmd ticket attachment create 456 --file bugfix.patch
+      Create a new attachment on this ticket from the file 'bugfix.patch'.
+
+    $cmd ticket attachment list 456
+      Show all attachemnts on ticket 456.
+
+    $cmd ticket attachment content 567
+      Send the content of attachment 567 to STDOUT.
 EOF
 
 }

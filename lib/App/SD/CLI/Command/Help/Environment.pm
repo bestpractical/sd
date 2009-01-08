@@ -5,39 +5,41 @@ extends 'App::SD::CLI::Command::Help';
 sub run {
     my $self = shift;
     $self->print_header('Environment variables');
+    my $cmd = $self->_get_cmd_name;
 
 print <<EOF
 
-  export PROPHET_DEVEL=1
-    Turn on various development mode checks, warnings and autoreloading
-    of modules
+The following environmental variables can be set to affect SD's
+configuration. Example syntax is for bash-like shells.
 
-  export PROPHET_USER=name
-    Use 'name' as the creator of changesets
+    export PROPHET_DEVEL=1
+      Turn on various development mode checks, warnings and autoreloading
+      of modules.
 
-  export EMAIL=jesse\@example.com
-    Use jesse\@example.com as the default email address for reporting 
-    tickets
+    export PROPHET_USER=name
+      Use 'name' as the creator of changesets.
 
-  export PROPHET_REPLICA_TYPE=prophet
-    Use the prophet native replica type. In the future other backend
-    replica types may be available
+    export EMAIL=jesse\@example.com
+      Use jesse\@example.com as the default email address for reporting 
+      tickets.
 
-  export SD_REPO=/path/to/sd/replica
-    Specify where the ticket database SD is using should reside
+    export PROPHET_REPLICA_TYPE=prophet
+      Use the prophet native replica type. In the future other backend
+      replica types may be available.
 
-  export SD_CONFIG=/path/to/sd/config/file
-    Specify where the configuration file SD is using should reside
+    export SD_REPO=/path/to/sd/replica
+      Specify where the ticket database SD is using should reside.
 
+    export SD_CONFIG=/path/to/sd/config/file
+      Specify where the configuration file SD is using should reside.
 
-  export PROPHET_HISTFILE=~/.sd-history
-    Specify where the interactive shell should store its history
+    export PROPHET_HISTFILE=~/.sd-history
+      Specify where the interactive shell should store its history.
 
-  export PROPHET_HISTLENGTH=100
-    Specify how much history the interactive shell should store
+    export PROPHET_HISTLENGTH=100
+      Specify how much history the interactive shell should store.
 
-
-
+For information on SD database configuration files, see '$cmd help config'.
 EOF
 
 }

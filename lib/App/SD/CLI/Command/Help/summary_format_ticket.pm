@@ -4,7 +4,7 @@ extends 'App::SD::CLI::Command::Help';
 
 sub run {
     my $self = shift;
-    $self->print_header('The summary_format_ticket Configuration Option');
+    $self->print_header('The summary_format_ticket configuration option');
 
 print <<EOF
 The summary_format_ticket configuration directive consists of any number
@@ -14,7 +14,7 @@ affect the summary format.
 
 Here is an example:
 
-summary_format_ticket = %5.5s },\$luid | %8.8s,status | %-52.52s,summary
+    summary_format_ticket = %5.5s },\$luid | %8.8s,status | %-52.52s,summary
 
 Let's deconstruct this example. It consists of three pairs. The first pair is
 '%5.5s },\$luid'. The first item of the pair should look somewhat familiar to

@@ -5,21 +5,34 @@ extends 'App::SD::CLI::Command::Help';
 sub run {
     my $self = shift;
     $self->print_header('Configuration Options');
+    my $cmd = $self->_get_cmd_name;
 
 print <<EOF
-  SD supports both a user-wide configuration (\$HOME/.sdrc and per-database
-  configuration (/path/to/repo/sdrc). If both configuration files are present,
-  the database-specific config file will be used.
+SD supports both a user-wide configuration file (\$HOME/.sdrc and
+per-database configuration file (/path/to/repo/sdrc). If both configuration
+files are present, the database-specific config file will be used.
 
-  Currently, the following configuration variables are available:
+Currently, the following configuration variables are available:
 
-  email_address = foo\@bar.com
-    Specifies an email address to use as the default for tickets'
-    reporter field.
+    email_address = foo\@bar.com
+      Specifies an email address to use as the default for tickets'
+      reporter field. (Overrides the EMAIL environmental variable if
+      that is also set.)
 
-  summary_format_ticket = %4s },\$luid | %-11.11s,status | %-60.60s,summary
-    Specifies how to format ticket summaries (when listing tickets, e.g.).
-    (See also: help summary_format_ticket.)
+    summary_format_ticket = %4s },\$luid | %-11.11s,status | %-60.60s,summary
+      Specifies how to format ticket summaries (when listing tickets, e.g.).
+      (See also: help summary_format_ticket.)
+
+    default_sort_ticket_list = 
+      Bug property to determine order of display when listing tickets. (Can
+      be any property; will be compared lexically.)
+
+    default_group_ticket_list = milestone
+      Bug property to group tickets by when displaying lists. (Can be any
+      property.)
+
+For information on environmental variables that can affect SD, see
+'$cmd help environment'.
 EOF
 
 }
