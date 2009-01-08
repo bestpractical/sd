@@ -1,19 +1,15 @@
 package App::SD::Server::Dispatcher;
 use Prophet::Server::Dispatcher -base;
 
-on qr'(.*)' => sub {
 
-        next_rule;
-        };
-on qr '.' => sub {
+on qr'.' => sub {
     my $self = shift;
-    if ( my $result = $self->server->result->get('create-ticket') ) {
-        if ( $result->success ) {
+    my $result = $self->server->result->get('create-ticket');
+        if ( $result &&  $result->success ) {
             $self->server->_send_redirect( to => '/ticket/' . $result->record_uuid );
-        }
+    } else {
+        next_rule;
     }
-    next_rule;
-
 };
 
 on qr'.' => sub {
@@ -45,9 +41,8 @@ on qr'.' => sub {
 
 
 under 'POST' => sub {
-    on 'records' => sub { next_rule;};
-    on qr'^POST/ticket/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/ticket/' . $1 ); };
-    on qr'^POST/(.*)$' => sub { shift->server->_send_redirect( to => $1 ); }
+    on qr'^ticket/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/ticket/' . $1 ); };
+    on qr'^(?!records)$' => sub { shift->server->_send_redirect( to => $1 ); };
 };
 
 

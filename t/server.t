@@ -9,7 +9,7 @@ BEGIN {
 
 }
 
-use Prophet::Test tests => 17;
+use Prophet::Test tests => 19;
 use App::SD::Server;
 use Test::WWW::Mechanize;
 use JSON;
@@ -72,6 +72,16 @@ like( $ua->content, qr/SD for Your SD Project/ );
 $ua->follow_link( text_regex => qr/New ticket/);
 $ua->content_contains ('Create a new ticket');
 
+
+$ua->submit_form(form_number => 2,
+                 fields => {
+                        'prophet-field-function-create-ticket-prop-owner' => 'jesse@example.com',
+                        'prophet-field-function-create-ticket-prop-summary' => 'Test ticket',
+
+                 });
+
+$ua->content_contains('Test ticket');
+$ua->title_like(qr/^(\d+): Test ticket/);
 
 sub start_server {
     my $server_cli = App::SD::CLI->new();

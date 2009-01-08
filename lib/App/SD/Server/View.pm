@@ -287,7 +287,7 @@ template edit_ticket => page {
         );
         $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       title is $ticket->luid.": ".$ticket->prop('summary');
+       title is "Update ticket: ". $ticket->luid.": ".$ticket->prop('summary');
 
     ul { {class is 'actions'};
         li { a {{ href is '/ticket/'.$ticket->uuid.''}; 'Show'}; };
@@ -300,11 +300,11 @@ template edit_ticket => page {
             order => 1,
             name => 'edit-ticket'
         );
-        for my $prop (
-            'summary', 'status', 'milestone', 'component',  'owner',  'due',     'reporter'
-            ) {
+        for my $prop ( 'summary', 'status', 'milestone', 'component',  
+                       'owner',  'due',     'reporter') {
 
-            div { { class is 'widget $prop'}; widget( function => $f, prop => $prop ) };
+            div { { class is "widget $prop"}; 
+                    widget( function => $f, prop => $prop ) };
         }
         h2 { 'Comments' };
 
@@ -316,20 +316,20 @@ template edit_ticket => page {
             name => 'update-ticket-comment'
         );
 
-            param_from_function(
-                function      => $c,
-                prop          => 'ticket',
-                from_function => $f,
-                from_result   => 'record_uuid'
-            );
+           hidden_param( function      => $c, 
+                          prop          => 'ticket', 
+                          value =>  $ticket->uuid);
         for my $prop (qw(content)) {
-
-            div { widget( function => $c, prop => $prop, type => 'textarea', autocomplete => 0)};
+            div { widget( function => $c, prop => $prop, 
+                            type => 'textarea', autocomplete => 0)};
         }
 
         input { attr { label => 'save', type => 'submit' } };
     };
 };
+
+
+
 template new_ticket => page {'Create a new ticket'} content {
     my $self = shift;
 
