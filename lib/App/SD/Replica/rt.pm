@@ -136,11 +136,6 @@ SD::Source::RT->recode_ticket
 
 =cut
 
-=head2 setup
-
-
-=cut
-
 __PACKAGE__->meta->make_immutable;
 no Moose;
 

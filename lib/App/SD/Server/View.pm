@@ -411,6 +411,7 @@ private template 'ticket_list' => sub {
             row {
             th { 'id'};
             th {'Status'};
+            th {'Owner'};
             th {'Summary'};
             th {'Created'};
             }
@@ -420,10 +421,10 @@ private template 'ticket_list' => sub {
             row {
 
                 cell { ticket_link( $ticket => $ticket->luid );};
-                cell{ class is 'status';  $ticket->prop('status') };
-                cell { class is 'summary'; $ticket->prop('summary') };
-                cell { class is 'created'; $ticket->prop('created') };
+                for (qw(status owner summary created)) {
 
+                cell{ class is $_;  $ticket->prop($_) };
+                }
                 }
 
             }
