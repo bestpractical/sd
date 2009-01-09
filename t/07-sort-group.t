@@ -2,7 +2,7 @@
 
 use strict;
 
-use Prophet::Test tests => 9;
+use Prophet::Test tests => 11;
 use App::SD::Test;
 use File::Temp qw/tempdir/;
 use Path::Class;
@@ -51,6 +51,13 @@ run_output_matches( 'sd', [ 'ticket', 'list' ],
     ]
 );
 
+diag('blank sort arg shouldn\'t override valid default sort');
+run_output_matches( 'sd', [ 'ticket', 'list', '--sort' ],
+    [ qr/(\d+) huzzah! new/,
+      qr/(\d+) YATTA new/,
+    ]
+);
+
 diag('using default_sort_ticket_list = owner and --sort none');
 run_output_matches( 'sd', [ 'ticket', 'list', '--sort', 'none' ],
     [ qr/(\d+) YATTA new/,
@@ -82,6 +89,21 @@ App::SD::Test->write_to_file($config_filename,
 $ENV{'SD_CONFIG'} = $config_filename;
 
 run_output_matches( 'sd', [ 'ticket', 'list' ],
+    [ '',
+      qr/(alpha\@bravo.org|foo\@bar.com)/,
+      qr/(===============|===========)/,
+      '',
+      qr/((\d+) huzzah! new|(\d+) YATTA new)/,
+      '',
+      qr/(alpha\@bravo.org|foo\@bar.com)/,
+      qr/(===============|===========)/,
+      '',
+      qr/((\d+) huzzah! new|(\d+) YATTA new)/,
+    ]
+);
+
+diag('blank group arg shouldn\'t override valid default grouping');
+run_output_matches( 'sd', [ 'ticket', 'list', '--group' ],
     [ '',
       qr/(alpha\@bravo.org|foo\@bar.com)/,
       qr/(===============|===========)/,
