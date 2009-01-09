@@ -35,8 +35,15 @@ override run => sub {
         }
     }
 
-    print "\n= HISTORY\n\n";
-    print $record->history_as_string;
+    # allow user to not display history by specifying the --skip-history
+    # arg or setting disable_ticket_show_history_by_default config item to a
+    # true value (can be overridden with --show-history)
+    if (!$self->has_arg('skip-history') && (!$self->app_handle->config->get(
+                'disable_ticket_show_history_by_default') ||
+            $self->has_arg('show-history'))) {
+        print "\n= HISTORY\n\n";
+        print $record->history_as_string;
+    }
 };
 
 __PACKAGE__->meta->make_immutable;
