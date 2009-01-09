@@ -7,7 +7,7 @@ with 'App::SD::CLI::Command';
 before run => sub {
     my $self = shift;
 
-    if (  (!$self->has_arg('sort') || !$self->arg('group'))
+    if (  (!$self->has_arg('sort') || !$self->arg('sort'))
         && $self->app_handle->config->get('default_sort_ticket_list') )
     {
         $self->set_arg(
