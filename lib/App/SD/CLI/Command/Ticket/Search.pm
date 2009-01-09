@@ -22,11 +22,10 @@ before run => sub {
               $self->app_handle->config->get('default_group_ticket_list') );
     }
 
-    # sort output by created date if user specifies --sort
-    if ( $self->has_arg('sort') && ( $self->arg('sort') ne 'none' ) ) {
+    # sort output by given prop if user specifies --sort
+    if ( $self->has_arg('sort') && $self->arg('sort')
+            && ( $self->arg('sort') ne 'none' ) ) {
 
-        # some records might not have creation dates
-        no warnings 'uninitialized';
         $self->sort_routine(
             sub {
                 my $records = shift;
@@ -35,7 +34,8 @@ before run => sub {
         );
     }
 
-    if ( $self->has_arg('group') && ( $self->arg('group') ne 'none' ) ) {
+    if ( $self->has_arg('group') && $self->arg('group') && (
+            $self->arg('group') ne 'none' ) ) {
         $self->group_routine(
             sub {
                 my $records = shift;
