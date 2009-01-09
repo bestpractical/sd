@@ -8,8 +8,10 @@ sub run {
     my $cmd = $self->_get_cmd_name;
 
 print <<EOF
+
     $cmd ticket search
       List all tickets with a status that does not match 'closed'.
+      Note that 'list' is an alias for 'search'.
 
     $cmd ticket search --regex abc
       List all tickets with content matching 'abc'. Regular
@@ -24,11 +26,20 @@ print <<EOF
        grouped by owner.
 
     $cmd ticket basics 1234
-      Show basic information for the ticket with local id 1234.
+      Show basic information (metadata only) for the ticket with local id 1234.
 
     $cmd ticket show 1234
-      Show basic information and history for the ticket with local id 1234.
-      ('details' is an alias for 'show')
+      Show basic information, comments, and history for the ticket with local
+      id 1234.  ('details' is an alias for 'show')
+
+    $cmd ticket show 1234 --skip-history
+      Show only metadata and comments for the ticket 1234 (but not
+      history).
+
+    $cmd ticket show 1234 --show-history
+      Override the disable_ticket_show_history_by_default config option
+      if it is set for this database. (See '$cmd help config' for
+      more info.)
 
     $cmd ticket history 1234
       Show history for the ticket with local id 1234.

@@ -31,6 +31,11 @@ Currently, the following configuration variables are available:
       Bug property to group tickets by when displaying lists. (Can be any
       property.)
 
+    disable_ticket_show_history_by_default = 1
+      Don't display ticket history when running '$cmd ticket show'. Can
+      be overridden by passing the '--show-history' arg to the
+      command.
+
 For information on environmental variables that can affect SD, see
 '$cmd help environment'.
 EOF
