@@ -16,7 +16,6 @@ template '/css/sd.css' => sub {
 
         outs_raw( '
 
-
 body {
   font-family: sans-serif;
   background: #601;
@@ -48,18 +47,9 @@ div.project-name {
 }
 
 h1 {
-   padding-top:  0.5em;
-}
-
-div.ticket_list ul {
-   list-style-type:none;
-}
-
-div.ticket_list ul li {
-   clear: both;
-   padding-bottom: 2em;
-   border-bottom: 1px solid #ccc;
-   margin-bottom: 1em;
+   padding:  0.5em;
+   font-size: 1.4em;
+   background: #ffc;
 }
 
 div.ticket_list ul li span {
@@ -82,26 +72,6 @@ th.headerSortDown {
     background: #ccc;
 }
 
-ul.ticket_list {
-    border: 1px solid grey;
-    -moz-border-radius: 0.5em;
-    -webkit-botder-radius: 0.5em;
-}
-
-div.ticket_list ul li span.summary {
-    width: 70%;
-}
-
-div.ticket_list ul li span.ticket-link {
-    width: 2em;
-    text-align: right;
-}
-
-div.ticket_list ul li span.status {
-    width: 3em;
-}
-
-
 ul.page-nav {
     float: right;
     margin-top: 0.5em;
@@ -111,8 +81,17 @@ ul.page-nav {
 
 ul.page-nav li ul li {
     backgrond: #c00;
+}
+
+ul.comments {
+    list-style: none;
+}
+
+ul.comments span.metadata {
+    color: #666; 
 
 }
+
 
 textarea:focus, input:focus {
     background-color: #eec; 
@@ -146,18 +125,24 @@ label.prop-content {
 
 div.widget label {
     display: inline-block;
-    width: 6em;
+    width: 8em;
     font-size: 0.8em;
     text-align: right;
     padding-right: 0.5em;
+    color: #666;
+    font-weight: bold;
 }
+
 div.widget div.value {
     display: inline-block;
-    
-
 }
+
 div.widget {
     padding: 0.5em;
+    margin-left: 1em;
+    margin-right: 1em;
+    border-bottom: 1px solid #ccc;
+    border-top: 1px solid #ccc;
 }
 
 
@@ -182,6 +167,74 @@ ul.page-nav {
 
 ul.page-nav a {
     border-top: 1px solid #eee;
+}
+
+.prop-summary {
+    width: 80%;
+
+}
+
+
+.widget:nth-child(odd) {
+    background: #f5f5f5;
+}
+
+
+.widget>.widget {
+    border-top: none;
+}
+
+dl.history dt {
+    margin-top: 0.5em; 
+    border-top: 1px solid #ccc;
+    padding: 0.5em;
+    color: #666; 
+}
+
+dl.history dt .created {
+    padding-right: 1em;
+
+}
+
+dl.history dt .creator {
+    width: 10em;
+    display: inline-block;
+}
+
+dl.history dt .original_sequence_no {
+    color: #ccc;
+}
+
+dl.history dt .original_sequence_no:after {
+    content: " @ ";
+}
+dl.history dt .original_source_uuid {
+    color: #ccc;
+}
+
+dl.history dd ul { 
+    list-style: none;
+}
+
+ul.comments li {
+    border-top: 1px solid #ccc;
+    padding: 0.5em;
+    margin-left: 1em;
+    margin-right: 1em;
+    border-bottom: 1px solid #ccc;
+
+}
+
+ul.comments li .content {
+    margin-top: 1em;
+    white-space: pre;
+    font-family: monospace;
+    font-size: 0.9em;
+    overflow-x: auto;
+}
+
+ul.comments li:nth-child(odd) {
+    background: #f5f5f5;
 }
 
 ' );
@@ -300,13 +353,17 @@ template edit_ticket => page {
             order => 1,
             name => 'edit-ticket'
         );
-        for my $prop ( 'summary', 'status', 'milestone', 'component',  
+        for my $prop ('summary') { 
+            div { { class is "widget $prop"}; 
+                    widget( function => $f, prop => $prop, autocomplete => 0 ) };
+                    }
+        for my $prop ('status', 'milestone', 'component',  
                        'owner',  'due',     'reporter') {
 
             div { { class is "widget $prop"}; 
                     widget( function => $f, prop => $prop ) };
         }
-        h2 { 'Comments' };
+        h2 { 'Add a comment' };
 
         my $c = function(
             record => App::SD::Model::Comment->new(     
@@ -342,8 +399,16 @@ template new_ticket => page {'Create a new ticket'} content {
             order => 1,
             name => 'create-ticket'
         );
+        for my $prop ('summary') {
+            div {
+                { class is "widget $prop" };
+                widget( function => $f, prop => $prop, autocomplete => 0 );
+            };
+        }
+
+
         for my $prop (
-            'summary', 'status', 'milestone', 'component',  
+            'status', 'milestone', 'component',  
             'reporter',
             'owner',  'due',     
             ) {
@@ -351,7 +416,7 @@ template new_ticket => page {'Create a new ticket'} content {
             div { {class is 'widget '.$prop};
                  widget( function => $f, prop => $prop ) };
         }
-        h2 { 'Comments' };
+        h2 { 'Initial comments on this ticket' };
 
         my $c = function(
             record => App::SD::Model::Comment->new(     
@@ -422,7 +487,6 @@ private template 'ticket_list' => sub {
 
                 cell { ticket_link( $ticket => $ticket->luid );};
                 for (qw(status owner summary created)) {
-
                 cell{ class is $_;  $ticket->prop($_) };
                 }
                 }
@@ -498,16 +562,17 @@ template ticket_history => sub {
    
     h2 { 'History'};
     
-    ul {
+    dl { { class is 'history'};
     for my $changeset  (sort {$a->created cmp $b->created}  $ticket->changesets) {
-        li {
-            ul { 
-                li { $changeset->created. " ". $changeset->creator };
-                li { $changeset->original_sequence_no. ' @ ' . $changeset->original_source_uuid };
-            
+        dt {
+                span { { class is 'created'};  $changeset->created};
+                span { { class is 'creator'};  $changeset->creator || i { 'Missing author'};  };
+                span { { class is 'original_sequence_no'};  $changeset->original_sequence_no};
+                span { { class is 'original_source_uuid'}; $changeset->original_source_uuid };
+                };
+        dd { 
                 for my $change ($changeset->changes) {
                     next unless $change->record_uuid eq $ticket->uuid;
-                    li {
                         ul {
                             map { li {$_->summary} } $change->prop_changes;
                         };
@@ -516,8 +581,6 @@ template ticket_history => sub {
             }
         }
     }
-}
-    };
 
 };
 
@@ -526,12 +589,13 @@ template ticket_comments => sub {
     my $ticket    = shift;
     my @comments = sort  @{ $ticket->comments };
     if (@comments) {
-        h2 {'Comments'};
-        ul {
+        h2 { { class is 'conmments'};  'Comments'};
+        ul { { class is 'comments'}; 
             for my $comment (@comments) {
                 li {
-                    span { $comment->prop('created') . " " . $comment->prop('creator'); }
-                    blockquote { $comment->prop('content'); };
+                    span { {class is 'metadata'};  $comment->prop('created') . " " . $comment->prop('creator'); }
+                    div { class is 'content'; 
+                        $comment->prop('content') || i { 'No body was entered for this comment'} };
                 }
             }
         }
