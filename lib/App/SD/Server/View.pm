@@ -80,7 +80,7 @@ ul.page-nav {
 
 
 ul.page-nav li ul li {
-    background: #c00;
+    background: #ddd;
 }
 
 ul.comments {
