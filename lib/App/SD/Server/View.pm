@@ -13,7 +13,6 @@ use App::SD::Collection::Ticket;
 
 
 template '/css/sd.css' => sub {
-
         outs_raw( '
 
 body {
@@ -22,7 +21,8 @@ body {
   margin: 0;
   padding: 0;
 }
-    
+  
+
 div.page {
     align: center;
     max-width: 800px;
@@ -80,7 +80,7 @@ ul.page-nav {
 
 
 ul.page-nav li ul li {
-    backgrond: #c00;
+    background: #c00;
 }
 
 ul.comments {
@@ -92,11 +92,11 @@ ul.comments span.metadata {
 
 }
 
-
-textarea:focus, input:focus {
-    background-color: #eec; 
-    }
-
+textarea:focus, input:focus { 
+   padding: 2px;
+   padding-left: 1px;
+   background-color: #ffc;
+}
 
 input[type=submit] {
     background: #1133AA;
@@ -107,7 +107,6 @@ input[type=submit] {
     top: 1em;
     left: 38.5em;
 }
-
 input[type=submit]:hover {
     background: #002299; 
 }
@@ -145,7 +144,6 @@ div.widget {
     border-top: 1px solid #ccc;
 }
 
-
 ul.page-nav li {
     background: #ddd;
     border: 0;
@@ -154,15 +152,13 @@ ul.page-nav li {
 ul.page-nav li:hover,
 ul.page-nav li.sfHover,
 ul.page-nav a:focus,
-ul.page-nav a:hover, ul.page-nav a:active
-{ 
+ul.page-nav a:hover, ul.page-nav a:active { 
     background: #ccc;
 }
 
 ul.page-nav {
     padding: 0;
     background: #601;
-
 }
 
 ul.page-nav a {
@@ -173,7 +169,6 @@ ul.page-nav a {
     width: 80%;
 
 }
-
 
 .widget:nth-child(odd) {
     background: #f5f5f5;
@@ -208,6 +203,7 @@ dl.history dt .original_sequence_no {
 dl.history dt .original_sequence_no:after {
     content: " @ ";
 }
+
 dl.history dt .original_source_uuid {
     color: #ccc;
 }
@@ -222,7 +218,6 @@ ul.comments li {
     margin-left: 1em;
     margin-right: 1em;
     border-bottom: 1px solid #ccc;
-
 }
 
 ul.comments li .content {
@@ -236,6 +231,7 @@ ul.comments li .content {
 ul.comments li:nth-child(odd) {
     background: #f5f5f5;
 }
+
 
 ' );
 };
