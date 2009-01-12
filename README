@@ -1,7 +1,5 @@
-to run all tests including rt and hm:
+SD is a peer-to-peer replicated distributed issue tracker.
 
-JIFTY_APP_ROOT=/Users/clkao/work/bps/BTDT RT_DBA_USER=root RT_DBA_PASSWORD= PERL5LIB=/Users/clkao/work/bps/rt-3.7/lib make test
+http://syncwith.us
 
-to collect coverage:
-
-JIFTY_APP_ROOT=/Users/clkao/work/bps/BTDT RT_DBA_USER=root RT_DBA_PASSWORD= PERL5LIB=/Users/clkao/work/bps/rt-3.7/lib cover -test
+Copyright 2008-2009 Best Practical Solutions. Distributed under the terms of the MIT License

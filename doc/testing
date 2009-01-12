@@ -1,0 +1,7 @@
+To run all tests including rt and hm:
+
+JIFTY_APP_ROOT=/Users/clkao/work/bps/BTDT RT_DBA_USER=root RT_DBA_PASSWORD= PERL5LIB=/Users/clkao/work/bps/rt-3.7/lib make test
+
+to collect coverage:
+
+JIFTY_APP_ROOT=/Users/clkao/work/bps/BTDT RT_DBA_USER=root RT_DBA_PASSWORD= PERL5LIB=/Users/clkao/work/bps/rt-3.7/lib cover -test
