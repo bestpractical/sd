@@ -43,11 +43,11 @@ print <<EOF
       replica modifiable, browsable and pullable by ANYONE with remote
       access to your computer.
 
-    SD can sync to external systems as well as itself. Currently,
-    there are foreign replica types for RT (http://bestpractical.com/rt)
-    and Hiveminder (http://hiveminder.com/). If you're interested in
-    building a replica type for your bug tracker, you should get
-    in touch with SD's developers (see http://syncwith.us/contact).
+SD can sync to external systems as well as itself. Currently, there are foreign
+replica types for RT (http://bestpractical.com/rt) and Hiveminder
+(http://hiveminder.com/). If you're interested in building a replica type for
+your bug tracker, you should get in touch with SD's developers (see
+http://syncwith.us/contact).
 
     $cmd push --to rt:http://rt3.fsck.com|rt3|Owner='jesse'
       Push changes to the given foreign replica. Foreign replica
