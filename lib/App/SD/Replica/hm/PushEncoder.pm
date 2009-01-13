@@ -153,6 +153,7 @@ sub integrate_ticket_create {
     $self->sync_source->record_pushed_transaction(
         transaction => $txns->[0]->{id},
         changeset => $changeset,
+        record => $tid
     );
 
     return $tid;
