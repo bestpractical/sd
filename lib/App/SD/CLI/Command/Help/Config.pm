@@ -23,7 +23,7 @@ Currently, the following configuration variables are available:
       Specifies how to format ticket summaries (when listing tickets, e.g.).
       (See also: help summary_format_ticket.)
 
-    default_sort_ticket_list = 
+    default_sort_ticket_list = status
       Bug property to determine order of display when listing tickets. (Can
       be any property; will be compared lexically.)
 
