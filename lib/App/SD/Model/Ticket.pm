@@ -163,10 +163,8 @@ from first to last).
 sub props_to_show {
     my $self = shift;
     my $args = shift || {};
-    return qw(
-        id summary status milestone component owner
-        created due creator reporter original_replica
-    ) unless $args->{'verbose'};
+    return @{ $self->app_handle->setting(label => 'default_props_to_show')->get() }
+        unless $args->{'verbose'};
 
     return $self->declared_props;
 }

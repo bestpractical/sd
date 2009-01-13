@@ -22,9 +22,9 @@ sub database_settings {
         milestones          => ['1AF5CF74-A6D4-417E-A738-CCE64A0A7F71' => qw/alpha beta 1.0/],
         default_milestone   => ['BAB613BD-9E25-4612-8DE3-21E4572859EA' => 'alpha'],
 
-        project_name        => ['3B4B297C-906F-4018-9829-F7CC672274C9' => 'Your SD Project']
+        project_name        => ['3B4B297C-906F-4018-9829-F7CC672274C9' => 'Your SD Project'],
+        default_props_to_show    => ['3f0a074f-af13-406f-bf7b-d69bbf360720' => qw/id summary status milestone component owner created due creator reporter original_replica/],
     };
-
 }
 
 __PACKAGE__->meta->make_immutable;
