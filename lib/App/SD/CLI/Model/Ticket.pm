@@ -77,7 +77,7 @@ sub _build_separator {
 Creates a string representing a new record, prefilling default props
 and props specified on the command line. Intended to be presented to
 the user for editing using L<Prophet::CLI::Command->edit>
-and then parsed using L</create_record_template>.
+and then parsed using L</parse_record_template>.
 
 If RECORD is given, then we are updating that record rather than
 creating a new one, and the ticket string will be created from its
@@ -105,7 +105,7 @@ sub create_record_template {
     # the props that will be added to the new ticket and prevent
     # users from being able to break things by changing props
     # that shouldn't be changed, such as uuid
-   #
+    #
     # filter out props we don't want to present for editing
     my %do_not_edit = map { $_ => 1 } @do_not_edit;
    
