@@ -153,20 +153,56 @@ sub color_prop_due {
     return $due;
 }
 
-=head2 props_to_show
+=head2 props_to_show { 'all-props' => 1 }
 
 A list of which properties to display for the C<show> command (in order
 from first to last).
+
+If called with 'all-props' as a true value, will return all the
+declared props of a ticket rather than the predefined list of ones
+to show. (Should not be called this way during a ticket create as
+new tickets have no declared properties.)
 
 =cut
 
 sub props_to_show {
     my $self = shift;
     my $args = shift || {};
-    return @{ $self->app_handle->setting(label => 'default_props_to_show')->get() }
-        unless $args->{'verbose'};
+    my $props_list = $self->app_handle->setting(label =>
+        'default_props_to_show')->get();
 
-    return $self->declared_props;
+    return @{$props_list} unless $args->{'all-props'};
+
+    return _create_prop_ordering( hash_to_order => $self->get_props,
+                                  order => $props_list);
+}
+
+=head2 _create_prop_ordering hash_to_order => $hashref, order => $arrayref
+
+Given references to a hash and an array, return an array of the keys of the
+hash in the order specified by the array, with any extra keys at the end of the
+ordering.
+
+=cut
+
+sub _create_prop_ordering {
+    my %args = @_;
+    my %props = %{$args{hash_to_order}};
+    my @order = @{$args{order}};
+    my @new_props_list;
+
+    # if props in the ordering are in the hash, add them to
+    # the new ordering
+    for my $prop (@order) {
+        if ( $props{$prop} || $prop eq 'id' ) {
+            push @new_props_list, $prop;
+            delete $props{$prop};
+        }
+    }
+    # add hash keys not in the ordering to the end of the new ordering
+    push @new_props_list, keys %props;
+
+    return @new_props_list;
 }
 
 =head2 immutable_props
