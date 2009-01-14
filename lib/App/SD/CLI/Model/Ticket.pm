@@ -72,7 +72,7 @@ sub _build_separator {
 }
 
 
-=head2 create_record_template RECORD
+=head2 create_record_template [ RECORD ]
 
 Creates a string representing a new record, prefilling default props
 and props specified on the command line. Intended to be presented to
@@ -108,8 +108,7 @@ sub create_record_template {
     #
     # filter out props we don't want to present for editing
     my %do_not_edit = map { $_ => 1 } @do_not_edit;
-   
-    
+
     for my $prop ( $record->props_to_show ) {
         if ( $do_not_edit{$prop}) {
             if ( $prop eq 'id' && $update ) {
@@ -151,11 +150,16 @@ sub create_record_template {
 
     my $immutable_props_string = $self->_build_kv_pairs(
         order => \@metadata_order,
-        data  => \%immutable_props
+        data  => \%immutable_props,
+        verbose => $self->has_arg('verbose'),
+        record => $record,
     );
+
     my $editable_props_string = $self->_build_kv_pairs(
         order => \@editable_order,
-        data  => \%editable_props
+        data  => \%editable_props,
+        verbose => $self->has_arg('verbose'),
+        record => $record,
     );
 
     # glue all the parts together
@@ -187,10 +191,24 @@ sub _build_template_section {
 
 sub _build_kv_pairs {
     my $self = shift;
-    my %args = validate (@_, { order => 1, data => 1 });
+    my %args = validate (@_, { order => 1, data => 1,
+                               verbose => 1, record => 1 });
 
     my $string = '';
     for my $prop ( @{$args{order}}) {
+        # if called with --verbose, we print descriptions and valid values for
+        # props (if they exist)
+        if ( $args{verbose} ) {
+            if ( my $desc = $self->app_handle->setting( label => 'prop_descriptions' )->get()->[0]->{$prop} ) {
+                $string .= '# '.$desc."\n";
+            }
+            if ( ($args{record}->recommended_values_for_prop($prop))[0] ) {
+                my @valid_values =
+                    $args{record}->recommended_values_for_prop($prop);
+                $string .= "# valid values for $prop: ".
+                    join(', ', @valid_values)."\n";
+            }
+        }
         $string .= "$prop: ".($args{data}->{$prop} ||'') ."\n";
     }
     return $string;

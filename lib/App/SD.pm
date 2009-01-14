@@ -24,6 +24,17 @@ sub database_settings {
 
         project_name        => ['3B4B297C-906F-4018-9829-F7CC672274C9' => 'Your SD Project'],
         default_props_to_show    => ['3f0a074f-af13-406f-bf7b-d69bbf360720' => qw/id summary status milestone component owner created due creator reporter original_replica/],
+        prop_descriptions => ['c1bced3a-ad2c-42c4-a502-4149205060f1',
+        {   summary =>
+              "a one-line summary of what this ticket is about",
+            owner =>
+              "the email address of the person who is responsible for this ticket",
+            due =>
+              "when this ticket must be finished by (ISO 8601 format)",
+            reporter =>
+              "the email address of the person who reported this ticket"
+        },
+        ],
     };
 }
 
