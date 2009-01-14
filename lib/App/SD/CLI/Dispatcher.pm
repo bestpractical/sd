@@ -13,7 +13,7 @@ rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 
 
 under help => sub {
-    on intro   => run_command('Help::Intro');
+    on [ [ 'intro', 'init', 'clone' ] ]   => run_command('Help::Intro');
     on about   => run_command('Help::About');
     on config  => run_command('Help::Config');
     on copying => run_command('Help::Copying');
