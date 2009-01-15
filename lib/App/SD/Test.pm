@@ -115,11 +115,12 @@ sub get_luid_for_uuid {
     return undef;
 }
 
-=head2 create_ticket_with_editor_ok
+=head2 create_ticket_with_editor_ok [ '--verbose' ... ]
 
 Creates a ticket and comment at the same time using a spawned editor.  It's
 expected that C<$ENV{VISUAL}> has been frobbed into something non-interactive,
-or this test will just hang forever.
+or this test will just hang forever. Any extra arguments passed in will be
+passed on to sd ticket create.
 
 Returns a list of the ticket luid, ticket uuid, comment luid, and comment uuid.
 
@@ -127,8 +128,10 @@ Returns a list of the ticket luid, ticket uuid, comment luid, and comment uuid.
 
 
 sub create_ticket_with_editor_ok {
+    my @extra_args = @_;
+
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create' ],
+    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create', @extra_args ],
         [qr/Created ticket (.*?)(?{ $A = $1})\s+\((.*)(?{ $B = $2 })\)/,
         qr/Created comment (.*?)(?{ $C = $1})\s+\((.*)(?{ $D = $2 })\)/]
     );
