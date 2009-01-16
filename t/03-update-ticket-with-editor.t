@@ -14,11 +14,11 @@ run_script( 'sd', [ 'init']);
 my $replica_uuid = replica_uuid;
 
 diag('changing settings to enable different behaviour with --verbose arg');
-run_output_matches( 'sd', [ 'settings', '--set', '--', 'default_props_to_show',
+run_output_matches( 'sd', [ 'settings', '--set', '--', 'common_ticket_props',
     '["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"]' ],
     [
-        'Trying to change default_props_to_show from ["id","summary","status","milestone","component","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"].',
-        'Changed default_props_to_show from ["id","summary","status","milestone","component","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"].',
+        'Trying to change common_ticket_props from ["id","summary","status","milestone","component","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"].',
+        'Changed common_ticket_props from ["id","summary","status","milestone","component","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"].',
     ]
 );
 
@@ -46,7 +46,7 @@ App::SD::Test->set_editor("ticket-update-editor.pl --no-args $replica_uuid $tick
 # update it
 my ($comment_id, $comment_uuid) = App::SD::Test->update_ticket_with_editor_ok($ticket_id, $ticket_uuid);
 
-# check output -- component prop should be hidden by default_props_to_show
+# check output -- component prop should be hidden by common_ticket_props
 run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
     [
         "id: $ticket_id ($ticket_uuid)",
@@ -86,7 +86,7 @@ App::SD::Test->set_editor("ticket-update-editor.pl --all-props $replica_uuid $ti
 # template should show the hidden component prop
 ($comment_id, $comment_uuid) = App::SD::Test->update_ticket_with_editor_ok($ticket_id, $ticket_uuid, '--all-props');
 
-# check output -- component prop should be hidden by default_props_to_show
+# check output -- component prop should be hidden by common_ticket_props
 run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id  ],
     [
         "id: $ticket_id ($ticket_uuid)",
@@ -109,7 +109,7 @@ App::SD::Test->set_editor("ticket-update-editor.pl --verbose $replica_uuid $tick
 # update it
 ($comment_id, $comment_uuid) = App::SD::Test->update_ticket_with_editor_ok($ticket_id, $ticket_uuid, '--verbose');
 
-# check output -- component prop should be hidden by default_props_to_show
+# check output -- component prop should be hidden by common_ticket_props
 run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
     [
         "id: $ticket_id ($ticket_uuid)",
@@ -132,11 +132,11 @@ App::SD::Test->set_editor("ticket-update-editor.pl --verbose-and-all $replica_uu
 diag('changing settings for regression test: make sure props aren\'t deleted');
 diag('if they weren\'t presented for editing in the first place');
 
-run_output_matches( 'sd', [ 'settings', '--set', '--', 'default_props_to_show',
+run_output_matches( 'sd', [ 'settings', '--set', '--', 'common_ticket_props',
     '["id","summary","status","milestone","owner","created","due","creator","original_replica"]' ],
     [
-        'Trying to change default_props_to_show from ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","original_replica"].',
-        'Changed default_props_to_show from ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","original_replica"].',
+        'Trying to change common_ticket_props from ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","original_replica"].',
+        'Changed common_ticket_props from ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","original_replica"].',
     ]
 );
 
@@ -155,7 +155,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id, '
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
         "original_replica: $replica_uuid",
-        # no ordering is imposed on props not in default_props_to_show
+        # no ordering is imposed on props not in common_ticket_props
         qr/(?:reporter: $ENV{EMAIL}|component: core)/,
         qr/(?:reporter: $ENV{EMAIL}|component: core)/,
     ]
