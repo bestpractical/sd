@@ -40,10 +40,11 @@ sub process_template {
     # we want to do this all in one changeset)
     for my $prop ( keys %{ $record->get_props } ) {
         next if ( grep { $_ eq $prop } $record->immutable_props );
-
-
-            $props_ref->{$prop} = '' if !exists $props_ref->{$prop};
-        
+        $props_ref->{$prop} = ''
+            if (!exists $props_ref->{$prop} &&
+                # only delete props if they were actually presented
+                # for editing in the first place
+                grep { $_ eq $prop } $record->props_to_show( { update => 1 } ) );
     }
 
     # don't add props that didn't change to the changeset
