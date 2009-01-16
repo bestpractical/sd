@@ -1,4 +1,7 @@
 #!/usr/bin/perl -i
+use strict;
+use warnings;
+
 use Prophet::Util;
 use File::Spec;
 

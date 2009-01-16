@@ -1,4 +1,6 @@
 #!/usr/bin/perl -i
+use strict;
+use warnings;
 
 # perl script to trick Proc::InvokeEditor with for the ticket comment update
 # command
