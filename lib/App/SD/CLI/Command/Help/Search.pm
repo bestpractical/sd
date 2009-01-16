@@ -32,6 +32,10 @@ print <<EOF
       Show basic information, comments, and history for the ticket with local
       id 1234.  ('details' is an alias for 'show')
 
+    $cmd ticket show 1234 --all-props
+      Show all properties of the given ticket, even if they aren't in
+      the database setting default_props_to_show.
+
     $cmd ticket show 1234 --skip-history
       Show only metadata and comments for the ticket 1234 (but not
       history).
