@@ -153,15 +153,21 @@ sub color_prop_due {
     return $due;
 }
 
-=head2 props_to_show { 'all-props' => 1 }
+=head2 props_to_show { 'verbose' => 1, update => 0 }
 
 A list of which properties to display for the C<show> command (in order
 from first to last).
 
-If called with 'all-props' as a true value, will return all the
+If called with 'verbose' as a true value, will return all the
 declared props of a ticket rather than the predefined list of ones
 to show. (Should not be called this way during a ticket create as
 new tickets have no declared properties.)
+
+If called with 'update' as a true value, props in the prop ordering
+setting will still be returned in the list even if the record
+doesn't have that property. (Because we often want to not show
+blank properties, but still have the option of adding them in
+an update.)
 
 =cut
 
@@ -171,17 +177,21 @@ sub props_to_show {
     my $props_list = $self->app_handle->setting(label =>
         'default_props_to_show')->get();
 
-    return @{$props_list} unless $args->{'all-props'};
+    return @{$props_list} unless $args->{'verbose'};
 
     return _create_prop_ordering( hash_to_order => $self->get_props,
-                                  order => $props_list);
+                                  order => $props_list,
+                                  update => $args->{update});
 }
 
-=head2 _create_prop_ordering hash_to_order => $hashref, order => $arrayref
+=head2 _create_prop_ordering hash_to_order => $hashref, order => $arrayref [, update => 1 ]
 
 Given references to a hash and an array, return an array of the keys of the
 hash in the order specified by the array, with any extra keys at the end of the
 ordering.
+
+If called with update as a true value, will add keys in the ordering to the
+returned order even if they're not in the hash.
 
 =cut
 
@@ -194,7 +204,7 @@ sub _create_prop_ordering {
     # if props in the ordering are in the hash, add them to
     # the new ordering
     for my $prop (@order) {
-        if ( $props{$prop} || $prop eq 'id' ) {
+        if ( $props{$prop} || $prop eq 'id' || $args{update} ) {
             push @new_props_list, $prop;
             delete $props{$prop};
         }

@@ -110,9 +110,10 @@ sub create_record_template {
     my %do_not_edit = map { $_ => 1 } @do_not_edit;
 
     for my $prop ( $record->props_to_show(
-            # only call props_to_show with --all-props if we're in an update
+            # only call props_to_show with --verbose if we're in an update
             # because new tickets have no declared props
-            { 'all-props' => ($self->has_arg('all-props') && $update) } ) ) {
+            { 'verbose' => ($self->has_arg('all-props') && $update),
+              update => $update } ) ) {
         if ( $do_not_edit{$prop}) {
             if ( $prop eq 'id' && $update ) {
 
