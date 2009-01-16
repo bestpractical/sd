@@ -13,6 +13,13 @@ override run => sub {
     $self->require_uuid;
     my $record = $self->_load_record;
 
+    # prophet uses --verbose to decide whether to show all declared props
+    # or not (rather than just the ones returned by props_to_show),
+    # but --all-props is more consistent with sd's behaviour in update/create
+    if ($self->has_arg('all-props')) {
+        $self->set_arg('verbose' => 1);
+    }
+
     print "\n= METADATA\n\n";
     super();
 
