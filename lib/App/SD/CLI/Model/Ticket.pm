@@ -209,7 +209,7 @@ sub _build_kv_pairs {
             if ( ($args{record}->recommended_values_for_prop($prop))[0] ) {
                 my @valid_values =
                     $args{record}->recommended_values_for_prop($prop);
-                $string .= "# recommended values for $prop: ".
+                $string .= "# valid values for $prop: ".
                     join(', ', @valid_values)."\n";
             }
         }
