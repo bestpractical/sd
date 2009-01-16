@@ -61,11 +61,11 @@ my $sd_root_url = "rt:$root_url|General|Status!='resolved'";
 
 my $alice_url = $url;
 $alice_url =~ s|http://|http://alice:AlicesPassword@|;
-my $sd_alice_url = "rt:$alice_url|General|Status!='resolved'";
+my $alice_rt_url = "rt:$alice_url|General|Status!='resolved'";
 
 as_alice {
     run_script( 'sd', [ 'init']);
-    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url, '--force']);
+    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $alice_rt_url, '--force']);
     ok($ret);
     like($out, qr/No new changesets/);
 
@@ -74,7 +74,6 @@ as_alice {
         like($err, qr/No tickets found/);
         }
 };
-
 diag("grant read rights, ensure we can pull it");
 
 my $queue = RT::Queue->new($RT::SystemUser);
@@ -85,7 +84,7 @@ $alice->PrincipalObj->GrantRight(Right => 'ShowTicket', Object => $queue);
 
 my $flyman_id;
 as_alice {
-    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url]);
+    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $alice_rt_url]);
     ok($ret);
     like($out, qr/Merged one changeset/);
 
@@ -100,7 +99,7 @@ as_alice {
         [qr/ticket .*$flyman_id.* updated/],
     );
 
-    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $sd_alice_url]);
+    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $alice_rt_url]);
     ok($ret);
     like($err, qr/You are not allowed to modify ticket $ticket_id/);
 
@@ -114,7 +113,7 @@ as_alice {
     }
 
     # try again to make sure we still have pending changesets
-    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $sd_alice_url]);
+    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $alice_rt_url]);
 
     TODO: {
         local $TODO = "we mark all changesets as merged even if some failed";
@@ -134,7 +133,7 @@ diag("give write rights, try to push again");
 $alice->PrincipalObj->GrantRight(Right => 'ModifyTicket', Object => $queue);
 
 as_alice {
-    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $sd_alice_url]);
+    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $alice_rt_url]);
     ok($ret);
     TODO: {
         local $TODO = "Prophet thinks it already merged this changeset!";
@@ -161,7 +160,7 @@ $ticket = RT::Client::REST::Ticket->new(
 )->store;
 
 as_alice {
-    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $sd_alice_url]);
+    ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $alice_rt_url]);
     ok($ret);
     like($out, qr/No new changesets/);
 
@@ -179,7 +178,7 @@ as_alice {
         [qr/ticket .*$flyman_id.* updated/],
     );
 
-    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $sd_alice_url]);
+    ($ret, $out, $err) = run_script('sd', ['push', '--to',  $alice_rt_url]);
     ok($ret);
     like($out, qr/Merged one changeset/, "pushed the 'resolve' changeset");
 };
