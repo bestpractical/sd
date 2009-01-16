@@ -23,6 +23,9 @@ $valid_template =~ s/USER/$ENV{USER}/g;
 $valid_template =~ s/REPLICA/$replica_uuid/g;
 $valid_template =~ s/EMAIL/$ENV{EMAIL}/g;
 
+# open DEBUG, '>', '/home/spang/tmp/got.txt';
+# open DEBUG2, '>', '/home/spang/tmp/wanted.txt';
+
 while (<>) {
      $template .= $_;
 
@@ -34,5 +37,7 @@ while (<>) {
         print "template ok!\n";
     } elsif ( /^=== add new ticket comment below ===$/ ) {
         print "template not ok!\n";
+        # print DEBUG $template;
+        # print DEBUG2 $valid_template;
     }
 }

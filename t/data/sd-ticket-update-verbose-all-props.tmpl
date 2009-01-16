@@ -1,0 +1,25 @@
+qr/=== required ticket metadata \(changes here will not be saved\) ===
+
+id: \d+ \($ticket_uuid\)
+created: \d{4}-\d{2}-\d{2}.+
+creator: $ENV{USER}
+original_replica: $replica_uuid
+
+=== edit ticket details below ===
+
+# a one-line summary of what this ticket is about
+summary: now we are checking --verbose
+# valid values for status: new, open, stalled, closed, rejected
+status: new
+# valid values for milestone: alpha, beta, 1.0
+milestone: alpha
+# the email address of the person who is responsible for this ticket
+owner: 
+# when this ticket must be finished by \(ISO 8601 format\)
+due: 2050-01-31 19:14:09
+# the email address of the person who reported this ticket
+reporter: $ENV{EMAIL}
+# valid values for component: core, ui, docs, tests
+component: core
+
+=== add new ticket comment below ===/
