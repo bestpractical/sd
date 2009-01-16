@@ -7,9 +7,16 @@ use HTTP::Date;
 
 use constant collection_class => 'App::SD::Collection::Ticket';
 has type => ( default => 'ticket');
+
+our $ACTIVE_STATUSES;
+
 __PACKAGE__->register_reference( comments => 'App::SD::Collection::Comment', by => 'ticket');
 __PACKAGE__->register_reference( attachments => 'App::SD::Collection::Attachment', by => 'ticket');
 
+sub BUILD {
+    my $self = shift;
+    $ACTIVE_STATUSES ||= $self->app_handle->setting(label => 'active_statuses')->get();
+}
 
 
 sub default_prop_component { 
@@ -35,7 +42,7 @@ sub default_prop_status {
 
 sub has_active_status {
     my $self = shift;
-    return 1 if grep { $_ eq $self->prop('status') } @{$self->app_handle->setting(label => 'active_statuses')->get()};
+    return 1 if grep { $_ eq $self->prop('status') } @{$ACTIVE_STATUSES};
 }
 
 =head2 default_prop_reporter
