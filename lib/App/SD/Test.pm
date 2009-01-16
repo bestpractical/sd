@@ -140,11 +140,12 @@ sub create_ticket_with_editor_ok {
     return ( $ticket_luid, $ticket_uuid, $comment_luid, $comment_uuid );
 }
 
-=head2 update_ticket_with_editor_ok TICKET_LUID, TICKET_UUID
+=head2 update_ticket_with_editor_ok TICKET_LUID, TICKET_UUID [ '--verbose' ]
 
 Updates the ticket given by TICKET_UUID using a spawned editor. It's
 expected that C<$ENV{VISUAL}> has been frobbed into something non-interactive,
-or this test will just hang forever.
+or this test will just hang forever. Any extra arguments passed in will
+be passed on to sd ticket update.
 
 Returns the luid and uuid of the comment created during the update (both will
 be undef if none is created).
@@ -155,9 +156,11 @@ sub update_ticket_with_editor_ok {
     my $self = shift;
     my $ticket_luid = shift;
     my $ticket_uuid = shift;
+    my @extra_args = @_;
 
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'update', $ticket_uuid ],
+    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'update', $ticket_uuid,
+                                               @extra_args ],
         [ qr/Updated ticket (.*?)\s+\((.*)\)/,
           qr/Created comment (.*?)(?{ $A = $1 })\s+\((.*)(?{ $B = $2 })\)/ ]
     );
