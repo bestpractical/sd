@@ -137,7 +137,7 @@ as_bob {
     run_output_matches_unordered(
         'sd',
         [ 'ticket',                             'list', '--regex', '.' ],
-        [ reverse sort "$bob_yatta_id YATTA (no status)", "$bob_flyman_id Fly Man new" ]
+        [ reverse sort "$bob_yatta_id YATTA -", "$bob_flyman_id Fly Man new" ]
     );
 
 
@@ -156,7 +156,7 @@ as_alice {
     run_output_matches_unordered(
         'sd',
         [ 'ticket',                             'list', '--regex', '.' ],
-        [ sort "$alice_yatta_id YATTA (no status)", "$alice_flyman_id Fly Man new" ]
+        [ sort "$alice_yatta_id YATTA -", "$alice_flyman_id Fly Man new" ]
     );
 };
 
