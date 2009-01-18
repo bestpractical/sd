@@ -149,8 +149,9 @@ sub _set_uuid_for_remote_id {
 sub remote_id_for_uuid {
     my ( $self, $uuid_or_luid ) = @_;
 
-    my $ticket = Prophet::Record->new(
-        handle => $self->app_handle->handle,
+    require App::SD::Model::Ticket;
+    my $ticket = App::SD::Model::Ticket->new(
+        app_handle => $self->app_handle,
         type   => 'ticket'
     );
     $ticket->load( $uuid_or_luid =~ /^\d+$/? 'luid': 'uuid', $uuid_or_luid )
@@ -174,8 +175,9 @@ sub _set_remote_id_for_uuid {
         }
     );
 
-    my $ticket = Prophet::Record->new(
-        handle => $self->app_handle->handle,
+    require App::SD::Model::Ticket;
+    my $ticket = App::SD::Model::Ticket->new(
+        app_handle => $self->app_handle,
         type   => 'ticket'
     );
     $ticket->load( uuid => $args{'uuid'} );
