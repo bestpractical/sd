@@ -2,7 +2,7 @@
 
 use strict;
 
-use Prophet::Test tests => 10;
+use Prophet::Test tests => 11;
 use App::SD::Test;
 no warnings 'once';
 
@@ -37,6 +37,17 @@ run_output_matches( 'sd', [ 'ticket',
     [ qr/(\d+) YATTA new/]
 );
 
+# regression test: when multiple errors are present they should be
+# separated by newlines
+is_script_output( 'sd', [ 'ticket',  
+    'update', '--uuid', $yatta_uuid, '--', '--status', 'super',
+    '--component', 'awesome'
+    ],
+   [undef],  # stdout
+    [qr/Validation error for 'component': 'awesome' is not a valid component/,
+    qr/Validation error for 'status': 'super' is not a valid status/], # stderr
+    "Despite the magic power phrase of 'yatta', super is not a valid bug status"
+);
 
 is_script_output( 'sd', [ 'ticket',  
     'update', '--uuid', $yatta_uuid, '--', '--status', 'stalled'
