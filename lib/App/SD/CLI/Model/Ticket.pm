@@ -3,20 +3,6 @@ use Moose::Role;
 use Params::Validate qw(:all);
 use constant record_class => 'App::SD::Model::Ticket';
 
-
-=head2 separator_pattern
-
-A pattern that will match on lines that count as section separators
-in tickets represented as strings. Separator string text is remembered
-as C<$1>.
-
-=cut
-
-use constant separator_pattern => qr/^=== (.*) ===$/;
-use constant comment_pattern => qr/^\s*#/;
-
-
-
 =head2 add_comment content => str, uuid => str
 
 A convenience method that takes a content string and a ticket uuid and creates
@@ -44,10 +30,10 @@ sub add_comment {
 
 =head2 metadata_separator
 
-Returns a string of text that goes in the comment denoting the beginning of
-uneditable ticket metadata in a string representing a ticket.
+A string of text that goes in the comment denoting the beginning of
+immutable ticket metadata in a string representing a ticket.
 
-Uneditable ticket metadata includes things such as ticket id and
+Immutable ticket metadata includes things such as ticket id and
 creation date that are useful to display to the user when editing a
 ticket but are automatically assigned by sd and are not intended to
 be changed manually.
@@ -55,28 +41,14 @@ be changed manually.
 =cut
 
 use constant metadata_separator => 'required ticket metadata (changes here will not be saved)';
-use constant editable_props_separator => 'edit ticket details below';
+use constant mutable_props_separator => 'edit ticket details below';
 use constant comment_separator => 'add new ticket comment below';
-
-=head2 _build_separator $text
-
-Takes a string and returns it in separator form.
-
-=cut
-
-sub _build_separator {
-    my $self = shift;
-    my $text = shift;
-
-    return "=== $text ===";
-}
-
 
 =head2 create_record_template [ RECORD ]
 
 Creates a string representing a new record, prefilling default props
 and props specified on the command line. Intended to be presented to
-the user for editing using L<Prophet::CLI::Command->edit>
+the user for editing using L<Prophet::CLI::TextEditorCommand->try_to_edit>
 and then parsed using L</parse_record_template>.
 
 If RECORD is given, then we are updating that record rather than
@@ -98,8 +70,8 @@ sub create_record_template {
     }
 
     my @do_not_edit = $record->immutable_props;
-    my ( @metadata_order,  @editable_order );
-    my ( %immutable_props, %editable_props );
+    my ( @metadata_order,  @mutable_order );
+    my ( %immutable_props, %mutable_props );
 
     # separate out user-editable props so we can both show all
     # the props that will be added to the new ticket and prevent
@@ -134,21 +106,21 @@ sub create_record_template {
                     = $update ? $record->prop($prop) : undef;
             }
         } else {
-            push @editable_order, $prop;
-            $editable_props{$prop} = $update ? $record->prop($prop) : undef;
+            push @mutable_order, $prop;
+            $mutable_props{$prop} = $update ? $record->prop($prop) : undef;
         }
     }
 
     # fill in prop defaults if we're creating a new ticket
     if ( !$update ) {
         $record->default_props( \%immutable_props );
-        $record->default_props( \%editable_props );
+        $record->default_props( \%mutable_props );
     }
 
     # fill in props specified on the commandline (overrides defaults)
     if ( $self->has_arg('edit') ) {
-        map { $editable_props{$_} = $self->prop($_) if $self->has_prop($_) }
-            @editable_order;
+        map { $mutable_props{$_} = $self->prop($_) if $self->has_prop($_) }
+            @mutable_order;
         $self->delete_arg('edit');
     }
 
@@ -159,9 +131,9 @@ sub create_record_template {
         record => $record,
     );
 
-    my $editable_props_string = $self->_build_kv_pairs(
-        order => \@editable_order,
-        data  => \%editable_props,
+    my $mutable_props_string = $self->_build_kv_pairs(
+        order => \@mutable_order,
+        data  => \%mutable_props,
         verbose => $self->has_arg('verbose'),
         record => $record,
     );
@@ -170,27 +142,21 @@ sub create_record_template {
     return join(
         "\n",
 
-        $self->_build_template_section(
+        $self->build_template_section(
             header => metadata_separator,
             data   => $immutable_props_string
         ),
 
-        $self->_build_template_section(
-            header => editable_props_separator,
-            data   => $editable_props_string
+        $self->build_template_section(
+            header => mutable_props_separator,
+            data   => $mutable_props_string
         ),
-        $self->_build_template_section(
+        $self->build_template_section(
             header => comment_separator,
             data   => ''
             )
 
     );
-}
-
-sub _build_template_section {
-    my $self = shift;
-    my %args = validate (@_, { header => 1, data => 0 });
-    return $self->_build_separator($args{'header'}) ."\n\n". ( $args{data} || '');
 }
 
 sub _build_kv_pairs {
@@ -240,15 +206,15 @@ sub parse_record_template {
     my $comment = '';
 
     for my $line (@lines) {
-        if ($line =~ separator_pattern) {
+        if ($line =~ $self->separator_pattern) {
             $last_seen_sep = $1;
-        } elsif ($line =~ comment_pattern) {
+        } elsif ($line =~ $self->comment_pattern) {
             # skip comments 
             next;
         } elsif ( $last_seen_sep eq metadata_separator) {
             # skip unchangeable props
             next;
-        } elsif ($last_seen_sep eq editable_props_separator) {
+        } elsif ($last_seen_sep eq mutable_props_separator) {
             # match prop: value pairs. whitespace in between is ignored.
             if ($line =~ m/^([^:]+):\s*(.*)$/) {
                 my $prop = $1;
