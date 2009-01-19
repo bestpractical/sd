@@ -18,7 +18,6 @@ sub BUILD {
     $ACTIVE_STATUSES ||= $self->app_handle->setting(label => 'active_statuses')->get();
 }
 
-
 sub default_prop_component { 
     my $self = shift; 
     return $self->app_handle->setting(label => 'default_component')->get()->[0];
@@ -79,6 +78,25 @@ sub canonicalize_prop_status {
 
     return 1;
 }
+
+
+sub canonicalize_prop_due {
+    my $self = shift;
+    my %args = @_;
+
+    return 1; # XXX TODO
+    my $props = $args{props};
+    return 1 unless $props->{due};
+    require DateTime::Format::Natural;
+    my $parser = DateTime::Format::Natural->new;
+    my $dt = $parser->parse_datetime($props->{due});
+    if ($parser->success) {
+     # operate on $dt/@dt, for example:
+     $props->{due} = sprintf( "%04d-%02d-%02d %02d:%02d:%02d\n", $dt->year, $dt->month, $dt->day, $dt->hour, $dt->min, $dt->sec);
+    }
+    return 1;
+}
+
 
 =head2 _default_summary_format
 

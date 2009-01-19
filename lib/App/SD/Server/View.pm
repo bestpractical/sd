@@ -404,9 +404,11 @@ template new_ticket => page {'Create a new ticket'} content {
 
 
         for my $prop (
-            'status', 'milestone', 'component',  
+            'milestone', 'component',  
+            'due',     
+            'owner',  
             'reporter',
-            'owner',  'due',     
+            'status',
             ) {
 
             div { {class is 'widget '.$prop};
@@ -468,28 +470,30 @@ private template 'ticket_list' => sub {
     my $id = substr(rand(10),2); # hack  to get a unique id
     table {
         { class is 'tablesorter'; id is $id; };
-        thead {     
+        thead {
             row {
-            th { 'id'};
-            th {'Status'};
-            th {'Owner'};
-            th {'Summary'};
-            th {'Created'};
+                th { 'id'};
+                th { 'Summary'};
+                th {'Status'};
+                th {'Milestone'};
+                th {'Owner'};
+                th {'Created'};
+                th {'Due'};
             }
         };
         tbody {
-        for my $ticket (@$tickets) {
-            row {
-
-                cell { ticket_link( $ticket => $ticket->luid );};
-                for (qw(status owner summary created)) {
-                cell{ class is $_;  $ticket->prop($_) };
-                }
+            for my $ticket (@$tickets) {
+                row {
+                    cell { ticket_link( $ticket => $ticket->luid ); };
+                    cell { class is 'summary'; ticket_link( $ticket => $ticket->prop('summary') ); };
+                    for (qw(status milestone owner created due)) {
+                        cell { class is $_; $ticket->prop($_) };
+                    }
                 }
 
             }
         };
-        };
+    };
          script {outs_raw(qq{
             \$(document).ready(function() { \$("#@{[$id]}").tablesorter(); } ); 
         });
@@ -535,7 +539,12 @@ private template 'ticket_basics' => sub {
     my $ticket = shift;
         my $props = $ticket->get_props;
         div { { class is 'ticket-props'};
+            div { class is 'widget'; 
+                label { 'UUID' };
+            div { { class is 'value uuid'}; $ticket->uuid; } 
+            };
         for my $key (sort keys %$props) {
+            next if ($key =~ /.{8}-.{4}-.{4}-.{12}-id/);
             div { class is 'widget'; 
                 label{ $key };
             div { { class is 'value '.$key}; $props->{$key};
