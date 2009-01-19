@@ -42,12 +42,13 @@ sub process_template {
 
     my $error;
         local $@;
-        eval { super(); } or $error = $@ || "Something went wrong!";
+        eval { super(); } or chomp ($error = $@ || "Something went wrong!");
 
     return $self->handle_template_errors(
         error        => $error,
         template_ref => $args{template},
-        bad_template => $updated
+        bad_template => $updated,
+        rtype        => $record->type,
     ) if ($error);
 
     $self->add_comment( content => $comment, uuid => $self->record->uuid )
