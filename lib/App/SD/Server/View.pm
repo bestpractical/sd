@@ -236,9 +236,9 @@ ul.comments li:nth-child(odd) {
 ' );
 };
 
-template '/' => page {'Open tickets'}
+template '/' => page {'My open tickets for the current milestone'}
 content {
-    show('/tickets/open');
+    show('/tickets/hot');
 
 };
 
@@ -457,6 +457,14 @@ template header => sub {
     h1 { $title };
 };
 
+template '/tickets/hot' => sub {
+    my $self = shift;
+        
+   my $current_milestone =     $self->app_handle->setting(label => 'default_milestone')->get()->[0];
+
+    $self->show_tickets (sub { my $item = shift; return ($item->has_active_status && $item->prop('milestone') eq $current_milestone && ($item->prop('owner') eq $item->app_handle->config->get('email_address')|| !$item->prop('owner'))) ? 1 : 0; });
+
+};
 
 template '/tickets/open' => sub {
     my $self = shift;
