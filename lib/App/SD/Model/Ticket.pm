@@ -93,7 +93,7 @@ sub canonicalize_prop_due {
     my $dt = $parser->parse_datetime($props->{due});
     if ($parser->success) {
      # operate on $dt/@dt, for example:
-        $props->{due} = sprintf( "%04d-%02d-%02d %02d:%02d:%02d\n", $dt->year, $dt->month, $dt->day, $dt->hour, $dt->min, $dt->sec);
+        $props->{due} = sprintf( "%04d-%02d-%02d %02d:%02d:%02d", $dt->year, $dt->month, $dt->day, $dt->hour, $dt->min, $dt->sec);
     }
     return 1;
 }
