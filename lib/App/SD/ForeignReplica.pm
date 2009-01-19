@@ -36,12 +36,6 @@ sub integrate_change {
 
 
 
-my $TXN_METATYPE = 'txns-pushed-to-foreign-dbs';
-sub _foreign_txn_id_storage {
-    my $self = shift;
-    return $self->state_handle->metadata_storage( $TXN_METATYPE, 'prophet-txn-source' );
-}
-
 =head2 record_pushed_transaction $foreign_transaction_id, $changeset
 
 Record that this replica was the original source of $foreign_transaction_id (with changeset $changeset)
@@ -53,8 +47,8 @@ sub record_pushed_transaction {
     my %args = validate( @_,
         { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' }, record => 1 } );
 
-    $self->_foreign_txn_id_storage->(
-        $self->uuid . '-record-'.$args{record}. '-txn-' . $args{transaction},
+    $self->state_handle->store_local_metadata(
+        "foreign-txn-from-".$self->uuid . '-record-'.$args{record}. '-txn-' . $args{transaction} => 
         join( ':',
             $args{changeset}->original_source_uuid,
             $args{changeset}->original_sequence_no )
@@ -82,7 +76,7 @@ remote replica when doing a subsequent pull
 sub foreign_transaction_originated_locally {
     my $self = shift;
     my ($id, $record) = validate_pos( @_, 1, 1);
-    return $self->_foreign_txn_id_storage->( $self->uuid .'-record-'.$record. '-txn-' .$id );
+    return $self->state_handle->fetch_local_metadata("foreign-txn-from-". $self->uuid .'-record-'.$record. '-txn-' .$id );
 }
 
 sub traverse_changesets {
@@ -124,7 +118,9 @@ sub _lookup_uuid_for_remote_id {
     my $self = shift;
     my ($id) = validate_pos( @_, 1 );
 
-    return $self->_remote_record_id_storage(
+
+
+    return $self->state_handle->fetch_local_metadata('local_uuid_for_'.  
         $self->uuid_for_url( $self->remote_url . $self->remote_uri_path_for_id($id))
     );
 }
@@ -132,7 +128,7 @@ sub _lookup_uuid_for_remote_id {
 sub _set_uuid_for_remote_id {
     my $self = shift;
     my %args = validate( @_, { uuid => 1, remote_id => 1 } );
-    return $self->_remote_record_id_storage(
+    return $self->state_handle->store_local_metadata('local_uuid_for_'.
         $self->uuid_for_url(
                   $self->remote_url
                 . $self->remote_uri_path_for_id( $args{'remote_id'} )
