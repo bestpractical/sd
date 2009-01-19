@@ -83,16 +83,17 @@ sub canonicalize_prop_status {
 sub canonicalize_prop_due {
     my $self = shift;
     my %args = @_;
-
-    return 1; # XXX TODO
     my $props = $args{props};
+    # skip blank
     return 1 unless $props->{due};
+    #skip well formed
+    return 1 if $props->{due} =~ /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/; 
     require DateTime::Format::Natural;
     my $parser = DateTime::Format::Natural->new;
     my $dt = $parser->parse_datetime($props->{due});
     if ($parser->success) {
      # operate on $dt/@dt, for example:
-     $props->{due} = sprintf( "%04d-%02d-%02d %02d:%02d:%02d\n", $dt->year, $dt->month, $dt->day, $dt->hour, $dt->min, $dt->sec);
+        $props->{due} = sprintf( "%04d-%02d-%02d %02d:%02d:%02d", $dt->year, $dt->month, $dt->day, $dt->hour, $dt->min, $dt->sec);
     }
     return 1;
 }
