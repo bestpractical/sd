@@ -9,7 +9,7 @@ requires('Path::Class');
 requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Class::Accessor Template::Declare::Tags Test::HTTP::Server::Simple JSON Test::WWW::Mechanize
 requires('Moose'); # Moose::Role
 requires('HTTP::Date');
-
+requires('DateTime::Format::Natural');
 features(
     'RT sync' => [
         -default => 0,
