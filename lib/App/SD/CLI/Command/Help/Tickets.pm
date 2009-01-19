@@ -35,7 +35,8 @@ print <<EOF
     $cmd ticket update 123 --all-props
       Interactively update the ticket with local id 123 in a text
       editor, presenting all the props of the record for editing instead of
-      just those specified by the database setting 'common_ticket_props'.
+      just those specified by the database setting 'common_ticket_props'
+      (or local configuration variable 'common_ticket_props' if it exists).
 
     $cmd ticket update fad5849a-67f1-11dd-bde1-5b33d3ff2799 -- status=closed
       Sets the status of the ticket with uuid

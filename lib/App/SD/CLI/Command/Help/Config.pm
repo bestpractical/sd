@@ -36,6 +36,13 @@ Currently, the following configuration variables are available:
       be overridden by passing the '--show-history' arg to the
       command.
 
+    common_ticket_props = id,summary,status,owner,created,original_replica
+      A comma-separated list of ticket properties that are most-often
+      used. These properties will be shown by default in the 'ticket
+      show' command and presented for editing when interactively
+      creating or updating tickets. (Overrides the database-wide
+      setting of the same name.)
+
 For information on environmental variables that can affect SD, see
 '$cmd help environment'.
 EOF

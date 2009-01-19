@@ -34,7 +34,8 @@ print <<EOF
 
     $cmd ticket show 1234 --all-props
       Show all properties of the given ticket, even if they aren't in
-      the database setting common_ticket_props.
+      the database setting common_ticket_props (or local configuration
+      variable 'common_ticket_props' if it exists).
 
     $cmd ticket show 1234 --skip-history
       Show only metadata and comments for the ticket 1234 (but not
