@@ -23,7 +23,8 @@ under help => sub {
     on [ ['environment', 'env'] ]        => run_command('Help::Environment');
     on [ ['ticket', 'tickets'] ]         => run_command('Help::Tickets');
     on [ ['attachment', 'attachments'] ] => run_command('Help::Attachments');
-    on [ ['comment', 'comments'] ]       => run_command('Help:::Comments');
+    on [ ['comment', 'comments'] ]       => run_command('Help::Comments');
+    on [ ['setting', 'settings'] ]       => run_command('Help::Settings');
 
     on [
         ['ticket', 'attachment', 'comment'],
