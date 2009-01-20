@@ -2,7 +2,7 @@
 
 use strict;
 
-use Prophet::Test tests => 11;
+use Prophet::Test tests => 12;
 use App::SD::Test;
 no warnings 'once';
 
@@ -94,7 +94,14 @@ run_output_matches( 'sd', [ 'ticket',
 );
 
 
-
+# check to make sure that we can force-set props
+is_script_output( 'sd', [ 'ticket',  
+    'update', '--uuid', $yatta_uuid, '--', '--status', 'super!'
+    ],
+    [qr/ticket $yatta_id \($yatta_uuid\) updated/], #stdout
+   [], # stderr
+   "we can force-set an invalid prop"
+);
 
 
 1;
