@@ -52,7 +52,7 @@ run_output_matches(
         '--',
         qw/--name/,                          "plague_recipe.doc"
     ],
-    [qr/attachment \d+ \($attachment_uuid\) updated/],
+    [qr/Attachment \d+ \($attachment_uuid\) updated/],
     [],
     "updated the attachment"
 );

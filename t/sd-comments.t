@@ -55,7 +55,7 @@ run_output_matches(
         '--',
         qw/--content/,                    "I hate you"
     ],
-    [qr/comment \d+ \($comment_uuid\) updated/],
+    [qr/Comment \d+ \($comment_uuid\) updated/],
     [],
     "updated the comment"
 );
@@ -88,7 +88,7 @@ run_output_matches(
         '--',
         qw/--content/,                    "A\nmultiline\ncomment"
     ],
-    [qr/comment \d+ \($comment_uuid\) updated/],
+    [qr/Comment \d+ \($comment_uuid\) updated/],
     [],
     "updated the comment to a multiline content"
 );
