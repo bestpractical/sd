@@ -42,6 +42,11 @@ print <<EOF
       Sets the status of the ticket with uuid
       fad5849a-67f1-11dd-bde1-5b33d3ff2799 to closed.
 
+    $cmd ticket take 123
+      Sets the owner of ticket 123 to you (your email address is taken
+      from either the 'email_address' local config variable or the
+      EMAIL environmental variable). An alias of 'take' is 'claim'.
+
     $cmd ticket resolve 123
       Sets the status of the ticket with local id 123 to closed.
 
