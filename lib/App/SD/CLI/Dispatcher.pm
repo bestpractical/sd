@@ -61,6 +61,22 @@ under ticket => sub {
         run('ticket update', $self, @_);
     };
 
+    # simulate a 'claim' command by setting the owner prop and passing
+    # off to update
+    on [ [ 'claim', 'take' ] ] => sub {
+        my $self = shift;
+        my $email = $self->context->app_handle->config->get('email_address')
+                        || $ENV{EMAIL};
+
+        if ($email) {
+            $self->context->set_prop(owner => $email);
+            run('ticket update', $self, @_);
+        } else {
+            die "Could not determine email address to assign ticket to ".
+                "(set \$EMAIL\nor the 'email' config variable.)\n";
+        }
+    };
+
     under comment => sub {
         on [ [ 'new', 'create' ] ] => run_command('Ticket::Comment::Create');
         on [ [ 'update', 'edit' ] ] => run_command('Ticket::Comment::Update');
