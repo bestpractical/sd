@@ -34,6 +34,12 @@ under help => sub {
 
     on [ ['sync', 'push', 'pull', 'publish', 'server'] ]
         => run_command('Help::Sync');
+
+    on qr/^(\S+)$/ => sub {
+       my $self = shift;
+       my $topic = $1;
+       die "Cannot find help on topic '$topic'. Try '$0 help'?\n";
+    };
 };
 
 on help => run_command('Help');
