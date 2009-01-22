@@ -24,8 +24,7 @@ sub run {
     my $tickets = {};
     my @transactions;
 
-    my @tickets =  $self->find_matching_tickets();
-
+    my @tickets = @{ $self->find_matching_tickets() };
     $self->sync_source->log("No tickets found.") if @tickets == 0;
 
     my $counter = 0;
@@ -33,37 +32,38 @@ sub run {
     my $progress = Time::Progress->new();
     $progress->attr( max => $#tickets );
     local $| = 1;
-    for my $id (@tickets) {
+
+    for my $ticket (@tickets) {
         $counter++;
         print $progress->report( "%30b %p Est: %E\r", $counter );
+        $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - $counter of " . scalar @tickets );
 
-        $self->sync_source->log( "Fetching ticket $id - $counter of " . scalar @tickets);
-        $tickets->{ $id } = $self->_translate_final_ticket_state(
-            $self->sync_source->trac->show( type => 'ticket', id => $id )
-        );
-        push @transactions, @{
-            $self->find_matching_transactions(
-                ticket               => $id,
-                starting_transaction => $first_rev
-            )
-        };
+        warn "Loading ticket " . $ticket->id . " " . $ticket->summary;
+    
+        $tickets->{ $ticket->id } = $ticket;
     }
 
-    my $txn_counter = 0;
     my @changesets;
-    for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
-        $txn_counter++;
-        $self->sync_source->log("Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of ". scalar @transactions);
-        my $changeset = $self->transcode_one_txn( $txn, $tickets->{ $txn->{Ticket} } );
-        $changeset->created( $txn->{'Created'} );
-        next unless $changeset->has_changes;
-        unshift @changesets, $changeset;
+
+    my $ticket_state = { };
+  
+    $self->_translate_final_ticket_state($ticket_state); 
+
+    foreach my $ticket ( values %$tickets ) {
+        my $txns = $self->skip_previously_seen_transactions( ticket => $ticket, transactions => $ticket->history->entries);
+        for my $txn ( sort { $b->date <=> $a->date } @$txns) { 
+            $self->sync_source->log("Transcoding transaction  {[$txn->date}]} ");
+            my $changeset = $self->transcode_one_txn( $txn, $ticket_state );
+            $changeset->created( $txn->date );
+            next unless $changeset->has_changes;
+            unshift @changesets, $changeset;
+        }
     }
 
     my $cs_counter = 0;
-    for ( @changesets ) {
-        $self->sync_source->log("Applying changeset ".++$cs_counter . " of ".scalar @changesets); 
-        $args{callback}->($_)
+    for (@changesets) {
+        $self->sync_source->log( "Applying changeset " . ++$cs_counter . " of " . scalar @changesets );
+        $args{callback}->($_);
     }
 }
 
@@ -72,18 +72,12 @@ sub _translate_final_ticket_state {
     my $ticket = shift;
 
     # undefine empty fields, we'll delete after cleaning
-    $ticket->{$_} = undef for
-        grep defined $ticket->{$_} && $ticket->{$_} eq '',
-        keys %$ticket;
+    $ticket->{$_} = undef for grep defined $ticket->{$_} && $ticket->{$_} eq '', keys %$ticket;
 
     $ticket->{'id'} =~ s/^ticket\///g;
-
-    $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_}
-        for qw(Queue id);
-
+    $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_} for qw(Queue id);
     delete $ticket->{'Owner'} if lc($ticket->{'Owner'}) eq 'nobody';
-    $ticket->{'Owner'} = $self->resolve_user_id_to( email_address => $ticket->{'Owner'} )
-        if $ticket->{'Owner'};
+    $ticket->{'Owner'} = $self->resolve_user_id_to( email_address => $ticket->{'Owner'} ) if $ticket->{'Owner'};
 
     # normalize names of watchers to variant with suffix 's'
     foreach my $field (qw(Requestor Cc AdminCc)) {
@@ -94,18 +88,12 @@ sub _translate_final_ticket_state {
         }
     }
 
-    $ticket->{$_} = $self->unix_time_to_iso( $ticket->{$_} )
-        for grep defined $ticket->{$_}, qw(Created Resolved Told LastUpdated Due Starts Started);
-
-    $ticket->{$_} =~ s/ minutes$//
-        for grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
-
+    $ticket->{$_} = $self->unix_time_to_iso( $ticket->{$_} ) for grep defined $ticket->{$_}, qw(Created Resolved Told LastUpdated Due Starts Started);
+    $ticket->{$_} =~ s/ minutes$// for grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
     $ticket->{'Status'} =~ $self->translate_status($ticket->{'Status'});
 
     # delete undefined and empty fields
-    delete $ticket->{$_} for
-        grep !defined $ticket->{$_} || $ticket->{$_} eq '',
-        keys %$ticket;
+    delete $ticket->{$_} for grep !defined $ticket->{$_} || $ticket->{$_} eq '', keys %$ticket;
 
     return $ticket;
 }
@@ -119,55 +107,29 @@ Returns a Trac::TicketSearch collection for all tickets found matching your QUER
 sub find_matching_tickets {
     my $self   = shift;
     my %query  = (@_);
-    my $search = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac );
-
+    my $search = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 2 );
     $search->query(%query);
-
-    print $_->id, "\n" for @{ $search->results };
-
     return $search->results;
 }
 
-=head2 find_matching_transactions { ticket => $id, starting_transaction => $num }
+=head2 skip_previously_seen_transactions { ticket => $id, starting_transaction => $num, transactions => \@txns  }
 
 Returns a reference to an array of all transactions (as hashes) on ticket $id after transaction $num.
 
 =cut
 
-sub find_matching_transactions {
+sub skip_previously_seen_transactions {
     my $self = shift;
-    my %args = validate( @_, { ticket => 1, starting_transaction => 1 } );
+    my %args = validate( @_, { ticket => 1, transactions => 1 } );
     my @txns;
 
-    my $trac_handle = $self->sync_source->trac;
-
-     my @transactions =  $rt_handle->get_transaction_ids( parent_id => $args{'ticket'} );
-    for my $txn ( sort @transactions) {
+    for my $txn ( sort @{$args{transactions}}) {
         # Skip things we know we've already pulled
-        next if $txn < $args{'starting_transaction'}; 
+        #next if $txn < $args{'starting_transaction'}; 
         
         # Skip things we've pushed
         next if $self->sync_source->foreign_transaction_originated_locally($txn, $args{'ticket'});
-
-
-        my $txn_hash = $rt_handle->get_transaction(
-            parent_id => $args{'ticket'},
-            id        => $txn,
-            type      => 'ticket'
-        );
-        if ( my $attachments = delete $txn_hash->{'Attachments'} ) {
-            for my $attach ( split( /\n/, $attachments ) ) {
-                next unless ( $attach =~ /^(\d+):/ );
-                my $id = $1;
-                my $a  = $rt_handle->get_attachment( parent_id => $args{'ticket'}, id        => $id);
-
-                push( @{ $txn_hash->{_attachments} }, $a )
-                    if ( $a->{Filename} );
-
-            }
-
-        }
-        push @txns, $txn_hash;
+        push @txns, $txn;
     }
     return \@txns;
 }

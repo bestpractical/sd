@@ -1,4 +1,4 @@
-package App::SD::Replica::rt;
+package App::SD::Replica::trac;
 use Moose;
 extends qw/App::SD::ForeignReplica/;
 
@@ -17,13 +17,14 @@ use Prophet::ChangeSet;
 has trac => ( isa => 'Net::Trac::Connection', is => 'rw');
 has remote_url => ( isa => 'Str', is => 'rw');
 
+
 sub BUILD {
     my $self = shift;
 
     # Require rather than use to defer load
     require Net::Trac;
 
-    my ( $server, $type, $query ) = $self->{url} =~ m/^trac:(.*?)\|(.*?)\|(.*)$/
+    my ( $server, $type, $query ) = $self->{url} =~ m/^trac:(.*?)$/
         or die
         "Can't parse Trac server spec. Expected trac:http://example.com";
     my $uri = URI->new($server);
@@ -33,19 +34,16 @@ sub BUILD {
         $uri->userinfo(undef);
     }
     $self->remote_url( $uri->as_string );
-    $self->rt_queue($type);
-    $self->rt_query( ( $query ? "($query) AND " : "" ) . " Queue = '$type'" );
 
-    ( $username, $password ) = $self->prompt_for_login( $uri, $username )
-        unless $password;
+    #( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
     $self->trac(
         Net::Trac::Connection->new(
-            url      => 'http://trac.someproject.org',
-            user     => $username,
-            password => $password
+            url      => $self->remote_url,
+            user     => 'jesse',#$username,
+            password => 'iron' #$password
         )
     );
-
+    $self->trac->ensure_logged_in;
 }
 
 sub record_pushed_transactions {
