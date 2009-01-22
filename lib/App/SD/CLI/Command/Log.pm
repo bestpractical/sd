@@ -59,7 +59,7 @@ sub change_header_comment {
     my $self = shift;
     my $change = shift;
     require App::SD::Model::Comment;
-    my $c = App::SD::Model::Comment->new( handle => $self->handle, type => App::SD::Model::Comment->type);
+    my $c = App::SD::Model::Comment->new( app_handle => $self->app_handle );
     $c->load(uuid => $change->record_uuid);
     if ($c->prop('ticket')) {
     my $t = $c->ticket;
@@ -73,7 +73,7 @@ sub change_header_ticket {
     my $self = shift;
     my $change = shift;
     require App::SD::Model::Ticket;
-    my $t = App::SD::Model::Ticket->new( handle => $self->handle, type => App::SD::Model::Ticket->type);
+    my $t = App::SD::Model::Ticket->new( app_handle => $self->app_handle );
     $t->load(uuid => $change->record_uuid);
     unless ($t->uuid) {
         return $self->change_header_generic($change);
