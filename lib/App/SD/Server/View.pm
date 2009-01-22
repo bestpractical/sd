@@ -255,13 +255,15 @@ table.tablesorter {
 table.tablesorter thead tr th, table.tablesorter tfoot tr th {
     padding-right: 2em;
 }
-
+table.tablesorter  {
+    position: relative;
+    display: block;
+}
 table.tablesorter tbody td {
  color: #555;
  font-weight: bold;
  height: 4.5em;
  padding-top: 2.5em;
- margin-top: em;
 
 }
 
@@ -269,12 +271,13 @@ table.tablesorter td.summary {
  margin-top: 0em;
  padding: 0;
  font-weight: normal;
- right:4em;
-  margin-top: 0.5em;
+ right:0em;
+ overflow: hidden;
+ margin-top: 0.5em;
  height: 1em;
- left: 7.5em;
+ left: 4.25em;
  position: absolute;
- padding-bottom: 1em;
+ padding-bottom: 1.25em;
 
 
 }
