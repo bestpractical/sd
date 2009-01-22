@@ -58,18 +58,28 @@ div.ticket_list ul li span {
 }
 
 table.tablesorter thead th {
-    color: #1133AA;
+    color: #999;
+    background-color: #fff;
 }
-
+table.tablesorter thead tr .header {
+    background: none;
+    border-bottom: 1px solid #666;
+}
 table.tablesorter thead tr .headerSortDown, 
 table.tablesorter thead tr .headerSortUp, 
 table.tablesorter thead tr th:hover {
-    background-color: #ccc;
+    text-decoration: underline;
+    background-color: #fff;
+    color: #666;
 }
+table.tablesorter thead tr th {
+    background-color: #fff;
+}
+
 
 th.headerSortUp,
 th.headerSortDown {
-    background: #ccc;
+    background: #fff;
 }
 
 ul.page-nav {
@@ -231,6 +241,63 @@ ul.comments li .content {
 ul.comments li:nth-child(odd) {
     background: #f5f5f5;
 }
+
+table.tablesorter {
+ background: #fff;
+ border: none;
+}
+
+
+table.tablesorter {
+    width: auto;
+}
+
+table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+    padding-right: 2em;
+}
+
+table.tablesorter tbody td {
+ color: #555;
+ font-weight: bold;
+ height: 4.5em;
+ padding-top: 2.5em;
+ margin-top: em;
+
+}
+
+table.tablesorter td.summary {
+ margin-top: 0em;
+ padding: 0;
+ font-weight: normal;
+ right:4em;
+  margin-top: 0.5em;
+ height: 1em;
+ left: 7.5em;
+ position: absolute;
+ padding-bottom: 1em;
+
+
+}
+
+table.tablesorter td.summary a, table.tablesorter td.id a {
+ font-size: 1.7em;
+ color: #700;
+ font-style: italic; 
+ text-decoration: none;
+ font-family: serif;
+}
+
+table.tablesorter td.id  {
+    padding-top: 1.5em;
+}
+table.tablesorter td.id a {
+    color: #aaa;
+}
+
+table.tablesorter td a:hover {
+    text-decoration: underline;
+}
+
 
 
 ' );
@@ -481,10 +548,11 @@ private template 'ticket_list' => sub {
         thead {
             row {
                 th { 'id'};
-                th { 'Summary'};
                 th {'Status'};
                 th {'Milestone'};
+                th {'Component'};
                 th {'Owner'};
+                th {'Reporter'};
                 th {'Created'};
                 th {'Due'};
             }
@@ -492,11 +560,11 @@ private template 'ticket_list' => sub {
         tbody {
             for my $ticket (@$tickets) {
                 row {
-                    cell { ticket_link( $ticket => $ticket->luid ); };
-                    cell { class is 'summary'; ticket_link( $ticket => $ticket->prop('summary') ); };
-                    for (qw(status milestone owner created due)) {
+                    cell { class is 'id'; ticket_link( $ticket => $ticket->luid ); };
+                    for (qw(status milestone component owner reporter created due)) {
                         cell { class is $_; $ticket->prop($_) };
                     }
+                    cell { class is 'summary'; ticket_link( $ticket => $ticket->prop('summary') ); };
                 }
 
             }
