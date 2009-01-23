@@ -65,6 +65,7 @@ under 'GET' => sub {
 
         on 'new'                 => sub { shift->show_template('new_ticket') };
         on qr'^([\w\d-]+)/edit$' => sub { shift->show_template( 'edit_ticket', $1 ) };
+        on qr'^([\w\d-]+)/history$' => sub { shift->show_template( 'show_ticket_history', $1 ) };
         on qr'^([\w\d-]+)/?$'    => sub { shift->show_template( 'show_ticket', $1 ) };
     };
 };
