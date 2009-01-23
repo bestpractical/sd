@@ -1,10 +1,10 @@
-use warnings;
-use strict;
-
 package App::SD::Collection::Attachment;
-use base 'Prophet::Collection';
+use Moose;
+extends 'Prophet::Collection';
 
 use constant record_class => 'App::SD::Model::Attachment';
 
-1;
+__PACKAGE__->meta->make_immutable;
+no Moose;
 
+1;
