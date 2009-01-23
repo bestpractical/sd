@@ -154,7 +154,7 @@ TODO: {
         [
             "id: $yatta_id ($yatta_uuid)",
             'summary: YATTA',
-            'status: new',
+            'status: closed',
             'milestone: alpha',
             'component: core',
             'owner: jesse@bestpractical.com',

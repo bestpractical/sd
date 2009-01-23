@@ -23,11 +23,10 @@ run_output_matches( 'sd', [ 'ticket',
     [  qr/(\d+) YATTA new/]
 );
 
-
 is_script_output( 'sd', [ 'ticket',  
     'update', '--uuid', $yatta_uuid, '--', '--status', 'super'
     ],
-   [undef],  # stdout
+   [],  # stdout
     [qr/Validation error for 'status': 'super' is not a valid status/], # stderr
     "Despite the magic power phrase of 'yatta', super is not a valid bug status"
 );
@@ -39,17 +38,17 @@ run_output_matches( 'sd', [ 'ticket',
 
 # regression test: when multiple errors are present they should be
 # separated by newlines
-is_script_output( 'sd', [ 'ticket',  
+run_output_matches( 'sd', [ 'ticket',  
     'update', '--uuid', $yatta_uuid, '--', '--status', 'super',
     '--component', 'awesome'
     ],
-   [undef],  # stdout
+   [],  # stdout
     [qr/Validation error for 'component': 'awesome' is not a valid component/,
     qr/Validation error for 'status': 'super' is not a valid status/], # stderr
     "Despite the magic power phrase of 'yatta', super is not a valid bug status"
 );
 
-is_script_output( 'sd', [ 'ticket',  
+run_output_matches( 'sd', [ 'ticket',  
     'update', '--uuid', $yatta_uuid, '--', '--status', 'stalled'
     ],
    [qr/Ticket \d+ \($yatta_uuid\) updated./], # stdout
@@ -65,9 +64,9 @@ run_output_matches( 'sd', [ 'ticket',
 
 
 my $sylar_uuid;
-is_script_output( 'sd', [ 'ticket',
+run_output_matches( 'sd', [ 'ticket',
     'create', '--', '--summary', 'Sylar!', '--status', 'evil' ],
-    [undef],
+    [],
     [qr/Validation error for 'status': 'evil' is not a valid status/],
     "Sylar can't create an eeevil ticket"
 );
@@ -78,7 +77,7 @@ run_output_matches( 'sd', [ 'ticket',
 );
 
 
-is_script_output( 'sd', [ 'ticket',  
+run_output_matches( 'sd', [ 'ticket',  
     'update', '--uuid', $yatta_uuid, '--', '--status', ''
     ],
    [], # stdout
@@ -95,7 +94,7 @@ run_output_matches( 'sd', [ 'ticket',
 
 
 # check to make sure that we can force-set props
-is_script_output( 'sd', [ 'ticket',  
+run_output_matches( 'sd', [ 'ticket',  
     'update', '--uuid', $yatta_uuid, '--', '--status', 'super!'
     ],
     [qr/Ticket $yatta_id \($yatta_uuid\) updated/], #stdout

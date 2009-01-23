@@ -18,7 +18,7 @@ run_output_matches( 'sd', [ 'settings', '--set', '--', 'common_ticket_props',
     '["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"]' ],
     [
         'Trying to change common_ticket_props from ["id","summary","status","milestone","component","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"].',
-        'Changed common_ticket_props from ["id","summary","status","milestone","component","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"].',
+        ' -> Changed.',
     ]
 );
 
@@ -136,7 +136,7 @@ run_output_matches( 'sd', [ 'settings', '--set', '--', 'common_ticket_props',
     '["id","summary","status","milestone","owner","created","due","creator","original_replica"]' ],
     [
         'Trying to change common_ticket_props from ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","original_replica"].',
-        'Changed common_ticket_props from ["id","summary","status","milestone","owner","created","due","creator","reporter","original_replica"] to ["id","summary","status","milestone","owner","created","due","creator","original_replica"].',
+        ' -> Changed.',
     ]
 );
 
