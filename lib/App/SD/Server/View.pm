@@ -12,6 +12,9 @@ use App::SD::Model::Comment;
 use App::SD::Collection::Ticket;
 
 
+my @BASIC_PROPS = qw(status milestone component owner reporter created due);
+
+
 template '/css/sd.css' => sub {
         outs_raw( '
 
@@ -48,8 +51,54 @@ div.project-name {
 
 h1 {
    padding:  0.5em;
+ color: #700;
+ font-style: italic; 
+ text-decoration: none;
+ font-family: serif;
+   font-size: 1.6em;
+}
+
+h2 {
+   padding:  0.5em;
+ font-style: italic; 
+ text-decoration: none;
+ font-family: serif;
    font-size: 1.4em;
-   background: #ffc;
+
+}
+
+ul.actions {
+    align: center;
+    display: block;
+    min-width: 1em;
+    max-width: 12em;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0.25em;   
+}
+
+ul.actions li {
+    list-style: none;
+    border-right: 1px solid white;
+    padding: 0.25em;
+    display: inline;
+    background: #ddd;
+} 
+
+ul.actions li:last-child {
+    border: none;
+}
+
+
+ul.actions li a { 
+    text-decoration: none;
+    color: #1133AA;
+    padding: 0.5em;
+    font-size: 0.8em;
+}
+
+ul.actions li:hover { 
+    background: #ccc;
 }
 
 div.ticket_list ul li span {
@@ -108,14 +157,23 @@ textarea:focus, input:focus {
    background-color: #ffc;
 }
 
+div.submit {
+    width: auto;
+    display: block;
+    margin-top: 1em;
+    margin-left: 2em;
+    margin-right: 2em;
+    text-align: right;
+    padding-right: 1em;
+}
+
+
 input[type=submit] {
     background: #1133AA;
     color: #fff;
     margin: 0.5em;
     padding: 0.5em;
-    position: relative;
     top: 1em;
-    left: 38.5em;
 }
 input[type=submit]:hover {
     background: #002299; 
@@ -146,12 +204,36 @@ div.widget div.value {
     display: inline-block;
 }
 
+div.comment-form {
+    border-top: 1px solid #999;
+    margin-left: 1em;
+    margin-right: 1em;
+    margin-top: 2em;
+    padding: 2em;
+    padding-top: 0;
+    align: center;
+    background: #eee;
+}
+
+div.comment-form textarea {
+    width: 100%;
+
+}
+
+
 div.widget {
     padding: 0.5em;
     margin-left: 1em;
     margin-right: 1em;
     border-bottom: 1px solid #ccc;
+}
+
+.widget {
     border-top: 1px solid #ccc;
+}
+
+.widget>.widget {
+    border-top: none;
 }
 
 ul.page-nav li {
@@ -180,14 +262,12 @@ ul.page-nav a {
 
 }
 
-.widget:nth-child(odd) {
-    background: #f5f5f5;
+.widget:nth-child(odd), table.tablesorter tbody tr:nth-child(odd) td {
+    background: #eee;
 }
 
 
-.widget>.widget {
-    border-top: none;
-}
+
 
 dl.history dt {
     margin-top: 0.5em; 
@@ -243,42 +323,43 @@ ul.comments li:nth-child(odd) {
 }
 
 table.tablesorter {
- background: #fff;
- border: none;
-}
-
-
-table.tablesorter {
-    width: auto;
+    width: 100%;
+    background: #fff;
+    border: none;
+    position: relative;
+    display: block;
+    border-collapse: collapse;
+    border-spacing: 0;
 }
 
 table.tablesorter thead tr th, table.tablesorter tfoot tr th {
     padding-right: 2em;
 }
-table.tablesorter  {
-    position: relative;
-    display: block;
+table.tablesorter td {
+    border-bottom: 1px solid #ccc;
 }
+
 table.tablesorter tbody td {
  color: #555;
  font-weight: bold;
- height: 4.5em;
- padding-top: 2.5em;
+ height: 5em;
+ padding-top: 3em;
 
 }
 
 table.tablesorter td.summary {
  margin-top: 0em;
  padding: 0;
+ padding-left: 0.25em;
  font-weight: normal;
- right:0em;
+ right:1em;
  overflow: hidden;
  margin-top: 0.5em;
  height: 1em;
  left: 4.25em;
  position: absolute;
  padding-bottom: 1.25em;
-
+ border-bottom: none;
 
 }
 
@@ -292,6 +373,8 @@ table.tablesorter td.summary a, table.tablesorter td.id a {
 
 table.tablesorter td.id  {
     padding-top: 1.5em;
+    text-align: right;
+    margin-right: 1.5em;
 }
 table.tablesorter td.id a {
     color: #aaa;
@@ -342,8 +425,6 @@ content {
     my $self      = shift;
     my $component = shift;
 
-    h2 {'Open tickets for this component'};
-
     $self->show_tickets(
         sub {my $item = shift;
             ( ( $item->prop('component') || '' ) eq $component && $item->has_active_status )
@@ -358,8 +439,6 @@ template 'milestone' => page { 'Milestone: ' . ( $_[1] || '<i>none</i>' ) }
 content {
     my $self      = shift;
     my $milestone = shift;
-
-    h2 {'Open tickets for this milestone'};
 
     $self->show_tickets(
         sub {my $item = shift;
@@ -406,11 +485,9 @@ template edit_ticket => page {
         );
         $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       title is "Update ticket: ". $ticket->luid.": ".$ticket->prop('summary');
 
-    ul { {class is 'actions'};
-        li { a {{ href is '/ticket/'.$ticket->uuid.''}; 'Show'}; };
-    };
+        
+    $self->ticket_page_actions($ticket);
 
     form {
         my $f = function(
@@ -423,12 +500,20 @@ template edit_ticket => page {
             div { { class is "widget $prop"}; 
                     widget( function => $f, prop => $prop, autocomplete => 0 ) };
                     }
-        for my $prop ('status', 'milestone', 'component',  
-                       'owner',  'due',     'reporter') {
+
+
+        for my $prop (@BASIC_PROPS) {
 
             div { { class is "widget $prop"}; 
                     widget( function => $f, prop => $prop ) };
         }
+
+
+        div { class is 'submit';
+        input { attr { label => 'save', type => 'submit' } };
+        };
+
+        div { class is 'comment-form';
         h2 { 'Add a comment' };
 
         my $c = function(
@@ -447,7 +532,10 @@ template edit_ticket => page {
                             type => 'textarea', autocomplete => 0)};
         }
 
+        };
+        div { class is 'submit';
         input { attr { label => 'save', type => 'submit' } };
+        };
     };
 };
 
@@ -473,17 +561,20 @@ template new_ticket => page {'Create a new ticket'} content {
         }
 
 
-        for my $prop (
-            'milestone', 'component',  
-            'due',     
-            'owner',  
-            'reporter',
-            'status',
-            ) {
+        for my $prop (@BASIC_PROPS) {
 
             div { {class is 'widget '.$prop};
                  widget( function => $f, prop => $prop ) };
         }
+
+
+
+        div { class is 'submit';
+        input { attr { label => 'save', type => 'submit' } };
+        };
+
+
+        div { class is 'comment-form';
         h2 { 'Initial comments on this ticket' };
 
         my $c = function(
@@ -505,8 +596,11 @@ template new_ticket => page {'Create a new ticket'} content {
             div { widget( function => $c, prop => $prop, type => 'textarea', autocomplete => 0)};
         }
 
+        div { class is 'submit';
         input { attr { label => 'save', type => 'submit' } };
-    };
+        } 
+        } 
+        };
 };
 
 template footer => sub { 
@@ -564,7 +658,8 @@ private template 'ticket_list' => sub {
             for my $ticket (@$tickets) {
                 row {
                     cell { class is 'id'; ticket_link( $ticket => $ticket->luid ); };
-                    for (qw(status milestone component owner reporter created due)) {
+                    for (@BASIC_PROPS) {
+                    
                         cell { class is $_; $ticket->prop($_) };
                     }
                     cell { class is 'summary'; ticket_link( $ticket => $ticket->prop('summary') ); };
@@ -578,6 +673,30 @@ private template 'ticket_list' => sub {
         });
         }
         
+        };
+
+template 'show_ticket_history' => page {
+        my $self = shift;
+        my $id = shift;
+        my $ticket = App::SD::Model::Ticket->new(
+            app_handle => $self->app_handle,
+            handle     => $self->app_handle->handle
+        );
+        $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
+
+       $ticket->luid.": ".$ticket->prop('summary');
+    } content {
+        my $self = shift;
+        my $id = shift;
+        my $ticket = App::SD::Model::Ticket->new(
+            app_handle => $self->app_handle,
+            handle     => $self->app_handle->handle
+        );
+        $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
+
+        $self->ticket_page_actions($ticket);
+
+        show ticket_history     => $ticket;
         };
 
 template 'show_ticket' => page {
@@ -598,16 +717,29 @@ template 'show_ticket' => page {
             handle     => $self->app_handle->handle
         );
         $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
-    ul { {class is 'actions'};
-        li { a {{ href is '/ticket/'.$ticket->uuid.'/edit'}; 'Edit'}; };
-    };
+
+        $self->ticket_page_actions($ticket);
+
 
         show ticket_basics      => $ticket;
         show ticket_attachments => $ticket;
         show ticket_comments    => $ticket;
-        show ticket_history     => $ticket;
 
     };
+
+
+sub ticket_page_actions {
+    my $self = shift;
+    my $ticket = shift;
+
+    ul { {class is 'actions'};
+        li { a {{ href is '/ticket/'.$ticket->uuid.''}; 'Show'}; };
+        li { a {{ href is '/ticket/'.$ticket->uuid.'/edit'}; 'Update'}; };
+        li { a {{ href is '/ticket/'.$ticket->uuid.'/history'}; 'History'}; };
+    };
+
+
+}
 
 
 sub _by_creation_date { $a->prop('created') cmp $b->prop('created') };
@@ -616,20 +748,23 @@ sub _by_creation_date { $a->prop('created') cmp $b->prop('created') };
 private template 'ticket_basics' => sub {
     my $self = shift;
     my $ticket = shift;
-        my $props = $ticket->get_props;
+        my %props = %{$ticket->get_props};
         div { { class is 'ticket-props'};
             div { class is 'widget'; 
                 label { 'UUID' };
             div { { class is 'value uuid'}; $ticket->uuid; } 
             };
-        for my $key (sort keys %$props) {
+        for my $key (@BASIC_PROPS, (sort keys %props)) {
+            next unless defined $props{$key}; 
+            next if ($key eq 'summary');
             next if ($key =~ /.{8}-.{4}-.{4}-.{12}-id/);
-            div { class is 'widget'; 
-                label{ $key };
-            div { { class is 'value '.$key}; $props->{$key};
-        
-            } 
-            }
+            div { class is 'widget';
+                label {$key};
+                div { { class is 'value ' . $key }; $props{$key}; }
+            };
+
+            delete $props{$key};
+
         }
         };
 };
