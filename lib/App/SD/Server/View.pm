@@ -485,7 +485,6 @@ template edit_ticket => page {
         );
         $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       title is "Update ticket: ". $ticket->luid.": ".$ticket->prop('summary');
 
         
     $self->ticket_page_actions($ticket);
@@ -501,6 +500,8 @@ template edit_ticket => page {
             div { { class is "widget $prop"}; 
                     widget( function => $f, prop => $prop, autocomplete => 0 ) };
                     }
+
+
         for my $prop (@BASIC_PROPS) {
 
             div { { class is "widget $prop"}; 
