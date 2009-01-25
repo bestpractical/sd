@@ -6,7 +6,7 @@ use Moose;
 Prophet::CLI::Dispatcher->add_command_prefix('App::SD::CLI::Command');
 
 # "sd ?about" => "sd help about"
-rewrite qr/^\?(.*)/ => sub { "help $1" };
+rewrite qr/^\?(.*)/ => sub { "help ".($1||'') };
 
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
 rewrite [ ['about', 'copying'] ] => sub { "help $1" };
