@@ -49,12 +49,11 @@ diag ("interactive template status will be found in $filename");
 App::SD::Test->set_editor("settings-editor.pl --first $filename");
 
 # then edit the settings
-run_output_matches_unordered( 'sd', [ 'settings' ],
+run_output_matches( 'sd', [ 'settings' ],
     [
-        'Changed default_status from ["new"] to ["open"].',
         'Setting with uuid "BFB613BD-9E25-4612-8DE3-21E4572859EA" does not exist.',
-    ], [], "interactive settings set went ok",
-);
+        'Changed default_status from ["new"] to ["open"].',
+    ], [], "interactive settings set went ok",);
 
 # check the tempfile to see if the template presented to the editor was correct
 chomp(my $template_ok = Prophet::Util->slurp($filename));
@@ -74,10 +73,10 @@ run_output_matches(
 (undef, my $second_filename) = tempfile();
 diag ("interactive template status will be found in $second_filename");
 App::SD::Test->set_editor("settings-editor.pl --second $second_filename");
-run_output_matches_unordered( 'sd', [ 'settings' ],
+run_output_matches( 'sd', [ 'settings' ],
     [
-        'Changed default_component from ["core"] to ["ui"].',
         qr/^An error occured setting default_milestone to \["alpha":/,
+        'Changed default_component from ["core"] to ["ui"].',
     ], [], "interactive settings set with JSON error went ok",
 );
 
