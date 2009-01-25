@@ -28,7 +28,7 @@ body {
 
 div.page {
     align: center;
-    max-width: 800px;
+    max-width: 700px;
     background: #fff;
     margin: 0;
     padding: 0;
@@ -51,11 +51,14 @@ div.project-name {
 
 h1 {
    padding:  0.5em;
+   padding-bottom: 0;
  color: #700;
  font-style: italic; 
  text-decoration: none;
  font-family: serif;
    font-size: 1.6em;
+   border-bottom: 1px solid #ccc;
+   margin-bottom: 0.5em;
 }
 
 h2 {
@@ -205,7 +208,7 @@ div.widget div.value {
 }
 
 div.comment-form {
-    border-top: 1px solid #999;
+    border: 1px solid #999;
     margin-left: 1em;
     margin-right: 1em;
     margin-top: 2em;
@@ -219,6 +222,12 @@ div.comment-form textarea {
     width: 100%;
 
 }
+
+div.comment-form h2 {
+    margin-top: -1.5em;
+
+}
+
 
 
 div.widget {
@@ -342,7 +351,7 @@ table.tablesorter td {
 table.tablesorter tbody td {
  color: #555;
  font-weight: bold;
- height: 5em;
+ height: 4em;
  padding-top: 3em;
 
 }
@@ -354,9 +363,9 @@ table.tablesorter td.summary {
  font-weight: normal;
  right:1em;
  overflow: hidden;
- margin-top: 0.5em;
+ margin-top: 0.75em;
  height: 1em;
- left: 4.25em;
+ left: 3.75em;
  position: absolute;
  padding-bottom: 1.25em;
  border-bottom: none;
@@ -364,10 +373,9 @@ table.tablesorter td.summary {
 }
 
 table.tablesorter td.summary a, table.tablesorter td.id a {
- font-size: 1.7em;
- color: #700;
- font-style: italic; 
+ font-size: 1.6em;
  text-decoration: none;
+ color: #700;
  font-family: serif;
 }
 
@@ -378,6 +386,7 @@ table.tablesorter td.id  {
 }
 table.tablesorter td.id a {
     color: #aaa;
+ font-style: italic; 
 }
 
 table.tablesorter td a:hover {
@@ -503,6 +512,7 @@ template edit_ticket => page {
 
 
         for my $prop (@BASIC_PROPS) {
+            next if $prop eq 'created';
 
             div { { class is "widget $prop"}; 
                     widget( function => $f, prop => $prop ) };
@@ -562,7 +572,7 @@ template new_ticket => page {'Create a new ticket'} content {
 
 
         for my $prop (@BASIC_PROPS) {
-
+            next if $prop eq 'created';
             div { {class is 'widget '.$prop};
                  widget( function => $f, prop => $prop ) };
         }
