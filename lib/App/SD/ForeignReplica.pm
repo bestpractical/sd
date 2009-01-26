@@ -47,7 +47,7 @@ sub record_pushed_transaction {
     my %args = validate( @_,
         { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' }, record => 1 } );
 
-    $self->state_handle->store_local_metadata(
+    $self->store_local_metadata(
         "foreign-txn-from-".$self->uuid . '-record-'.$args{record}. '-txn-' . $args{transaction} => 
         join( ':',
             $args{changeset}->original_source_uuid,
@@ -76,7 +76,7 @@ remote replica when doing a subsequent pull
 sub foreign_transaction_originated_locally {
     my $self = shift;
     my ($id, $record) = validate_pos( @_, 1, 1);
-    return $self->state_handle->fetch_local_metadata("foreign-txn-from-". $self->uuid .'-record-'.$record. '-txn-' .$id );
+    return $self->fetch_local_metadata("foreign-txn-from-". $self->uuid .'-record-'.$record. '-txn-' .$id );
 }
 
 sub traverse_changesets {
@@ -120,7 +120,7 @@ sub _lookup_uuid_for_remote_id {
 
 
 
-    return $self->state_handle->fetch_local_metadata('local_uuid_for_'.  
+    return $self->fetch_local_metadata('local_uuid_for_'.  
         $self->uuid_for_url( $self->remote_url . $self->remote_uri_path_for_id($id))
     );
 }
@@ -128,7 +128,7 @@ sub _lookup_uuid_for_remote_id {
 sub _set_uuid_for_remote_id {
     my $self = shift;
     my %args = validate( @_, { uuid => 1, remote_id => 1 } );
-    return $self->state_handle->store_local_metadata('local_uuid_for_'.
+    return $self->store_local_metadata('local_uuid_for_'.
         $self->uuid_for_url(
                   $self->remote_url
                 . $self->remote_uri_path_for_id( $args{'remote_id'} )

@@ -13,6 +13,8 @@ sub integrate_changes {
         @_, { isa => 'Prophet::ChangeSet' }
     );
 
+    return if $self->sync_source->has_seen_changeset($changeset);
+
     my @changes = $changeset->changes;
     foreach my $change ( splice @changes ) {
         # don't push internal records
@@ -178,8 +180,10 @@ sub integrate_comment {
 
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
 
+
     my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'} )
         or die "Couldn't get remote id of SD ticket";
+    
 
     my $email = $self->comment_as_email( \%props );
     my $status = $self->sync_source->hm->act(
