@@ -39,22 +39,27 @@ $task->create(
     description => '',
 );
 
+
 my ($yatta_uuid, $yatta_id);
 {
     diag($sd_hm_url);
     my ($ret, $out, $err) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] );
-    run_output_matches( 'sd', [qw(ticket list --regex .)], [qr/(.*?)(?{ $yatta_uuid = $1 }) YATTA (.*)/] );
-    ( $ret, $out, $err ) = run_script( 'sd', [ qw(ticket show --batch --id), $yatta_uuid ] );
-    $yatta_id = $1 if $out =~ /^id: (\d+) /m;
+    run_output_matches( 'sd', [qw(ticket list --regex .)], [qr/(.*?)(?{ $yatta_id = $1 }) YATTA (.*)/] );
+    ( $ret, $out, $err ) = run_script( 'sd', [ qw(ticket show --batch --id), $yatta_id ] );
+    if ($out =~ /^id: (.*) \((.*)\)$/m) {
+        $yatta_id = $1;
+        $yatta_uuid = $2;
+    } else {
+        die "Couldn't parse ticket show --batch output for YATTA's id\n".$out;
+    }
 }
-
 my ($comment_id, $comment_uuid) = create_ticket_comment_ok(
     '--uuid', $yatta_uuid, '--content',
     "'This is a test'"
 );
+
 {
     my ( $ret, $out, $err ) = run_script( 'sd', [ 'push','--to', $sd_hm_url ] );
-
     my $task = BTDT::Model::Task->new( current_user => $GOODUSER );
     ok( $task->load_by_cols( summary => 'YATTA' ), "loaded a task" );
     my $comments = $task->comments;
