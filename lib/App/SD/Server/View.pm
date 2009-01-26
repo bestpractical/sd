@@ -28,7 +28,8 @@ body {
 
 div.page {
     align: center;
-    max-width: 700px;
+    max-width: 800px;
+    min-width: 400px;
     background: #fff;
     margin: 0;
     padding: 0;
@@ -680,8 +681,14 @@ private template 'ticket_list' => sub {
     };
          script {outs_raw(qq{
             \$(document).ready(function() { \$("#@{[$id]}").tablesorter(); } ); 
-        });
         }
+
+    );
+
+#     outs_raw('$("td.created,td.due").prettyDateTag();
+# setInterval(function(){ $("td.created,td.due").prettyDateTag(); }, 5000);')
+ };
+
         
         };
 
@@ -777,6 +784,10 @@ private template 'ticket_basics' => sub {
 
         }
         };
+
+    script { outs_raw('$("div.created,div.due").prettyDateTag();
+setInterval(function(){ $("div.created,div.due").prettyDateTag(); }, 5000);') };
+
 };
 template ticket_attachments => sub {
     my $self = shift;
@@ -794,7 +805,8 @@ template ticket_history => sub {
     dl { { class is 'history'};
     for my $changeset  (sort {$a->created cmp $b->created}  $ticket->changesets) {
         dt {
-                span { { class is 'created'};  $changeset->created};
+            my $d  = $changeset->created;
+                span { { class is 'created'};  $d};
                 span { { class is 'creator'};  $changeset->creator || i { 'Missing author'};  };
                 span { { class is 'original_sequence_no'};  $changeset->original_sequence_no};
                 span { { class is 'original_source_uuid'}; $changeset->original_source_uuid };
@@ -811,6 +823,8 @@ template ticket_history => sub {
         }
     }
 
+    script { outs_raw('$("span.created").prettyDateTag();
+setInterval(function(){ $("span.created").prettyDateTag(); }, 5000);') };
 };
 
 template ticket_comments => sub {
@@ -822,13 +836,15 @@ template ticket_comments => sub {
         ul { { class is 'comments'}; 
             for my $comment (@comments) {
                 li {
-                    span { {class is 'metadata'};  $comment->prop('created') . " " . $comment->prop('creator'); }
+                    span { {class is 'metadata'};  span{class is 'created'; $comment->prop('created')} . " " . $comment->prop('creator'); }
                     div { class is 'content'; 
                         $comment->prop('content') || i { 'No body was entered for this comment'} };
                 }
             }
         }
     }
+    script { outs_raw('$("span.created").prettyDateTag();
+setInterval(function(){ $("span.created").prettyDateTag(); }, 5000);') };
 
 };
 
