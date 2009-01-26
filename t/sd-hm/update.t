@@ -53,7 +53,7 @@ my ($yatta_uuid, $yatta_id);
 }
 
 is_script_output( 'sd', [ qw(ticket update --uuid), $yatta_uuid, qw(-- --summary BLABLA) ],
-    [qr/ticket \d+ \(\Q$yatta_uuid\E\) updated./], # stdout
+    [qr/ticket \d+ \(\Q$yatta_uuid\E\) updated./i], # stdout
     [undef],             # stderr
     "updated summary"
 );

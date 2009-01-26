@@ -96,7 +96,7 @@ diag("without write rights, ensure that trying to push it gives a sane error");
 
 as_alice {
     run_output_matches('sd', ['ticket', 'update', $flyman_id, '--', 'priority=20'],
-        [qr/ticket .*$flyman_id.* updated/],
+        [qr/ticket .*$flyman_id.* updated/i],
     );
 
     ($ret, $out, $err) = run_script('sd', ['push', '--to',  $alice_rt_url]);
@@ -175,7 +175,7 @@ $alice->PrincipalObj->GrantRight(Right => 'ShowTicket',   Object => $refuge);
 
 as_alice {
     run_output_matches('sd', ['ticket', 'resolve', $flyman_id],
-        [qr/ticket .*$flyman_id.* updated/],
+        [qr/ticket .*$flyman_id.* updated/i],
     );
 
     ($ret, $out, $err) = run_script('sd', ['push', '--to',  $alice_rt_url]);

@@ -270,7 +270,7 @@ like( $out, qr/Created comment/ );
     ( $ret, $out, $err )
         = run_script( 'sd', [ 'ticket', 'resolve', $helium_id ] );
     ok( $ret, $out );
-    like( $out, qr/ticket .* updated/ );
+    like( $out, qr/Ticket .* updated/ );
 
     ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
     ok( $ret, $out );
@@ -291,7 +291,7 @@ like( $out, qr/Created comment/ );
     ( $ret, $out, $err )
         = run_script( 'sd', [ 'ticket','delete', $flyman_id]);
     ok( $ret, $out );
-    like( $out, qr/ticket .* deleted/ );
+    like( $out, qr/Ticket .* deleted/i );
 
     ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
     ok( $ret, $out );

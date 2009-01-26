@@ -56,7 +56,7 @@ sub update_ticket_ok {
     my ($id, @args) = (@_);
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'update', $id, '--', @args ],
-        [qr/ticket \d+\s+\([^)]*\)\s+updated\./]
+        [qr/ticket \d+\s+\([^)]*\)\s+updated\./i]
     );
 }
 
