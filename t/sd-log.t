@@ -24,7 +24,7 @@ my $replica_uuid = replica_uuid;
 my ($log_id, $log_uuid) = create_ticket_ok( '--', 'summary', 'logs rock!');
 # check the log
 
-run_output_matches( 'sd', [ 'log', '--count', '1' ],
+run_output_matches_unordered( 'sd', [ 'log', 'LATEST' ],
     [
         qr/^\d{4}-\d{2}-\d{2}.+ - $ENV{USER} @ $replica_uuid$/,
         qr/^ # Ticket \d+ \(logs rock!\)$/,
@@ -36,7 +36,6 @@ run_output_matches( 'sd', [ 'log', '--count', '1' ],
         '  + "component" set to "core"',
         '  + "summary" set to "logs rock!"',
         '  + "milestone" set to "alpha"',
-        '',
     ], [], "log output is correct",
 );
 # change a prop
@@ -48,7 +47,7 @@ run_output_matches( 'sd', [ 'ticket',
    "deleting a prop went ok",
 );
 # check the log
-run_output_matches( 'sd', [ 'log', '--count', '1' ],
+run_output_matches( 'sd', [ 'log', 'LATEST' ],
     [
         qr/^\d{4}-\d{2}-\d{2}.+ - $ENV{USER} @ $replica_uuid$/,
         qr/^ # Ticket \d+ \(logs rock!\)$/,
@@ -61,8 +60,5 @@ run_output_matches( 'sd', [ 'log', '--count', '1' ],
 # to '', so it will never actually show up in the log as deleted
 # check the log
 
-# check the log specifying --count --last
-# args for the log command: --last, --count
-# count does: specifies the number of log entries to output
-# last does: specifies the last entry that you want shown (newest entry is default)
-
+# we don't need to test the range-specifying heavily since Prophet already
+# does this
