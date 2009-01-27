@@ -25,6 +25,7 @@ under help => sub {
     on [ ['attachment', 'attachments'] ] => run_command('Help::Attachments');
     on [ ['comment', 'comments'] ]       => run_command('Help::Comments');
     on [ ['setting', 'settings'] ]       => run_command('Help::Settings');
+    on [ ['history', 'log'] ]            => run_command('Help::History');
 
     on [
         ['ticket', 'attachment', 'comment'],
