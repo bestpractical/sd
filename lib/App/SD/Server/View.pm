@@ -679,8 +679,8 @@ private template 'ticket_list' => sub {
                 th {'Component'};
                 th {'Owner'};
                 th {'Reporter'};
-                th {'Created'};
                 th {'Due'};
+                th {'Created'};
             }
         };
         tbody {
