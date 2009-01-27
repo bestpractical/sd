@@ -87,8 +87,14 @@ ul.actions li {
     background: #ddd;
 } 
 
+ul.actions li:first-child {
+    -moz-border-radius-topleft: 0.25em;
+    -webkit-border-top-left-radius: 0.25em;
+}
+
 ul.actions li:last-child {
-    border: none;
+    -moz-border-radius-topright: 0.25em;
+    -webkit-border-top-right-radius: 0.25em;
 }
 
 
@@ -274,9 +280,11 @@ ul.page-nav a:hover, ul.page-nav a:active {
     background: #ccc;
 }
 
+
+ul.page-nav { background: #fff;}
+
 ul.page-nav {
     padding: 0;
-    background: #601;
 }
 
 ul.page-nav a {
@@ -523,7 +531,8 @@ template edit_ticket => page {
             order => 1,
             name => 'edit-ticket'
         );
-        div { class is 'ticket-props';
+
+        div {  { class is 'ticket-props'};
         for my $prop ('summary') { 
             div { { class is "widget $prop"}; 
                     widget( function => $f, prop => $prop, autocomplete => 0 ) };
@@ -537,7 +546,7 @@ template edit_ticket => page {
                     widget( function => $f, prop => $prop ) };
         }
 
-    };
+        };
         div { class is 'submit';
         input { attr { label => 'save', type => 'submit' } };
         };
@@ -582,6 +591,7 @@ template new_ticket => page {'Create a new ticket'} content {
             order => 1,
             name => 'create-ticket'
         );
+        div { class is 'ticket-props';
         for my $prop ('summary') {
             div {
                 { class is "widget $prop" };
@@ -596,7 +606,7 @@ template new_ticket => page {'Create a new ticket'} content {
                  widget( function => $f, prop => $prop ) };
         }
 
-
+        };
 
         div { class is 'submit';
         input { attr { label => 'save', type => 'submit' } };

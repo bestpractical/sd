@@ -14,22 +14,31 @@ on qr'.' => sub {
 
 on qr'.' => sub {
     my $self = shift;
-    my $tickets = $self->server->nav->child( tickets => label => 'Issues', url => '/tickets');
+    my $tickets = $self->server->nav->child( tickets => label => 'Tickets', url => '/');
     $tickets->child( go => label => '<form method="GET" action="/ticket"><a href="#">Show ticket # <input type=text name=id size=3></a></form>', escape_label => 0);
 
 
     my $milestones = $tickets->child( milestones => label => 'Milestones', url => '/milestones');
     my $items = $self->server->app_handle->setting( label => 'milestones' )->get();
     foreach my $item (@$items) {
-        $milestones->child( $item => label => $item, url => '/milestone/'.$item);
+        my $m = $milestones->child( $item => label => $item, url => '/milestone/'.$item);
+        #$m->child('all' => label => 'All', url => '/milestone/'.$item.'/all');
+        #$m->child('mine' => label => 'Mine', url => '/milestone/'.$item.'/mine');
+        #$m->child('closed' => label => 'Closed', url => '/milestone/'.$item.'/closed');
     }
+        $milestones->child( none => label => 'None', url => '/no_milestone');
     
     my $components = $tickets->child( components => label => 'Components', url => '/components');
     my $items = $self->server->app_handle->setting( label => 'components' )->get();
     foreach my $item (@$items) {
-        $components->child( $item => label => $item, url => '/component/'.$item);
-    }
+        my $c= $components->child( $item => label => $item, url => '/component/'.$item);
+        #$c->child('all' => label => 'All', url => '/component/'.$item.'/all');
+        #$c->child('mine' => label => 'Mine', url => '/component/'.$item.'/mine');
+        #$c->child('closed' => label => 'Closed', url => '/component/'.$item.'/closed');
 
+
+    }
+    $components->child('None' => label => 'None', url => '/no_component');
 
     $self->server->nav->child( create => label => 'New ticket', url => '/ticket/new');
     $self->server->nav->child( home => label => 'Home', url => '/');
