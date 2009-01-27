@@ -12,7 +12,7 @@ use App::SD::Model::Comment;
 use App::SD::Collection::Ticket;
 
 
-my @BASIC_PROPS = qw(status milestone component owner reporter created due);
+my @BASIC_PROPS = qw(status milestone component owner reporter due created);
 
 
 template '/css/sd.css' => sub {
@@ -20,9 +20,8 @@ template '/css/sd.css' => sub {
 
 body {
   font-family: sans-serif;
-  background: #601;
-  margin: 0;
-  padding: 0;
+  background-color: #601;
+  padding: 1em;
 }
   
 
@@ -35,8 +34,7 @@ div.page {
     padding: 0;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 1em;
-    margin-bottom: 1em;
+    padding-top: 1em;
     padding-left: 1em;
     padding-right: 1em;
     padding-bottom: 2em;
@@ -156,8 +154,8 @@ ul.comments span.metadata {
 }
 
 textarea:focus, input:focus { 
-   padding: 2px;
-   padding-left: 1px;
+/*   padding: 2px;
+   padding-left: 1px; */
    background-color: #ffc;
 }
 
@@ -201,11 +199,26 @@ div.widget label {
     text-align: right;
     padding-right: 0.5em;
     color: #666;
+    background-color: transparent;
     font-weight: bold;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    padding-bottom: 0.8em;
 }
 
 div.widget div.value {
     display: inline-block;
+    padding-top: 0.35em;
+    padding-left: 0.6em;
+    font-size: 0.95em;
+}
+
+div.widget input {
+    margin-top: 0em;
+    font-size: 0.95em;
+    margin-left: 0.2em;
+    padding: 0.2em;
 }
 
 div.comment-form {
@@ -233,8 +246,11 @@ div.comment-form h2 {
 
 div.widget {
     padding: 0.5em;
+    padding-top: 0.6em;
+    marging-bottom: 0.2em;
     margin-left: 1em;
     margin-right: 1em;
+    height: 1.6em;
     border-bottom: 1px solid #ccc;
 }
 
@@ -272,7 +288,7 @@ ul.page-nav a {
 
 }
 
-.widget:nth-child(odd), table.tablesorter tbody tr:nth-child(odd) td {
+.ticket-props>:nth-child(odd), table.tablesorter tbody tr:nth-child(odd) td {
     background: #eee;
 }
 
@@ -500,12 +516,14 @@ template edit_ticket => page {
     $self->ticket_page_actions($ticket);
 
     form {
+
         my $f = function(
             record => $ticket,
             action => 'update',
             order => 1,
             name => 'edit-ticket'
         );
+        div { class is 'ticket-props';
         for my $prop ('summary') { 
             div { { class is "widget $prop"}; 
                     widget( function => $f, prop => $prop, autocomplete => 0 ) };
@@ -519,7 +537,7 @@ template edit_ticket => page {
                     widget( function => $f, prop => $prop ) };
         }
 
-
+    };
         div { class is 'submit';
         input { attr { label => 'save', type => 'submit' } };
         };
