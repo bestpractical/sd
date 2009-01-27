@@ -685,8 +685,8 @@ private template 'ticket_list' => sub {
 
     );
 
-#     outs_raw('$("td.created,td.due").prettyDateTag();
-# setInterval(function(){ $("td.created,td.due").prettyDateTag(); }, 5000);')
+     outs_raw('$("td.created,td.due").prettyDateTag();
+ setInterval(function(){ $("td.created,td.due").prettyDateTag(); }, 5000);')
  };
 
         
@@ -805,8 +805,7 @@ template ticket_history => sub {
     dl { { class is 'history'};
     for my $changeset  (sort {$a->created cmp $b->created}  $ticket->changesets) {
         dt {
-            my $d  = $changeset->created;
-                span { { class is 'created'};  $d};
+                span { { class is 'created'};  $changeset->created };
                 span { { class is 'creator'};  $changeset->creator || i { 'Missing author'};  };
                 span { { class is 'original_sequence_no'};  $changeset->original_sequence_no};
                 span { { class is 'original_source_uuid'}; $changeset->original_source_uuid };
@@ -836,9 +835,16 @@ template ticket_comments => sub {
         ul { { class is 'comments'}; 
             for my $comment (@comments) {
                 li {
-                    span { {class is 'metadata'};  span{class is 'created'; $comment->prop('created')} . " " . $comment->prop('creator'); }
-                    div { class is 'content'; 
-                        $comment->prop('content') || i { 'No body was entered for this comment'} };
+                    span {
+                        { class is 'metadata' };
+                        span { class is 'created'; $comment->prop('created') };
+                         outs(" ");
+                        span { class is 'creator';  $comment->prop('creator')};
+                    }
+                    div {
+                        class is 'content';
+                        $comment->prop('content') || i {'No body was entered for this comment'};
+                    };
                 }
             }
         }
