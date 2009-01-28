@@ -33,7 +33,7 @@ Currently, the following configuration variables are available:
 
     disable_ticket_show_history_by_default = 1
       Don't display ticket history when running '$cmd ticket show'. Can
-      be overridden by passing the '--show-history' arg to the
+      be overridden by passing the '--with-history' arg to the
       command.
 
     common_ticket_props = id,summary,status,owner,created,original_replica

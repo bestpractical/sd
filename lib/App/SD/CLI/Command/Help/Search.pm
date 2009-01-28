@@ -41,7 +41,7 @@ print <<EOF
       Show only metadata and comments for the ticket 1234 (but not
       history).
 
-    $cmd ticket show 1234 --show-history
+    $cmd ticket show 1234 --with-history
       Override the disable_ticket_show_history_by_default config option
       if it is set for this database. (See '$cmd help config' for
       more info.)

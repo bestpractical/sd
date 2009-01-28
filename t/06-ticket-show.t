@@ -104,8 +104,8 @@ diag("and --skip-history passed (shouldn't show history)");
 
 check_output_without_history('--skip-history');
 
-# config option set and --show-history passed (should show history)
+# config option set and --with-history passed (should show history)
 diag('config option disable_ticket_show_history_by_default set');
-diag('and --show-history passed (should show history)');
+diag('and --with-history passed (should show history)');
 
-check_output_with_history('--show-history');
+check_output_with_history('--with-history');
