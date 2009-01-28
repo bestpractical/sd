@@ -56,11 +56,20 @@ under ticket => sub {
     on comment  => run_command('Ticket::Comment');
     on details  => run_command('Ticket::Details');
 
-    on ['give', qr/.*/, qr/.*/] => sub {
-        my $self = shift;
-        $self->context->set_arg(id    => $2);
-        $self->context->set_arg(owner => $3);
-        run('ticket update', $self, @_);
+    under give => sub {
+        on [qr/^(?:\d+|[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})$/, qr/^\S+$/] => sub {
+            my $self = shift;
+            my ($id, $owner) = ($1, $2);
+
+            $self->context->set_arg(id    => $id);
+            $self->context->set_arg(type    => 'ticket');
+            $self->context->set_prop(owner => $owner);
+            $self->context->set_type_and_uuid;
+            run('ticket update', $self, @_);
+        };
+        on qr/^(.*)$/ => sub {
+            die "Usage: give <id> <email>\n";
+        };
     };
 
     on [ ['resolve', 'close'] ] => sub {

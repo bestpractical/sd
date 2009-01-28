@@ -2,7 +2,7 @@
 
 use strict;
 
-use Prophet::Test tests => 16;
+use Prophet::Test tests => 20;
 use App::SD::Test;
 no warnings 'once';
 
@@ -12,7 +12,7 @@ BEGIN {
     warn $ENV{'PROPHET_REPO'};
 }
 
-# tests for pseudo-commands that are only in the dispatcher
+# tests for pseudo-commands that are only sugar in the dispatcher
 
 run_script( 'sd', [ 'init']);
 
@@ -143,25 +143,42 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $yatta_id ],
     ]
 );
 
-TODO: {
-    local $TODO = "give interacts with the dispatcher in bad ways afaict";
-    # test give
-    run_output_matches( 'sd', [ 'ticket', 'give', $yatta_id, 'jesse@bestpractical.com' ],
-        [ "Ticket $yatta_id ($yatta_uuid) updated." ]
-    );
+# test give
+run_output_matches( 'sd', [ 'ticket', 'give', $yatta_id, 'jesse@bestpractical.com' ],
+    [ "Ticket $yatta_id ($yatta_uuid) updated." ]
+);
 
-    run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $yatta_id ],
-        [
-            "id: $yatta_id ($yatta_uuid)",
-            'summary: YATTA',
-            'status: closed',
-            'milestone: alpha',
-            'component: core',
-            'owner: jesse@bestpractical.com',
-            qr/^created: \d{4}-\d{2}-\d{2}.+$/,
-            qr/^creator: /,
-            'reporter: ' . $ENV{EMAIL},
-            "original_replica: " . replica_uuid,
-        ]
-    );
-};
+run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $yatta_id ],
+    [
+        "id: $yatta_id ($yatta_uuid)",
+        'summary: YATTA',
+        'status: closed',
+        'milestone: alpha',
+        'component: core',
+        'owner: jesse@bestpractical.com',
+        qr/^created: \d{4}-\d{2}-\d{2}.+$/,
+        qr/^creator: /,
+        'reporter: ' . $ENV{EMAIL},
+        "original_replica: " . replica_uuid,
+    ]
+);
+
+run_output_matches( 'sd', [ 'ticket', 'give' ],
+    [],
+    [ 'Usage: give <id> <email>' ]
+);
+
+run_output_matches( 'sd', [ 'ticket', 'give', $yatta_id ],
+    [],
+    [ 'Usage: give <id> <email>' ]
+);
+
+run_output_matches( 'sd', [ 'ticket', 'give', 'foo@bar.com', $yatta_id ],
+    [],
+    [ 'Usage: give <id> <email>' ]
+);
+
+run_output_matches( 'sd', [ 'ticket', 'give', 'spang@bestpractical.com' ],
+    [],
+    [ 'Usage: give <id> <email>' ]
+);
