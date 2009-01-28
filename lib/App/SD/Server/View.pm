@@ -18,10 +18,11 @@ my @BASIC_PROPS = qw(status milestone component owner reporter due created);
 template '/css/sd.css' => sub {
         outs_raw( '
 
-body {
+html {
   font-family: sans-serif;
   background-color: #601;
   padding: 1em;
+
 }
   
 
@@ -300,11 +301,7 @@ ul.page-nav a {
     background: #eee;
 }
 
-
-
-
 dl.history dt {
-    margin-top: 0.5em; 
     border-top: 1px solid #ccc;
     padding: 0.5em;
     color: #666; 
@@ -331,6 +328,9 @@ dl.history dt .original_sequence_no:after {
 dl.history dt .original_source_uuid {
     color: #ccc;
 }
+dl.history dd {
+    margin-bottom: 0.5em; 
+    }
 
 dl.history dd ul { 
     list-style: none;
@@ -344,10 +344,20 @@ ul.comments li {
     border-bottom: 1px solid #ccc;
 }
 
+ul.comments .creator, 
+ul.comments .created{
+    font-style: italic;
+}
+
+
+ul.comments .creator:after {
+    content: " wrote:";
+}
+
 ul.comments li .content {
     margin-top: 1em;
     white-space: pre;
-    font-family: monospace;
+    padding: 1em;
     font-size: 0.9em;
     overflow-x: auto;
 }
@@ -828,8 +838,6 @@ template ticket_history => sub {
     my $ticket = shift;
 
    
-    h2 { 'History'};
-    
     dl { { class is 'history'};
     for my $changeset  (sort {$a->created cmp $b->created}  $ticket->changesets) {
         dt {
@@ -849,7 +857,6 @@ template ticket_history => sub {
             }
         }
     }
-
     script { outs_raw('$("span.created").prettyDateTag();
 setInterval(function(){ $("span.created").prettyDateTag(); }, 5000);') };
 };
