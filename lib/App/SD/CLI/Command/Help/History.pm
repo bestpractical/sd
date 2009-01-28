@@ -31,14 +31,14 @@ Examples:
     $cmd log LATEST
       Shows the most recent change.
 
-    $cmd LATEST~4
+    $cmd log LATEST~4
       Shows changes from 4 before the most recent change up to the most
       recent change.
 
-    $cmd 2..LATEST~5
+    $cmd log 2..LATEST~5
       Shows the second change up through 5 before the latest.
 
-    $cmd LATEST~10..LATEST~5
+    $cmd log LATEST~10..LATEST~5
       Shows changes from 10 before the latest to 5 before the latest.
 EOF
 
