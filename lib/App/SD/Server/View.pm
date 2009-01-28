@@ -558,7 +558,7 @@ template edit_ticket => page {
 
         };
         div { class is 'submit';
-        input { attr { label => 'save', type => 'submit' } };
+        input { attr { value => 'Save', type => 'submit' } };
         };
 
         div { class is 'comment-form';
@@ -582,7 +582,7 @@ template edit_ticket => page {
 
         };
         div { class is 'submit';
-        input { attr { label => 'save', type => 'submit' } };
+        input { attr { value => 'Save', type => 'submit' } };
         };
     };
 };
@@ -619,7 +619,7 @@ template new_ticket => page {'Create a new ticket'} content {
         };
 
         div { class is 'submit';
-        input { attr { label => 'save', type => 'submit' } };
+        input { attr { value => 'Save', type => 'submit' } };
         };
 
 
@@ -646,7 +646,7 @@ template new_ticket => page {'Create a new ticket'} content {
         }
 
         div { class is 'submit';
-        input { attr { label => 'save', type => 'submit' } };
+        input { attr { value => 'Save', type => 'submit' } };
         } 
         } 
         };
