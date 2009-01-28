@@ -5,14 +5,27 @@ extends 'Prophet::CLI::Command::Shell';
 has project_name => (
     isa => 'Str',
     is => 'rw',
-    default => sub { shift->app_handle->setting( label => 'project_name' )->get()->[0]; }
+    default => sub { my $self = shift;
+                     if ($self->app_handle->handle->replica_exists) {
+                            return $self->app_handle->setting( label => 'project_name' )->get()->[0]; 
+                        } else {
+                            'No database found';
+                        }
+                        }
     );
 
 sub preamble {
     my $self = shift;
-    return join "\n",
-        "SD for ".$self->project_name." ($App::SD::VERSION; Prophet $Prophet::VERSION)",
-        'Type "help", "about", or "copying" for more information.',
+     my @out = (   "SD for ".$self->project_name." ($App::SD::VERSION; Prophet $Prophet::VERSION)",
+        'Type "help", "about", or "copying" for more information.');
+
+    if (!$self->app_handle->handle->replica_exists) {
+        push @out, '', "No SD database was found at ".$self->app_handle->handle->url(),
+        'Type "help init" and "help environment" for tips on how to sort that out.'
+    }
+
+    return join("\n",@out);
+
 }
 
 sub prompt {
