@@ -29,4 +29,5 @@ install_script('bin/sd');
 # Include subdirectory tests too.
 tests("t/*.t t/*/*.t");
 
+auto_install;
 &WriteAll;
