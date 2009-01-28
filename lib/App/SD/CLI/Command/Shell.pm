@@ -31,7 +31,7 @@ sub preamble {
 sub prompt {
     my $self = shift;
 
-    return $self->project_name.">";
+    return $self->project_name."> ";
 }
 
 
