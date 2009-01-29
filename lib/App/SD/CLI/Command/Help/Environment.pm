@@ -24,8 +24,8 @@ configuration. Example syntax is for bash-like shells.
       tickets.
 
     export PROPHET_REPLICA_TYPE=prophet
-      Use the prophet native replica type. In the future other backend
-      replica types may be available.
+      Use the prophet native replica type. Other backend replica
+      types are: sqlite.
 
     export SD_REPO=/path/to/sd/replica
       Specify where the ticket database SD is using should reside.
