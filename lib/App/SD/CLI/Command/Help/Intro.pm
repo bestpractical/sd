@@ -22,7 +22,7 @@ environment variable.
 
 To clone a ticket database:
 
-    $cmd clone --from http://example.com/path/to/sd
+    $cmd clone http://example.com/path/to/sd
 
 To start a new ticket database:
 
@@ -34,7 +34,7 @@ To create a ticket, run:
 
 To publish your database:
 
-    $cmd publish --to joeuser\@myhost.example.com:public_html/mydb
+    $cmd publish joeuser\@myhost.example.com:public_html/mydb
 
 To learn a bit more about what you can do with SD:
 

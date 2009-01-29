@@ -9,11 +9,11 @@ sub run {
 
 print <<EOF
 
-    $cmd clone --from http://example.com/path/to/sd
+    $cmd clone http://example.com/path/to/sd
       Create a new copy (replica) of a published SD replica from an
       http, ftp or file URL.
 
-    $cmd pull --from http://example.com/path/to/sd
+    $cmd pull http://example.com/path/to/sd
       Integrate changes from a published SD replica over http, ftp or 
       file URL.
 
@@ -23,9 +23,9 @@ print <<EOF
 
     $cmd pull --local
       Integrate changes from all replicas currently announcing themselves
-      on the local network using Bonjour
+      on the local network using Bonjour.
 
-    $cmd publish --to jesse\@server:path/to/destination
+    $cmd publish jesse\@server:path/to/destination
       Publish a copy of this replica to a remote server using rsync.
 
     $cmd publish --html --replica --to jesse\@server:path/to/destination
@@ -49,11 +49,11 @@ replica types for RT (http://bestpractical.com/rt) and Hiveminder
 your bug tracker, you should get in touch with SD's developers (see
 http://syncwith.us/contact).
 
-    $cmd push --to rt:http://rt3.fsck.com|rt3|Owner='jesse'
+    $cmd push rt:http://rt3.fsck.com|rt3|Owner='jesse'
       Push changes to the given foreign replica. Foreign replica
       schemas will vary based on the replica type.
 
-    $cmd pull --from rt:http://rt3.fsck.com|rt3|Owner='jesse'
+    $cmd pull rt:http://rt3.fsck.com|rt3|Owner='jesse'
       Pull changes from a foreign replica to be merged into the
       local replica.
 EOF
