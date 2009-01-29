@@ -7,6 +7,7 @@ with 'App::SD::CLI::Model::Ticket';
 with 'App::SD::CLI::Command';
 with 'Prophet::CLI::TextEditorCommand';
 
+__PACKAGE__->register_arg_translations( a => 'all-props' );
 
 # use an editor to edit if no props are specified on the commandline,
 # allowing the creation of a new comment in the process
