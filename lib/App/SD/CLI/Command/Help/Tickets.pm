@@ -47,6 +47,10 @@ print <<EOF
       from either the 'email_address' local config variable or the
       EMAIL environmental variable). An alias of 'take' is 'claim'.
 
+    $cmd ticket give 123 nobody\@example.com
+      Sets the owner of ticket 123 to nobody\@example.com.
+      An alias of 'give' is 'assign'.
+
     $cmd ticket resolve 123
       Sets the status of the ticket with local id 123 to closed.
 

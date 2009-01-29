@@ -56,7 +56,7 @@ under ticket => sub {
     on comment  => run_command('Ticket::Comment');
     on details  => run_command('Ticket::Details');
 
-    under give => sub {
+    under [ [ 'give', 'assign' ] ] => sub {
         on [qr/^(?:\d+|[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})$/, qr/^\S+$/] => sub {
             my $self = shift;
             my ($id, $owner) = ($1, $2);

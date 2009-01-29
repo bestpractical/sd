@@ -2,7 +2,7 @@
 
 use strict;
 
-use Prophet::Test tests => 20;
+use Prophet::Test tests => 22;
 use App::SD::Test;
 no warnings 'once';
 
@@ -156,6 +156,25 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $yatta_id ],
         'milestone: alpha',
         'component: core',
         'owner: jesse@bestpractical.com',
+        qr/^created: \d{4}-\d{2}-\d{2}.+$/,
+        qr/^creator: /,
+        'reporter: ' . $ENV{EMAIL},
+        "original_replica: " . replica_uuid,
+    ]
+);
+
+run_output_matches( 'sd', [ 'ticket', 'assign', $yatta_id, 'spang@bestpractical.com' ],
+    [ "Ticket $yatta_id ($yatta_uuid) updated." ]
+);
+
+run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $yatta_id ],
+    [
+        "id: $yatta_id ($yatta_uuid)",
+        'summary: YATTA',
+        'status: closed',
+        'milestone: alpha',
+        'component: core',
+        'owner: spang@bestpractical.com',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
         'reporter: ' . $ENV{EMAIL},
