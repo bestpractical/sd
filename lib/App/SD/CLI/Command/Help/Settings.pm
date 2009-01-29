@@ -21,7 +21,7 @@ The following arguments are supported:
       Don't present an editor window, just print the current
       settings to STDOUT.
 
-    --set common_ticket_props '["id", "summary", "original_replica"]'
+    --set -- common_ticket_props '["id", "summary", "original_replica"]'
       Update the setting common_ticket_props to the given value.
 
 Settings are not the same as local configuration variables. For
