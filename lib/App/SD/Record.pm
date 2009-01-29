@@ -1,6 +1,3 @@
-use warnings;
-use strict;
-
 package App::SD::Record; 
 use Moose;
 use Params::Validate;
@@ -9,7 +6,6 @@ extends 'Prophet::Record';
 
 
 sub declared_props { 'created', inner() }
-
 
 sub canonicalize_prop_created {
     my $self = shift;
