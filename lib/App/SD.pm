@@ -30,7 +30,7 @@ sub database_settings {
             owner =>
               "the email address of the person who is responsible for this ticket",
             due =>
-              "when this ticket must be finished by (ISO 8601 format)",
+              "when this ticket must be finished by",
             reporter =>
               "the email address of the person who reported this ticket"
         },
