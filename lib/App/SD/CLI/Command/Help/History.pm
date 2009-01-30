@@ -17,6 +17,9 @@ command. It can be run in the following ways:
     $cmd log --all
       Shows the entire history from start to end.
 
+    $cmd log -a
+      -a is a shortcut for --all.
+
     $cmd log <since>..<until>
       Shows the range of history starting at <since> and ending at
       <until>. Ranges can be specified using either sequence numbers

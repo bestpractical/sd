@@ -12,6 +12,9 @@ SD supports both a user-wide configuration file (\$HOME/.sdrc and
 per-database configuration file (/path/to/repo/sdrc). If both configuration
 files are present, the database-specific config file will be used.
 
+You can use the '$cmd config' command to view what configuration file
+SD is loading and what it contains.
+
 Currently, the following configuration variables are available:
 
     email_address = foo\@bar.com

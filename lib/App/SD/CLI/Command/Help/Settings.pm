@@ -17,7 +17,7 @@ must be valid JSON data structures.
 
 The following arguments are supported:
 
-    --show
+    --show (or -s)
       Don't present an editor window, just print the current
       settings to STDOUT.
 

@@ -17,6 +17,9 @@ print <<EOF
       and also shows descriptions and valid values for
       properties.
 
+    $cmd ticket create -v
+      -v is a shortcut for --verbose for this command.
+
     $cmd ticket create -- summary="This is a summary" status=open
       Create a new ticket non-interactively.
 
@@ -32,11 +35,17 @@ print <<EOF
       Interactively update the ticket with local id 123 in a text
       editor and show descriptions and valid values for props.
 
+    $cmd ticket update 123 -v
+      -v is a shortcut for --verbose for this command.
+
     $cmd ticket update 123 --all-props
       Interactively update the ticket with local id 123 in a text
       editor, presenting all the props of the record for editing instead of
       just those specified by the database setting 'common_ticket_props'
       (or local configuration variable 'common_ticket_props' if it exists).
+
+    $cmd ticket update 123 -a
+      -a is a shortcut for --all-props for this command.
 
     $cmd ticket update fad5849a-67f1-11dd-bde1-5b33d3ff2799 -- status=closed
       Sets the status of the ticket with uuid
@@ -58,6 +67,9 @@ print <<EOF
       Sets the status of the ticket with local id 123 to closed,
       allowing you to edit any properties in an editor and
       optionally add a comment in the process.
+
+    $cmd ticket resolve 123 -e
+      -e is a shortcut for --edit for this command.
 EOF
 
 }

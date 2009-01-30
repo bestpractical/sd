@@ -21,9 +21,15 @@ print <<EOF
       Integrate changes from all replicas this replica has pulled from
       before.
 
+    $cmd pull -a
+      -a is a shortcut for --all for this command.
+
     $cmd pull --local
       Integrate changes from all replicas currently announcing themselves
       on the local network using Bonjour.
+
+    $cmd pull -l
+      -l is a shortcut for --local for this command.
 
     $cmd publish jesse\@server:path/to/destination
       Publish a copy of this replica to a remote server using rsync.
@@ -42,6 +48,10 @@ print <<EOF
       PUBLIC WRITE ACCESS via HTTP POST.  This command will make your
       replica modifiable, browsable and pullable by ANYONE with remote
       access to your computer.
+
+    $cmd server -w -p 9876
+      -w is a shortcut for --writable and -p is a shortcut for --port
+      for this command.
 
 SD can sync to external systems as well as itself. Currently, there are foreign
 replica types for RT (http://bestpractical.com/rt) and Hiveminder

@@ -25,6 +25,16 @@ print <<EOF
        List all tickets with a status that does not match 'closed', 
        grouped by owner.
 
+    $cmd ticket search -g owner
+      -g is a shortcut for --group for this command.
+
+    $cmd ticket search --sort due
+       List all tickets with a status that does not match 'closed',
+       sorted by due date.
+
+    $cmd ticket search -s due
+      -s is a shortcut for --sort for this command.
+
     $cmd ticket basics 1234
       Show basic information (metadata only) for the ticket with local id 1234.
 
@@ -37,14 +47,23 @@ print <<EOF
       the database setting common_ticket_props (or local configuration
       variable 'common_ticket_props' if it exists).
 
+    $cmd ticket show 1234 -a
+      -a is a shortcut for --all-props for this command.
+
     $cmd ticket show 1234 --skip-history
       Show only metadata and comments for the ticket 1234 (but not
       history).
+
+    $cmd ticket show 1234 -s
+      -s is a shortcut for --skip-history for this command.
 
     $cmd ticket show 1234 --with-history
       Override the disable_ticket_show_history_by_default config option
       if it is set for this database. (See '$cmd help config' for
       more info.)
+
+    $cmd ticket show 1234 -h
+      -h is a shortcut for --with-history for this command.
 
     $cmd ticket history 1234
       Show history for the ticket with local id 1234.
