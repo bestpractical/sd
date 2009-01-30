@@ -26,7 +26,7 @@ my ($log_id, $log_uuid) = create_ticket_ok( '--', 'summary', 'logs rock!');
 
 run_output_matches_unordered( 'sd', [ 'log', 'LATEST' ],
     [
-        qr/^\d{4}-\d{2}-\d{2}.+ - $ENV{USER} @ $replica_uuid$/,
+        qr/^\d{4}-\d{2}-\d{2}.+ - \d+ : $ENV{USER} @ $replica_uuid$/,
         qr/^ # Ticket \d+ \(logs rock!\)$/,
         '  + "original_replica" set to "'.$replica_uuid.'"',
         '  + "creator" set to "'.$ENV{USER}.'"',
@@ -49,7 +49,7 @@ run_output_matches( 'sd', [ 'ticket',
 # check the log
 run_output_matches( 'sd', [ 'log', 'LATEST' ],
     [
-        qr/^\d{4}-\d{2}-\d{2}.+ - $ENV{USER} @ $replica_uuid$/,
+        qr/^\d{4}-\d{2}-\d{2}.+ - \d+ : $ENV{USER} @ $replica_uuid$/,
         qr/^ # Ticket \d+ \(logs rock!\)$/,
         '  > "reporter" changed from "'.$ENV{EMAIL}.'" to "foo@bar.com".',
         '',
