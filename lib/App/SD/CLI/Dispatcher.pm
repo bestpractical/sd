@@ -26,6 +26,7 @@ under help => sub {
     on [ ['comment', 'comments'] ]       => run_command('Help::Comments');
     on [ ['setting', 'settings'] ]       => run_command('Help::Settings');
     on [ ['history', 'log'] ]            => run_command('Help::History');
+    on [ ['alias', 'aliases'] ]          => run_command('Help::Aliases');
 
     on [
         ['ticket', 'attachment', 'comment'],
