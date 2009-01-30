@@ -1,46 +1,37 @@
 #!/usr/bin/perl -i
 use strict;
 use warnings;
-
-use Prophet::Util;
-use File::Spec;
+use lib 't/scripts';
+use SDTestsEditor;
 
 # perl script to trick Proc::InvokeEditor with for the ticket create command
 
-my $template = '';
 
-my %tmpl_files = ( '--no-args' => 'sd-ticket-create.tmpl',
+SDTestsEditor::edit( tmpl_files => { '--no-args' => 'sd-ticket-create.tmpl',
                    '--all-props' => 'sd-ticket-create.tmpl',
                    '--verbose' => 'sd-ticket-create-verbose.tmpl',
                    '--verbose-and-all' => 'sd-ticket-create-verbose.tmpl',
-                 );
+                 },
+    edit_callback => sub {
+        my %args = @_;
 
-my $tmpl_file = $tmpl_files{shift @ARGV};
+        s/(?<=^summary: ).*$/we are testing sd ticket create/;
+        print;
 
-my $valid_template =
-    Prophet::Util->slurp("t/data/$tmpl_file");
+        if ( /^=== add new ticket comment below ===$/) {
+            my $errors = [];
+            my $template_ok =
+                SDTestsEditor::check_template_by_line($args{template},
+                $args{valid_template}, $args{replica_uuid},
+                $args{ticket_uuid}, $errors);
+            if ($template_ok) {
+                print "template ok!\n";
+            } else {
+                print "template not ok! errors were:\n";
+                map { print $_ . "\n" } @$errors;
+            }
+        }
 
-my $replica_uuid = shift @ARGV;
-
-$valid_template =~ s/USER/$ENV{USER}/g;
-$valid_template =~ s/REPLICA/$replica_uuid/g;
-$valid_template =~ s/EMAIL/$ENV{EMAIL}/g;
-
-# open DEBUG, '>', '/home/spang/tmp/got.txt';
-# open DEBUG2, '>', '/home/spang/tmp/wanted.txt';
-
-while (<>) {
-     $template .= $_;
-
-     s/(?<=^summary: ).*$/we are testing sd ticket create/;
-     print;
-
-    if ( /^=== add new ticket comment below ===$/ &&
-        $template eq $valid_template ) {
-        print "template ok!\n";
-    } elsif ( /^=== add new ticket comment below ===$/ ) {
-        print "template not ok!\n";
-        # print DEBUG $template;
-        # print DEBUG2 $valid_template;
-    }
-}
+      },
+    verify_callback => sub {},
+  );

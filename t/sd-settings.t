@@ -5,7 +5,8 @@ use strict;
 use Prophet::Test tests => 8;
 use App::SD::Test;
 use Prophet::Util;
-use File::Temp qw(tempfile);
+use File::Temp qw(tempdir);
+use File::Spec;
 no warnings 'once';
 
 # test the CLI and interactive UIs for showing and updating settings
@@ -43,7 +44,8 @@ run_output_matches(
 
 # test sd settings (interactive editing)
 
-(undef, my $filename) = tempfile();
+my $filename = File::Temp->new(
+    TEMPLATE => File::Spec->catfile(File::Spec->tmpdir(), '/statusXXXXX') )->filename;
 diag ("interactive template status will be found in $filename");
 # first set the editor to an editor script
 App::SD::Test->set_editor("settings-editor.pl --first $filename");
@@ -70,7 +72,8 @@ run_output_matches(
 );
 
 # test setting to invalid json
-(undef, my $second_filename) = tempfile();
+my $second_filename = File::Temp->new(
+    TEMPLATE => File::Spec->catfile(File::Spec->tmpdir(), '/statusXXXXX') )->filename;
 diag ("interactive template status will be found in $second_filename");
 App::SD::Test->set_editor("settings-editor.pl --second $second_filename");
 run_output_matches( 'sd', [ 'settings' ],

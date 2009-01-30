@@ -1,9 +1,9 @@
-qr/=== required ticket metadata \(changes here will not be saved\) ===
+=== required ticket metadata (changes here will not be saved) ===
 
-id: \d+ \($ticket_uuid\)
-created: \d{4}-\d{2}-\d{2}.+
-creator: $ENV{USER}
-original_replica: $replica_uuid
+qr/id: \d+ \($ticket_uuid\)/
+qr/created: \d{4}-\d{2}-\d{2}.+/
+qr/creator: $ENV{USER}/
+qr/original_replica: $replica_uuid/
 
 === edit ticket details below ===
 
@@ -14,10 +14,10 @@ status: new
 # valid values for milestone: alpha, beta, 1.0
 milestone: alpha
 # the email address of the person who is responsible for this ticket
-owner: $ENV{EMAIL}
+qr/owner: $ENV{EMAIL}/
 # when this ticket must be finished by \(ISO 8601 format\)
 due: 
 # the email address of the person who reported this ticket
-reporter: $ENV{EMAIL}
+qr/reporter: $ENV{EMAIL}/
 
-=== add new ticket comment below ===/
+=== add new ticket comment below ===

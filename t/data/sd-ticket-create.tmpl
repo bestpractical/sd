@@ -1,7 +1,7 @@
 === required ticket metadata (changes here will not be saved) ===
 
-creator: USER
-original_replica: REPLICA
+qr/creator: $ENV{USER}/
+qr/original_replica: $replica_uuid/
 
 === edit ticket details below ===
 
@@ -11,6 +11,6 @@ milestone: alpha
 component: core
 owner: 
 due: 
-reporter: EMAIL
+qr/reporter: $ENV{EMAIL}/
 
 === add new ticket comment below ===
