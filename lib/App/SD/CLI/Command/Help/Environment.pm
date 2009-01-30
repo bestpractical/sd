@@ -5,7 +5,7 @@ extends 'App::SD::CLI::Command::Help';
 sub run {
     my $self = shift;
     $self->print_header('Environment variables');
-    my $cmd = $self->_get_cmd_name;
+    my ${cmd}= $self->_get_cmd_name;
 
 print <<EOF
 
@@ -39,7 +39,7 @@ configuration. Example syntax is for bash-like shells.
     export PROPHET_HISTLENGTH=100
       Specify how much history the interactive shell should store.
 
-For information on SD database configuration files, see '$cmd help config'.
+For information on SD database configuration files, see '${cmd}help config'.
 EOF
 
 }

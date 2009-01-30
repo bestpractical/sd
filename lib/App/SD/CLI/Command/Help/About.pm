@@ -4,7 +4,7 @@ extends 'App::SD::CLI::Command::Help';
 
 sub run {
     my $self = shift;
-    my $cmd = $self->_get_cmd_name;
+    my ${cmd}= $self->_get_cmd_name;
     $self->print_header('About SD');
 
 print <<EOF
@@ -17,7 +17,7 @@ sd was originally conceived and designed by Jesse Vincent and Chia-liang
 Kao at Best Practical Solutions. Many others have contributed to sd.
 For a full author list, type:
 
-    $cmd help authors
+    ${cmd}help authors
 
 sd is open-source software, distributed under the terms of the MIT
 license. You are free to use this software, modify it and redistribute
@@ -26,7 +26,7 @@ to this software, however, the authors would appreciate it if you
 would contribute improvements so that they may be shared with the
 community. For license details, type:
 
-    $cmd help copying
+    ${cmd}help copying
 EOF
 
 }

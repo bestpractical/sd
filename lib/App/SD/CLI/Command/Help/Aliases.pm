@@ -5,7 +5,7 @@ extends 'App::SD::CLI::Command::Help';
 sub run {
     my $self = shift;
     $self->print_header('Command Aliases');
-    my $cmd = $self->_get_cmd_name;
+    my ${cmd}= $self->_get_cmd_name;
 
 print <<EOF
 
@@ -19,7 +19,7 @@ to you with the alias 'mine':
 
     alias mine = ticket list -- owner=you\@domain.com status !~closed|rejected
 
-SD also provides a command for managing aliases: '$cmd aliases'. If
+SD also provides a command for managing aliases: '${cmd}aliases'. If
 given no arguments, the aliases command will present you with an editor
 window in which aliases can be modified. Aliases will be saved to your
 local configuration file when editing is done.
@@ -36,7 +36,7 @@ The following arguments are supported:
     --delete (or -d) 'command to type'
       Delete an existing alias from the command line.
 
-For more information on local configuration files, see '$cmd help config'.
+For more information on local configuration files, see '${cmd}help config'.
 
 EOF
 

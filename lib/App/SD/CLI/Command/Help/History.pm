@@ -5,22 +5,22 @@ extends 'App::SD::CLI::Command::Help';
 sub run {
     my $self = shift;
     $self->print_header('Viewing Database History');
-    my $cmd = $self->_get_cmd_name;
+    my ${cmd}= $self->_get_cmd_name;
 
 print <<EOF
 You can view a history of all changes to the database using the 'log'
 command. It can be run in the following ways:
 
-    $cmd log
+    ${cmd}log
       Shows the last 20 changes.
 
-    $cmd log --all
+    ${cmd}log --all
       Shows the entire history from start to end.
 
-    $cmd log -a
+    ${cmd}log -a
       -a is a shortcut for --all.
 
-    $cmd log <since>..<until>
+    ${cmd}log <since>..<until>
       Shows the range of history starting at <since> and ending at
       <until>. Ranges can be specified using either sequence numbers
       or an offset from the most recent change, designated by
@@ -28,20 +28,20 @@ command. It can be run in the following ways:
 
 Examples:
 
-    $cmd log 0..5
+    ${cmd}log 0..5
       Shows changes 0 through 5.
 
-    $cmd log LATEST
+    ${cmd}log LATEST
       Shows the most recent change.
 
-    $cmd log LATEST~4
+    ${cmd}log LATEST~4
       Shows changes from 4 before the most recent change up to the most
       recent change.
 
-    $cmd log 2..LATEST~5
+    ${cmd}log 2..LATEST~5
       Shows the second change up through 5 before the latest.
 
-    $cmd log LATEST~10..LATEST~5
+    ${cmd}log LATEST~10..LATEST~5
       Shows changes from 10 before the latest to 5 before the latest.
 EOF
 

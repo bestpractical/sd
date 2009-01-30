@@ -5,7 +5,7 @@ extends 'App::SD::CLI::Command::Help';
 sub run {
     my $self = shift;
     $self->print_header('Getting started with SD');
-    my $cmd = $self->_get_cmd_name;
+    my ${cmd}= $self->_get_cmd_name;
 
 print <<EOF
 SD is a peer to peer ticket tracking system built on the Prophet 
@@ -22,23 +22,23 @@ environment variable.
 
 To clone a ticket database:
 
-    $cmd clone http://example.com/path/to/sd
+    ${cmd}clone http://example.com/path/to/sd
 
 To start a new ticket database:
 
-    $cmd init
+    ${cmd}init
 
 To create a ticket, run:
 
-    $cmd ticket create
+    ${cmd}ticket create
 
 To publish your database:
 
-    $cmd publish joeuser\@myhost.example.com:public_html/mydb
+    ${cmd}publish joeuser\@myhost.example.com:public_html/mydb
 
 To learn a bit more about what you can do with SD:
 
-    $cmd help
+    ${cmd}help
 EOF
 
 }

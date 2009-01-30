@@ -5,7 +5,7 @@ extends 'App::SD::CLI::Command::Help';
 sub run {
     my $self = shift;
     $self->print_header('Database Settings');
-    my $cmd = $self->_get_cmd_name;
+    my ${cmd}= $self->_get_cmd_name;
 
 print <<EOF
 The 'settings' command allows you to modify configuration variables
@@ -25,7 +25,7 @@ The following arguments are supported:
       Update the setting common_ticket_props to the given value.
 
 Settings are not the same as local configuration variables. For
-more information on local configuration, see '$cmd help config'.
+more information on local configuration, see '${cmd}help config'.
 
 EOF
 
