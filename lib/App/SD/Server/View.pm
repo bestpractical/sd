@@ -467,7 +467,7 @@ template 'no_component' => sub {show 'component' => undef};
 template 'component' => page { 'Component: ' . ( $_[1] || '<i>none</i>' ) }
 content {
     my $self      = shift;
-    my $component = shift;
+    my $component = shift || '' ;
 
     $self->show_tickets(
         sub {my $item = shift;
@@ -672,10 +672,24 @@ template header => sub {
 
 template '/tickets/hot' => sub {
     my $self = shift;
-        
-   my $current_milestone =     $self->app_handle->setting(label => 'default_milestone')->get()->[0];
 
-    $self->show_tickets (sub { my $item = shift; return ($item->has_active_status && $item->prop('milestone') eq $current_milestone && ($item->prop('owner') eq $item->app_handle->config->get('email_address')|| !$item->prop('owner'))) ? 1 : 0; });
+    my $current_milestone = $self->app_handle->setting( label => 'default_milestone' )->get()->[0];
+
+    $self->show_tickets(
+        sub {
+            my $item = shift;
+            if (   $item->has_active_status
+                && ( $item->prop('milestone') || '' ) eq $current_milestone
+                && ( ( $item->prop('owner') || '' ) eq
+                    $item->app_handle->config->get('email_address') || !$item->prop('owner') )
+                )
+            {
+                return 1;
+            } else {
+                return undef;
+            }
+        }
+    );
 
 };
 

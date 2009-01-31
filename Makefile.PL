@@ -10,6 +10,7 @@ requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Class::Accessor Te
 requires('Moose'); # Moose::Role
 requires('HTTP::Date');
 requires('DateTime::Format::Natural');
+requires('HTML::Tree');
 features(
     'RT sync' => [
         -default => 0,
