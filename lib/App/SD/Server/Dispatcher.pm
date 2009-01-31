@@ -66,16 +66,17 @@ under 'GET' => sub {
         on '' => sub {
             my $self = shift;
             if ( my $id = $self->server->cgi->param('id') ) {
-                $self->server->_send_redirect( to => "/ticket/$id" );
+                $self->server->_send_redirect( to => "/ticket/$id/view" );
             } else {
                 next_rule;
             }
         };
 
         on 'new'                 => sub { shift->show_template('new_ticket') };
+        on qr'^([\w\d-]+)/?$'    => sub { shift->server->_send_redirect( to => "/ticket/$1/view" ) };
         on qr'^([\w\d-]+)/edit$' => sub { shift->show_template( 'edit_ticket', $1 ) };
         on qr'^([\w\d-]+)/history$' => sub { shift->show_template( 'show_ticket_history', $1 ) };
-        on qr'^([\w\d-]+)/?$'    => sub { shift->show_template( 'show_ticket', $1 ) };
+        on qr'^([\w\d-]+)/view$'    => sub { shift->show_template( 'show_ticket', $1 ) };
     };
 };
 

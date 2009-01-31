@@ -788,7 +788,7 @@ sub ticket_page_actions {
     my $ticket = shift;
 
     ul { {class is 'actions'};
-        li { a {{ href is '/ticket/'.$ticket->uuid.''}; 'Show'}; };
+        li { a {{ href is '/ticket/'.$ticket->uuid.'/view'}; 'Show'}; };
         li { a {{ href is '/ticket/'.$ticket->uuid.'/edit'}; 'Update'}; };
         li { a {{ href is '/ticket/'.$ticket->uuid.'/history'}; 'History'}; };
     };
@@ -898,7 +898,7 @@ sub ticket_link {
         a {
             {
                 class is 'ticket';
-                href is '/ticket/' . $ticket->uuid;
+                href is '/ticket/' . $ticket->uuid."/view";
             };
             $label;
         }
