@@ -92,13 +92,17 @@ sub work_with_urls {
         my $element = shift @$link_element;    #HTML::Element Object
 
         $all_links->{$link}++;
-
+        
         my $url = URI::file->new($link)->rel("file://$current_url");
+
         if ( $url =~ m|/$| ) {
             $url .= "index.html" 
-        } elsif ($url !~ /\.html$/) {
+        } elsif ($url !~ /\.\w{2,4}$/) {
             $url .= ".html";
         }
+
+
+
         my ($attr)
             = grep { defined $element->attr($_) and $link eq $element->attr($_) }
             @{ $HTML::Tagset::linkElements{ $element->tag } };
@@ -137,7 +141,7 @@ sub write_file {
 
     if ( $file =~ qr|/$| ) {
         $file .= "index.html" 
-    } elsif ($file !~ /\.html$/) {
+    } elsif ($file !~ /\.\w{2,4}$/) {
         $file .= ".html";
     }
     Prophet::Util->write_file( file => File::Spec->catfile( $dir => $file ), content => $content );
