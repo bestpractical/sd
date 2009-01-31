@@ -76,6 +76,8 @@ sub work_with_urls {
 
     #Extract Links from the file
     my $h = HTML::TreeBuilder->new;
+    $h->no_space_compacting(1);
+    $h->ignore_ignorable_whitespace(0);
     $h->parse_content($content);
 
     my $link_elements = $h->extract_links(qw(img href script style a link ));
@@ -92,7 +94,11 @@ sub work_with_urls {
         $all_links->{$link}++;
 
         my $url = URI::file->new($link)->rel("file://$current_url");
-        $url .= "index.html" if ( $url =~ m|/$| );
+        if ( $url =~ m|/$| ) {
+            $url .= "index.html" 
+        } elsif ($url !~ /\.html$/) {
+            $url .= ".html";
+        }
         my ($attr)
             = grep { defined $element->attr($_) and $link eq $element->attr($_) }
             @{ $HTML::Tagset::linkElements{ $element->tag } };
@@ -129,7 +135,11 @@ sub write_file {
     my $file    = shift;
     my $content = shift;
 
-    $file .= "index.html" if ( $file =~ qr|/$| );
+    if ( $file =~ qr|/$| ) {
+        $file .= "index.html" 
+    } elsif ($file !~ /\.html$/) {
+        $file .= ".html";
+    }
     Prophet::Util->write_file( file => File::Spec->catfile( $dir => $file ), content => $content );
 
 }
