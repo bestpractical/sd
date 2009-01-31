@@ -803,7 +803,7 @@ sub ticket_page_actions {
 
     ul { {class is 'actions'};
         li { a {{ href is '/ticket/'.$ticket->uuid.'/view'}; 'Show'}; };
-        li { a {{ href is '/ticket/'.$ticket->uuid.'/edit'}; 'Update'}; };
+        li { a {{ href is '/ticket/'.$ticket->uuid.'/edit'}; 'Update'}; } unless($self->server->static);
         li { a {{ href is '/ticket/'.$ticket->uuid.'/history'}; 'History'}; };
     };
 

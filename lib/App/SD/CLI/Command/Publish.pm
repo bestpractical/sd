@@ -30,6 +30,7 @@ sub render_templates_into {
     require App::SD::Server;
     my $server = App::SD::Server::Static->new( read_only => 1, static => 1 );
     $server->app_handle( $self->app_handle );
+    $server->static(1);
     $server->setup_template_roots();
     use CGI;
     my $file = "/";
