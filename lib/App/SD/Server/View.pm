@@ -19,7 +19,7 @@ template '/css/sd.css' => sub {
         outs_raw( '
 
 html {
-  font-family: sans-serif;
+  font-family: Helvetica;
   background-color: #601;
   padding: 1em;
 
@@ -27,6 +27,7 @@ html {
   
 
 div.page {
+    position: relative;
     align: center;
     max-width: 800px;
     min-width: 400px;
@@ -43,29 +44,40 @@ div.page {
     -webkit-border-radius: 1em;
 }
 
+div.body { 
+    margin-top: 2em;
+    }
+
+
 div.project-name {
-    padding-top: 1em;
-    font-style: italic;
-    font-family: serif;
+    position: absolute;
+    top: 0.75em;
+    left: 85px;
+    display: inline;
+    font-weight: bold;
+    padding-top: 0.25em;
+    padding-left: 0.5em;
 }
 
 h1 {
-   padding:  0.5em;
-   padding-bottom: 0;
- color: #700;
- font-style: italic; 
- text-decoration: none;
- font-family: serif;
+   position: absolute;
+   left: 0;
+   right: 0;
+   top: 2.5em;
+   padding-left: 95px;
+   padding-bottom: 0.3em;
+   margin-bottom: 2em;
+   color: #666;
+   text-decoration: none;
    font-size: 1.6em;
    border-bottom: 1px solid #ccc;
-   margin-bottom: 0.5em;
+   z-order: 1000;
 }
 
 h2 {
    padding:  0.5em;
- font-style: italic; 
  text-decoration: none;
- font-family: serif;
+   font-weight: bold;
    font-size: 1.4em;
 
 }
@@ -142,7 +154,10 @@ th.headerSortDown {
 
 ul.page-nav {
     float: right;
-    margin-top: 0.5em;
+    margin-top: 0em;
+    position: absolute;
+    top: 0;
+    right: 0;
     font-size: 0.7em;
 }
 
@@ -346,7 +361,6 @@ ul.comments li {
 
 ul.comments .creator, 
 ul.comments .created{
-    font-style: italic;
 }
 
 
@@ -411,17 +425,15 @@ table.tablesorter td.summary a, table.tablesorter td.id a {
  font-size: 1.6em;
  text-decoration: none;
  color: #700;
- font-family: serif;
 }
 
 table.tablesorter td.id  {
     padding-top: 1.5em;
     text-align: right;
-    margin-right: 1.5em;
+    margin-right: em;
 }
 table.tablesorter td.id a {
-    color: #aaa;
- font-style: italic; 
+    color: #bbb;
 }
 
 table.tablesorter td a:hover {
@@ -665,8 +677,12 @@ template header => sub {
     my $self = shift;
     my $title = shift;
     outs_raw($self->nav->render_as_menubar) if ($self->nav);
+        img { src is '/static/sd/images/sd.png';
+              alt is 'SD Logo',
+              class is 'logo' 
+              };
     div { class is 'project-name';
-            "SD for ".$self->app_handle->setting( label => 'project_name' )->get()->[0]};
+            " for ".$self->app_handle->setting( label => 'project_name' )->get()->[0]};
     h1 { $title };
 };
 

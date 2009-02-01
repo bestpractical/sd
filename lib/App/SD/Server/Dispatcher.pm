@@ -2,6 +2,7 @@ package App::SD::Server::Dispatcher;
 use Prophet::Server::Dispatcher -base;
 
 
+
 on qr'.' => sub {
     my $self = shift;
     my $result = $self->server->result->get('create-ticket');
@@ -56,6 +57,7 @@ under 'POST' => sub {
 
 
 under 'GET' => sub {
+    on qr'^static/sd/(.*)$' => sub { shift->server->send_static_file($1)};
     on qr'^(milestone|component)/([\w\d-]+)$' => sub {
         my $name = $1;
         my $type = $2;
