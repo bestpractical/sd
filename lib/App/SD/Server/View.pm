@@ -45,33 +45,53 @@ div.page {
 }
 
 div.body { 
+    padding-top: 2em;
     margin-top: 2em;
     }
+
+.logo {
+    position: absolute;
+    margin-left: -1em;
+    margin-top: -1em;
+    width: 70px;
+   background-color: none;
+   z-index: 50;
+}
 
 
 div.project-name {
     position: absolute;
-    top: 0.75em;
-    left: 85px;
+    top: 0;
+    right: 0;
+    left: 0;
+    padding-left: 70px;
+    color: #fff;
+    background-color: #000;
     display: inline;
     font-weight: bold;
     padding-top: 0.25em;
-    padding-left: 0.5em;
+    padding-right: 0.5em;
+    padding-bottom: 0.5em;
+    -moz-border-radius-topright: 1em;
+    -moz-border-radius-bottomright: 0em;
+    z-index: 30;
 }
 
 h1 {
    position: absolute;
    left: 0;
    right: 0;
-   top: 2.5em;
-   padding-left: 95px;
+   top: 1.1em;
+   padding-top:0.3em;
+   padding-left: 70px;
    padding-bottom: 0.3em;
-   margin-bottom: 2em;
-   color: #666;
+   margin-bottom: 2.5em;
+   background-color: #666;
+   color: #fff;
    text-decoration: none;
    font-size: 1.6em;
    border-bottom: 1px solid #ccc;
-   z-order: 1000;
+   z-index: 0;
 }
 
 h2 {
@@ -157,11 +177,19 @@ ul.page-nav {
     top: 0;
     right: 1.25em;
     font-size: 0.7em;
+    z-index: 1000;
+    color: #ccc;
+    padding: 0;
+}
+    
 }
 
 
 ul.page-nav li ul li {
-    background: #ddd;
+}
+
+ul.page-nav li li li {
+    background-color: inherit;
 }
 
 ul.comments {
@@ -284,28 +312,59 @@ div.widget {
 
 ul.page-nav li {
     background: none;
-    border: 0;
+    font-weight: bold;
+    border: none;
 }
 
 
 
 ul.page-nav li:hover,
 ul.page-nav li.sfHover,
-ul.page-nav a:focus,
-ul.page-nav a:hover, ul.page-nav a:active { 
-    background: #ccc;
+ul.page-nav a:focus, 
+ul.page-nav a:hover, 
+ul.page-nav a:active { 
+    background: inherit;
+    background-color: #333;
 }
 
-
-ul.page-nav { background: #fff;}
-
-ul.page-nav {
-    padding: 0;
+ul.page-nav ul a:focus, 
+ul.page-nav ul a:hover, 
+ul.page-nav ul a:active, 
+ul.page-nav ul li.sfHover, 
+ul.page-nav ul li:hover {
+    background-position: -8px -8px;
+    background-color: transparent;
+    border-bottom: none;
 }
+
+ul.page-nav li:hover,
+ul.page-nav li.sfHover {
+    border-bottom: 1px solid #333;
+
+}
+
 
 ul.page-nav a {
-    border-top: 1px solid #eee;
 }
+
+.page-nav a, .page-nav a:visited {
+    color: #fff;
+    border: none;
+}
+
+.page-nav > li:hover > a > .sf-sub-indicator, .page-nav > li:active > a > .sf-sub-indicator,
+.page-nav > li.sfHover > a > .sf-sub-indicator
+
+{    
+    background-image: url(/static/prophet/jquery/images/arrows-ffffff.png);
+}
+
+
+.page-nav > li > a > .sf-sub-indicator {    
+    background-image: url(/static/prophet/jquery/images/arrows-cccccc.png);
+}
+
+
 
 .prop-summary {
     width: 80%;
@@ -439,20 +498,6 @@ table.tablesorter td.id a {
 table.tablesorter td a:hover {
     text-decoration: underline;
 }
-
-.page-nav > li:hover > a > .sf-sub-indicator, .page-nav > li:active > a > .sf-sub-indicator,
-.page-nav > li.sfHover > a > .sf-sub-indicator
-
-{    
-    background-image: url(/static/prophet/jquery/images/arrows-ffffff.png);
-}
-
-
-.page-nav > li > a > .sf-sub-indicator {    
-    background-image: url(/static/prophet/jquery/images/arrows-cccccc.png);
-}
-
-
 
 ' );
 };
@@ -689,9 +734,11 @@ template header => sub {
     my $self = shift;
     my $title = shift;
     outs_raw($self->nav->render_as_menubar) if ($self->nav);
+        div{ class is 'logowrapper';
         img { src is '/static/sd/images/sd.png';
               alt is 'SD Logo',
               class is 'logo' 
+              };
               };
     div { class is 'project-name';
             " for ".$self->app_handle->setting( label => 'project_name' )->get()->[0]};
