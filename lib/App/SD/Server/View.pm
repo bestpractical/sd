@@ -300,6 +300,55 @@ div.widget {
     border-top: none;
 }
 
+div.widget.status, div.widget.component, div.widget.milestone {
+    display: inline-block;
+    padding-top: 0.5em;
+    padding-bottom: 1.75em;
+    margin: 0;
+    padding-left: 0.5em;
+    padding-right: 1em;
+    margin-right: -0.3em;
+    width: 29%;
+}
+
+div.widget.status {
+    margin-left: 1em;
+}
+
+div.widget.status label, div.widget.component label, div.widget.milestone label
+{
+display: block;
+text-align: left;
+padding-left: 0.5em;
+padding-bottom:0.25em;
+}
+
+
+
+div.widget.status input, 
+div.widget.component input, 
+div.widget.milestone input,
+div.widget.status .value, 
+div.widget.component .value, 
+div.widget.milestone .value {
+
+width: 100%;
+
+}
+
+.other-props { 
+    padding-top: 0em;
+
+}
+
+.other-props .widget label,
+.other-props .widget .label {
+    width: 4em;
+}
+.other-props .widget {
+    width: 40%;
+}
+
 ul.page-nav {
     position: absolute;
     top: 0;
@@ -376,9 +425,11 @@ ul.page-nav ul li:hover {
 
 }
 
-.ticket-props>:nth-child(odd), table.tablesorter tbody tr:nth-child(odd) td {
+ table.tablesorter tbody tr:nth-child(odd) td {
     background: #eee;
 }
+
+
 
 
 table.tablesorter tr:hover td,
@@ -640,14 +691,19 @@ template edit_ticket => page {
                     widget( function => $f, prop => $prop, autocomplete => 0 ) };
                     }
 
-
+        for my $prop (qw(status component milestone)){
+            div { { class is "widget $prop"}; 
+                    widget( function => $f, prop => $prop ) };
+        }
+    
+        div { class is 'other-props';
         for my $prop (@BASIC_PROPS) {
-            next if $prop eq 'created';
+            next if $prop =~ /^(?:status|component|milestone|created)$/;
 
             div { { class is "widget $prop"}; 
                     widget( function => $f, prop => $prop ) };
         }
-
+        }
         };
         div { class is 'submit';
         input { attr { value => 'Save', type => 'submit' } };
@@ -701,13 +757,20 @@ template new_ticket => page {'Create a new ticket'} content {
             };
         }
 
+        for my $prop (qw(status component milestone)){
+            div { {class is 'widget '.$prop};
+                 widget( function => $f, prop => $prop ) };
+
+        }
+
+        div { class is 'other-props';
 
         for my $prop (@BASIC_PROPS) {
-            next if $prop eq 'created';
+            next if $prop =~ /^(?:status|component|milestone|created)$/;
             div { {class is 'widget '.$prop};
                  widget( function => $f, prop => $prop ) };
         }
-
+        }
         };
 
         div { class is 'submit';
@@ -917,7 +980,7 @@ private template 'ticket_basics' => sub {
     my $ticket = shift;
         my %props = %{$ticket->get_props};
         div { { class is 'ticket-props'};
-            div { class is 'widget'; 
+            div { class is 'widget uuid'; 
                 label { 'UUID' };
             div { { class is 'value uuid'}; $ticket->uuid; } 
             };
@@ -925,7 +988,7 @@ private template 'ticket_basics' => sub {
             next unless defined $props{$key}; 
             next if ($key eq 'summary');
             next if ($key =~ /.{8}-.{4}-.{4}-.{12}-id/);
-            div { class is 'widget';
+            div { class is 'widget '.$key;
                 label {$key};
                 div { { class is 'value ' . $key }; $props{$key}; }
             };
