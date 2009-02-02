@@ -172,25 +172,9 @@ th.headerSortDown {
     background: #fff;
 }
 
-ul.page-nav {
-    position: absolute;
-    top: 0;
-    right: 1.25em;
-    font-size: 0.7em;
-    z-index: 1000;
-    color: #ccc;
-    padding: 0;
-}
     
 }
 
-
-ul.page-nav li ul li {
-}
-
-ul.page-nav li li li {
-    background-color: inherit;
-}
 
 ul.comments {
     list-style: none;
@@ -310,21 +294,44 @@ div.widget {
     border-top: none;
 }
 
-ul.page-nav li {
-    background: none;
-    font-weight: bold;
-    border: none;
+ul.page-nav {
+    position: absolute;
+    top: 0;
+    right: 1.25em;
+    font-size: 0.7em;
+    z-index: 1000;
+    color: #ccc;
+    padding: 0;
 }
 
+ul.page-nav li, ul.page-nav li a {
+    font-weight: bold;
+    border: none;
+    color: #fff;
+}
 
+ul.page-nav li, ul.page-nav li ul li {
+    background-image: none;
+    background-color: #000;
+    opacity: 0.85;
+    -moz-opacity: 0.85; /* older Gecko-based browsers */
+    filter:alpha(opacity=85); /* For IE6&7 */
+}
+
+ul.page-nav li:hover,
+ul.page-nav li.sfHover {
+    border-bottom: 3px solid #999;
+}
 
 ul.page-nav li:hover,
 ul.page-nav li.sfHover,
 ul.page-nav a:focus, 
 ul.page-nav a:hover, 
-ul.page-nav a:active { 
+ul.page-nav a:active
+
+{ 
     background: inherit;
-    background-color: #333;
+    background-color: #999;
 }
 
 ul.page-nav ul a:focus, 
@@ -332,19 +339,12 @@ ul.page-nav ul a:hover,
 ul.page-nav ul a:active, 
 ul.page-nav ul li.sfHover, 
 ul.page-nav ul li:hover {
-    background-position: -8px -8px;
-    background-color: transparent;
+    background: none;
     border-bottom: none;
-}
-
-ul.page-nav li:hover,
-ul.page-nav li.sfHover {
-    border-bottom: 1px solid #333;
-
-}
-
-
-ul.page-nav a {
+    background-color: #666;
+    opacity: 70;
+    -moz-opacity: 70; /* older Gecko-based browsers */
+    filter:alpha(opacity=70); /* For IE6&7 */
 }
 
 .page-nav a, .page-nav a:visited {
@@ -363,7 +363,6 @@ ul.page-nav a {
 .page-nav > li > a > .sf-sub-indicator {    
     background-image: url(/static/prophet/jquery/images/arrows-cccccc.png);
 }
-
 
 
 .prop-summary {
