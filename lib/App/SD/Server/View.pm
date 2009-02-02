@@ -153,11 +153,9 @@ th.headerSortDown {
 }
 
 ul.page-nav {
-    float: right;
-    margin-top: 0em;
     position: absolute;
     top: 0;
-    right: 0;
+    right: 1.25em;
     font-size: 0.7em;
 }
 
@@ -285,9 +283,11 @@ div.widget {
 }
 
 ul.page-nav li {
-    background: #ddd;
+    background: none;
     border: 0;
 }
+
+
 
 ul.page-nav li:hover,
 ul.page-nav li.sfHover,
@@ -438,6 +438,18 @@ table.tablesorter td.id a {
 
 table.tablesorter td a:hover {
     text-decoration: underline;
+}
+
+.page-nav > li:hover > a > .sf-sub-indicator, .page-nav > li:active > a > .sf-sub-indicator,
+.page-nav > li.sfHover > a > .sf-sub-indicator
+
+{    
+    background-image: url(/static/prophet/jquery/images/arrows-ffffff.png);
+}
+
+
+.page-nav > li > a > .sf-sub-indicator {    
+    background-image: url(/static/prophet/jquery/images/arrows-cccccc.png);
 }
 
 
