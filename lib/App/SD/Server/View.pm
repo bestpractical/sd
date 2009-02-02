@@ -84,6 +84,10 @@ h1 {
    left: 0;
    right: 0;
    top: 1.1em;
+   height: 1em;
+   display: block;
+   overflow: hidden;
+   text-overflow:ellipsis;
    padding-top:0.3em;
    padding-left: 70px;
    padding-bottom: 0.3em;
@@ -376,6 +380,14 @@ ul.page-nav ul li:hover {
     background: #eee;
 }
 
+
+table.tablesorter tr:hover td,
+table.tablesorter tr:nth-child(odd):hover td {
+    background: #ffc;
+}
+
+
+
 dl.history dt {
     border-top: 1px solid #ccc;
     padding: 0.5em;
@@ -486,6 +498,16 @@ table.tablesorter td.summary a, table.tablesorter td.id a {
  text-decoration: none;
  color: #700;
 }
+
+table.tablesorter td.summary a {
+ display: block;
+ padding-bottom: 2em;
+ right: 0;
+ background: clear;
+ z-index: 50;
+}
+
+
 
 table.tablesorter td.id  {
     padding-top: 1.5em;
