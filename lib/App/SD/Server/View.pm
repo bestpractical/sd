@@ -91,6 +91,7 @@ h1 {
    padding-top:0.3em;
    padding-left: 70px;
    padding-bottom: 0.3em;
+   padding-right: 0.25em;
    margin-bottom: 2.5em;
    background-color: #666;
    color: #fff;
@@ -337,6 +338,7 @@ width: 100%;
 }
 
 .other-props { 
+    margin-top: 0;
     padding-top: 0em;
 
 }
@@ -347,6 +349,10 @@ width: 100%;
 }
 .other-props .widget {
     width: 40%;
+}
+
+.other-props .widget input {
+    width: 13em;
 }
 
 ul.page-nav {
@@ -984,7 +990,8 @@ private template 'ticket_basics' => sub {
                 label { 'UUID' };
             div { { class is 'value uuid'}; $ticket->uuid; } 
             };
-        for my $key (@BASIC_PROPS, (sort keys %props)) {
+        for my $key (qw'status component milestone', 
+                        @BASIC_PROPS, (sort keys %props)) {
             next unless defined $props{$key}; 
             next if ($key eq 'summary');
             next if ($key =~ /.{8}-.{4}-.{4}-.{12}-id/);
