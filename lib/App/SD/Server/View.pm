@@ -74,6 +74,8 @@ div.project-name {
     padding-bottom: 0.5em;
     -moz-border-radius-topright: 1em;
     -moz-border-radius-bottomright: 0em;
+    -webkit-border-top-right-radius: 1em;
+    -webkit-border-bottom-right-radius: 0em;
     z-index: 30;
 }
 
