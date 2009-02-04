@@ -444,6 +444,12 @@ table.tablesorter tr:nth-child(odd):hover td {
 }
 
 
+table.tablesorter tr:nth-child(odd) td.summary,
+table.tablesorter tr td.summary {
+    background: none;
+}
+
+
 
 dl.history dt {
     border-top: 1px solid #ccc;
