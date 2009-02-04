@@ -65,7 +65,7 @@ TODO: {
 }
 
 $ua->get_ok( url() );
-like( $ua->content, qr/SD for Your SD Project/ );
+like( $ua->content, qr/for Your SD Project/ );
 
 
 
