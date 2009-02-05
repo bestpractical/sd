@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Ticket::Show;
-use Moose;
+use Any::Moose;
 extends 'Prophet::CLI::Command::Show';
 with 'App::SD::CLI::Command';
 with 'App::SD::CLI::Model::Ticket';
@@ -71,6 +71,6 @@ override run => sub {
 };
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;

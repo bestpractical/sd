@@ -1,11 +1,11 @@
 package App::SD::Collection::Ticket;
-use Moose;
+use Any::Moose;
 extends 'Prophet::Collection';
 
 use constant record_class => 'App::SD::Model::Ticket';
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;
 

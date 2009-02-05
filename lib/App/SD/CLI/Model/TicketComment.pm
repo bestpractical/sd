@@ -1,9 +1,9 @@
 package App::SD::CLI::Model::TicketComment;
-use Moose::Role;
+use Any::Moose 'Role';
 
 use constant record_class => 'App::SD::Model::Comment';
 
-no Moose::Role;
+no Any::Moose;
 
 1;
 

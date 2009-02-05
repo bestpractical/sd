@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Ticket::Attachment::Search;
-use Moose;
+use Any::Moose;
 extends 'Prophet::CLI::Command::Search';
 with 'Prophet::CLI::RecordCommand';
 with 'App::SD::CLI::Model::Attachment';
@@ -15,7 +15,7 @@ sub get_search_callback {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;
 

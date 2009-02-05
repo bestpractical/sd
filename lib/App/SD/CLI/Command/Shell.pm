@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Shell;
-use Moose;
+use Any::Moose;
 extends 'Prophet::CLI::Command::Shell';
 
 has project_name => (

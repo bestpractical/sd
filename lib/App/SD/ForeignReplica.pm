@@ -1,5 +1,5 @@
 package App::SD::ForeignReplica;
-use Moose;
+use Any::Moose;
 use Params::Validate;
 
 extends 'Prophet::ForeignReplica';
@@ -203,6 +203,6 @@ sub record_remote_id_for_pushed_record {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;

@@ -1,5 +1,5 @@
 package App::SD::Model::Attachment;
-use Moose;
+use Any::Moose;
 extends 'App::SD::Record';
 use Params::Validate qw/validate/;
 
@@ -25,6 +25,6 @@ sub create {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;

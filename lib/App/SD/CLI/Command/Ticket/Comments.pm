@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Ticket::Comments;
-use Moose;
+use Any::Moose;
 
 extends 'Prophet::CLI::Command::Search';
 with 'Prophet::CLI::RecordCommand';
@@ -25,7 +25,7 @@ sub run {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;
 

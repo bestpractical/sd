@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Ticket::Update;
-use Moose;
+use Any::Moose;
 use Params::Validate qw/validate/;
 
 extends 'Prophet::CLI::Command::Update';
@@ -77,6 +77,6 @@ sub process_template {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;

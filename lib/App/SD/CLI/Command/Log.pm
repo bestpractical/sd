@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Log;
-use Moose;
+use Any::Moose;
 extends 'Prophet::CLI::Command::Log';
 
 sub handle_changeset {
@@ -86,4 +86,4 @@ sub change_header_ticket {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;

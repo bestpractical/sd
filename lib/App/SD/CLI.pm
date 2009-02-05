@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 package App::SD::CLI;
-use Moose;
+use Any::Moose;
 extends 'Prophet::CLI';
 
 use App::SD;
@@ -13,7 +13,7 @@ has '+app_class' => (
 sub dispatcher_class { "App::SD::CLI::Dispatcher" }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;
 

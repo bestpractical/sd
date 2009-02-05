@@ -1,5 +1,5 @@
 package App::SD::Replica::debbugs::PushEncoder;
-use Moose;
+use Any::Moose;
 
 use Params::Validate;
 use Path::Class;
@@ -126,6 +126,6 @@ sub integrate_ticket_update {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;

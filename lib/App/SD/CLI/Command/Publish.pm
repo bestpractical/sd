@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Publish;
-use Moose;
+use Any::Moose;
 extends 'Prophet::CLI::Command::Publish';
 use Prophet::Util;
 use File::Path;
@@ -149,7 +149,7 @@ sub write_file {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 package App::SD::Server::Static;
 use base 'App::SD::Server';
@@ -178,7 +178,7 @@ sub _send_redirect {
 sub _send_404 {}
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;
 

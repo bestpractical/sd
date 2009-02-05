@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 package App::SD::CLI::Dispatcher;
 use Prophet::CLI::Dispatcher -base;
-use Moose;
+use Any::Moose;
 
 Prophet::CLI::Dispatcher->add_command_prefix('App::SD::CLI::Command');
 
@@ -138,7 +138,7 @@ sub run_command {Prophet::CLI::Dispatcher::run_command(@_) }
 
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;
 

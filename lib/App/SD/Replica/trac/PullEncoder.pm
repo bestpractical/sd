@@ -1,5 +1,5 @@
 package App::SD::Replica::trac::PullEncoder;
-use Moose;
+use Any::Moose;
 extends 'App::SD::ForeignReplica::PullEncoder';
 
 use Params::Validate qw(:all);
@@ -388,5 +388,5 @@ sub resolve_user_id_to {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 1;

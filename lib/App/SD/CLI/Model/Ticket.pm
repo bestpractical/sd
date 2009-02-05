@@ -1,5 +1,5 @@
 package App::SD::CLI::Model::Ticket;
-use Moose::Role;
+use Any::Moose 'Role';
 use Params::Validate qw(:all);
 use constant record_class => 'App::SD::Model::Ticket';
 
@@ -231,7 +231,7 @@ sub parse_record_template {
     return \%new_props, $comment;
 }
 
-no Moose::Role;
+no Any::Moose;
 
 1;
 

@@ -1,5 +1,5 @@
 package App::SD::Replica::debbugs;
-use Moose;
+use Any::Moose;
 extends qw/App::SD::ForeignReplica/;
 
 use Params::Validate qw(:all);
@@ -28,5 +28,5 @@ sub setup {
 sub record_pushed_transactions {}
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 1;

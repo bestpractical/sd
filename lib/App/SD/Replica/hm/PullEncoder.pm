@@ -1,5 +1,5 @@
 package App::SD::Replica::hm::PullEncoder;
-use Moose;
+use Any::Moose;
 use Params::Validate qw(:all);
 use Memoize;
 
@@ -218,5 +218,5 @@ sub translate_props {
 
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 1;

@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Help;
-use Moose;
+use Any::Moose;
 extends 'Prophet::CLI::Command';
 with 'App::SD::CLI::Command';
 
@@ -64,7 +64,7 @@ EOF
 }
 
 #__PACKAGE__->meta->make_immutable;
-#no Moose;
+#no Any::Moose;
 
 1;
 

@@ -1,5 +1,5 @@
 package App::SD::CLI::Command;
-use Moose::Role;
+use Any::Moose 'Role';
 use Params::Validate qw(validate);
 
 =head2 get_content %args
@@ -66,7 +66,7 @@ sub get_content {
     return $content;
 }
 
-no Moose::Role;
+no Any::Moose;
 
 1;
 

@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Ticket::Details;
-use Moose;
+use Any::Moose;
 extends 'App::SD::CLI::Command::Ticket::Show';
 
 sub by_creation_date { $a->prop('created') cmp $b->prop('created') };
@@ -37,7 +37,7 @@ override run => sub {
 };
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;
 

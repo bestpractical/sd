@@ -1,10 +1,10 @@
 package App::SD::ForeignReplica::PushEncoder;
-use Moose;
+use Any::Moose;
 
 
 
 
-no Moose;
+no Any::Moose;
 __PACKAGE__->meta->make_immutable;
 
 1;

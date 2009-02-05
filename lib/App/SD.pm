@@ -1,5 +1,5 @@
 package App::SD;
-use Moose;
+use Any::Moose;
 use App::SD::Config;
 
 extends 'Prophet::App';
@@ -40,5 +40,5 @@ sub database_settings {
 
 __PACKAGE__->meta->make_immutable;
 
-no Moose;
+no Any::Moose;
 1;

@@ -1,5 +1,5 @@
 package App::SD::Replica::trac;
-use Moose;
+use Any::Moose;
 extends qw/App::SD::ForeignReplica/;
 
 use Params::Validate qw(:all);
@@ -99,6 +99,6 @@ sub remote_uri_path_for_id {
 
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;

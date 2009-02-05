@@ -1,5 +1,5 @@
 package App::SD::Replica::hm;
-use Moose;
+use Any::Moose;
 extends 'App::SD::ForeignReplica';
 use Params::Validate qw(:all);
 use UNIVERSAL::require;
@@ -161,5 +161,5 @@ sub property_map {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 1;

@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Ticket::Attachment::Create;
-use Moose;
+use Any::Moose;
 extends 'App::SD::CLI::Command::Attachment::Create';
 
 __PACKAGE__->register_arg_translations( f => 'file' );
@@ -13,7 +13,7 @@ before run => sub {
 };
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;
 

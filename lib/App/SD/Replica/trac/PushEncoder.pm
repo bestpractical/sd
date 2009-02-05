@@ -1,5 +1,5 @@
 package App::SD::Replica::trac::PushEncoder;
-use Moose; 
+use Any::Moose; 
 use Params::Validate;
 use Path::Class;
 has sync_source => 
@@ -162,6 +162,6 @@ sub _recode_props_for_integrate {
 
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;

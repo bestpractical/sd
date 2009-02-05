@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Attachment::Content;
-use Moose;
+use Any::Moose;
 extends 'Prophet::CLI::Command::Show';
 with 'App::SD::CLI::Model::Attachment';
 with 'App::SD::CLI::Command';
@@ -12,7 +12,7 @@ sub run {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;
 

@@ -1,5 +1,5 @@
 package App::SD::Config;
-use Moose;
+use Any::Moose;
 use File::Spec;
 
 extends 'Prophet::Config';
@@ -29,6 +29,6 @@ before 'app_config_file' => sub {
 };
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;

@@ -1,5 +1,5 @@
 package App::SD::Replica::rt::PullEncoder;
-use Moose;
+use Any::Moose;
 extends 'App::SD::ForeignReplica::PullEncoder';
 
 use Params::Validate qw(:all);
@@ -547,5 +547,5 @@ sub translate_prop_names {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 1;

@@ -1,5 +1,5 @@
 package App::SD::Replica::hm::PushEncoder;
-use Moose; 
+use Any::Moose; 
 use Params::Validate;
 use Data::Dumper;
 use Path::Class;
@@ -384,6 +384,6 @@ sub translate_props {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 
 1;

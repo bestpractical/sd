@@ -1,5 +1,5 @@
 package App::SD::ForeignReplica::PullEncoder;
-use Moose;
+use Any::Moose;
 
 sub warp_list_to_old_value {
     my $self    = shift;
@@ -14,5 +14,5 @@ sub warp_list_to_old_value {
 }
 
 __PACKAGE__->meta->make_immutable;
-no Moose;
+no Any::Moose;
 1;
