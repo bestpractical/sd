@@ -25,6 +25,8 @@ my ($ticket_id, $ticket_uuid) = create_ticket_ok( '--summary', 'YATTA');
 
 sub check_output_with_history {
     my @extra_args = @_;
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+
 TODO: {
     local $TODO = "Sometimes, the ordering doesn't work right on sqlite";
     run_output_matches( 'sd', [ 'ticket', 'show', $ticket_id, @extra_args ],
@@ -62,6 +64,7 @@ TODO: {
 
 sub check_output_without_history {
     my @extra_args = @_;
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
 
     run_output_matches( 'sd', [ 'ticket', 'show', $ticket_id, @_],
         [
