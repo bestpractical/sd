@@ -6,8 +6,7 @@ license('MIT');
 version_from('lib/App/SD.pm');
 requires('Time::Progress');
 requires('Path::Class');
-requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Class::Accessor Template::Declare::Tags Test::HTTP::Server::Simple JSON Test::WWW::Mechanize
-requires('Moose'); # Moose::Role
+requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Class::Accessor Template::Declare::Tags Test::HTTP::Server::Simple JSON Test::WWW::Mechanize Any::Moose
 requires('HTTP::Date');
 requires('DateTime::Format::Natural');
 requires('HTML::Tree');
