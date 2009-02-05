@@ -238,7 +238,7 @@ sub set_editor {
 
     delete $ENV{'VISUAL'};       # Proc::InvokeEditor checks this first
     $ENV{'EDITOR'} = File::Spec->catfile(getcwd(), 't', 'scripts', $script);
-    diag 'export EDITOR=' . $ENV{'EDITOR'} . "\n";
+    diag "export EDITOR=$^X " . $ENV{'EDITOR'} . "\n";
 }
 
 =head2 write_to_file FILENAME DATA
