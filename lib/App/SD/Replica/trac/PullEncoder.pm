@@ -38,64 +38,67 @@ sub run {
         print $progress->report( "%30b %p Est: %E\r", $counter );
         $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - $counter of " . scalar @tickets );
 
-        warn "Loading ticket " . $ticket->id . " " . $ticket->summary;
     
         $tickets->{ $ticket->id } = $ticket;
     }
 
     my @changesets;
 
-    my $ticket_state = { };
   
-    $self->_translate_final_ticket_state($ticket_state); 
 
     foreach my $ticket ( values %$tickets ) {
+        my $ticket_data = $self->_translate_final_ticket_state($ticket); 
+        #my $ticket_initial_data = $self->build_initial_ticket_state($ticket_data, $ticket);
+        my $ticket_initial_data = {%$ticket_data};
         my $txns = $self->skip_previously_seen_transactions( ticket => $ticket, transactions => $ticket->history->entries);
+        # Walk transactions newest to oldest.
         for my $txn ( sort { $b->date <=> $a->date } @$txns) { 
-            $self->sync_source->log("Transcoding transaction  {[$txn->date}]} ");
-            my $changeset = $self->transcode_one_txn( $txn, $ticket_state );
-            $changeset->created( $txn->date );
+            $self->sync_source->log($ticket->id." - Transcoding transaction  @{[$txn->date]} ");
+            my $changeset = $self->transcode_one_txn( $txn, $ticket_initial_data );
+            $changeset->created( $txn->date->ymd." ". $txn->date->hms );
             next unless $changeset->has_changes;
+            # the changeset is older than the one that came before it, so it goes first
             unshift @changesets, $changeset;
+            $counter++;
         }
+        # create is oldest of all
+        unshift @changesets, $self->build_create_changeset($ticket_initial_data, $ticket);
     }
 
-    my $cs_counter = 0;
-    for (@changesets) {
-        $self->sync_source->log( "Applying changeset " . ++$cs_counter . " of " . scalar @changesets );
-        $args{callback}->($_);
+    my $cs_counter = 1;
+    for  my $changeset (@changesets) {
+        $changeset->original_sequence_no($cs_counter++);
+        $self->sync_source->log( "Applying changeset " . $changeset->original_sequence_no . " of " . scalar @changesets );
+        $args{callback}->($changeset);
     }
 }
 
 sub _translate_final_ticket_state {
     my $self   = shift;
-    my $ticket = shift;
+    my $ticket_object = shift;
 
-    # undefine empty fields, we'll delete after cleaning
-    $ticket->{$_} = undef for grep defined $ticket->{$_} && $ticket->{$_} eq '', keys %$ticket;
+    my $ticket_data = {
 
-    $ticket->{'id'} =~ s/^ticket\///g;
-    $ticket->{ $self->sync_source->uuid . '-' . lc($_) } = delete $ticket->{$_} for qw(Queue id);
-    delete $ticket->{'Owner'} if lc($ticket->{'Owner'}) eq 'nobody';
-    $ticket->{'Owner'} = $self->resolve_user_id_to( email_address => $ticket->{'Owner'} ) if $ticket->{'Owner'};
+        $self->sync_source->uuid . '-id' => $ticket_object->id,
 
-    # normalize names of watchers to variant with suffix 's'
-    foreach my $field (qw(Requestor Cc AdminCc)) {
-        if ( defined $ticket->{$field} && defined $ticket->{$field .'s'} ) {
-            die "It's impossible! Ticket has '$field' and '${field}s'";
-        } elsif ( defined $ticket->{$field} ) {
-            $ticket->{$field .'s'} = delete $ticket->{$field};
-        }
-    }
-
-    $ticket->{$_} = $self->unix_time_to_iso( $ticket->{$_} ) for grep defined $ticket->{$_}, qw(Created Resolved Told LastUpdated Due Starts Started);
-    $ticket->{$_} =~ s/ minutes$// for grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
-    $ticket->{'Status'} =~ $self->translate_status($ticket->{'Status'});
+        owner       => ($ticket_object->owner ||''),
+        created     => ($ticket_object->created->ymd . " " . $ticket_object->created->hms),
+        reporter    => ($ticket_object->reporter ||''),
+        status      => $self->translate_status( $ticket_object->status ),
+        summary     => ($ticket_object->summary||''),
+        description => ($ticket_object->description ||''),
+        tags        => ( $ticket_object->keywords || '' ),
+        component   => ($ticket_object->component ||''),
+        milestone   => ($ticket_object->milestone ||''),
+        priority    => ($ticket_object->priority || ''),
+        severity    => ($ticket_object->severity ||''),
+        cc          => ($ticket_object->cc || ''),
+    };
 
     # delete undefined and empty fields
-    delete $ticket->{$_} for grep !defined $ticket->{$_} || $ticket->{$_} eq '', keys %$ticket;
+    delete $ticket_data->{$_} for grep !defined $ticket_data->{$_} || $ticket_data->{$_} eq '', keys %$ticket_data;
 
-    return $ticket;
+    return $ticket_data;
 }
 
 =head2 find_matching_tickets QUERY
@@ -107,7 +110,7 @@ Returns a Trac::TicketSearch collection for all tickets found matching your QUER
 sub find_matching_tickets {
     my $self   = shift;
     my %query  = (@_);
-    my $search = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 2 );
+    my $search = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 50 );
     $search->query(%query);
     return $search->results;
 }
@@ -128,52 +131,96 @@ sub skip_previously_seen_transactions {
         #next if $txn < $args{'starting_transaction'}; 
         
         # Skip things we've pushed
-        next if $self->sync_source->foreign_transaction_originated_locally($txn, $args{'ticket'});
+        #next if $self->sync_source->foreign_transaction_originated_locally($txn, $args{'ticket'});
         push @txns, $txn;
     }
     return \@txns;
 }
 
-sub transcode_one_txn {
-    my ( $self, $txn, $ticket ) = (@_);
 
-    my $sub = $self->can( '_recode_txn_' . $txn->{'Type'} );
-    unless ($sub) {
-        die "Transaction type $txn->{Type} (for transaction $txn->{id}) not implemented yet";
+sub build_initial_ticket_state {
+    my $self          = shift;
+    my $final_state   = shift;
+    my $ticket_object = shift;
+
+    my %initial_state = %{$final_state};
+
+    for my $txn ( reverse @{ $ticket_object->history->entries } ) {
+        for my $pc ( values %{ $txn->prop_changes } ) {
+            unless ( $initial_state{ $pc->property } eq $pc->new_value ) {
+                warn "I was expecting " . $pc->property . " to be " . $pc->new_value . " but it was actually " . $initial_state{ $pc->property };
+            }
+            $initial_state{ $pc->property } = $pc->old_value;
+
+        }
     }
+    return \%initial_state;
+}
 
+
+sub build_create_changeset {
+    my $self = shift;
+    my $create_data = shift;
+    my $ticket = shift;
+    warn "My ticket id is ".$ticket->id;
     my $changeset = Prophet::ChangeSet->new(
-        {   original_source_uuid => $self->sync_source->uuid,
-            original_sequence_no => $txn->{'id'},
-            creator              => $self->resolve_user_id_to( email_address => $txn->{'Creator'} ),
+        {   original_source_uuid =>  $self->sync_source->uuid_for_remote_id( $ticket->id),
+            #original_sequence_no => 1, # XXX TODO THIS IS JNOT A VALID SEQUENCE NUMBER
+            creator              => $self->resolve_user_id_to( email_address => $ticket->reporter),
         }
     );
 
-    if (   $txn->{'Ticket'} ne $ticket->{ $self->sync_source->uuid . '-id' }
-        && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/ )
-    {
-        warn "Skipping a data change from a merged ticket"
-            . $txn->{'Ticket'} . ' vs '
-            . $ticket->{ $self->sync_source->uuid . '-id' };
-        next;
-    }
 
-    delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '' );
-    delete $txn->{'NewValue'} if ( $txn->{'NewValue'} eq '' );
-
-    $sub->( $self, ticket => $ticket, txn => $txn, changeset => $changeset );
-    $self->translate_prop_names($changeset);
-
-    if ( my $attachments = delete $txn->{'_attachments'} ) {
-        for my $attach (@$attachments) {
-            $self->_recode_attachment_create(
-                ticket     => $ticket,
-                txn        => $txn,
-                changeset  => $changeset,
-                attachment => $attach
-            );
+    my $change = Prophet::Change->new(
+        {   record_type => 'ticket',
+            record_uuid => $self->sync_source->uuid_for_remote_id( $ticket->id), 
+            change_type => 'add_file'
         }
+    );
+
+    for my $prop (keys %$create_data) {
+        next unless defined $create_data->{$prop};
+        $change->add_prop_change(name => $prop, old => '', new => $create_data->{$prop});
     }
+
+    $changeset->add_change({change => $change});
+    return $changeset;
+}
+
+
+
+sub transcode_one_txn {
+    my ( $self, $txn, $ticket, $txn_number ) = (@_);
+    my $changeset = Prophet::ChangeSet->new(
+        {   original_source_uuid => $self->sync_source->uuid_for_remote_id( $ticket->{$self->sync_source->uuid . '-id' } ),
+            #        original_sequence_no => $txn_number, #XXX TODO THIS IS NOT A VALID SEQUENCE NUMBER
+            creator              => $self->resolve_user_id_to( email_address => $txn->author),
+        }
+    );
+
+    my $change = Prophet::Change->new(
+        {   record_type => 'ticket',
+            record_uuid => $self->sync_source->uuid_for_remote_id( $ticket->{$self->sync_source->uuid . '-id' } ),
+            change_type => 'update_file'
+        }
+    );
+
+    foreach my $prop_change ( values %{$txn->prop_changes||{}}) {
+        my $new = $prop_change->new_value;
+        my $old = $prop_change->old_value;
+        my $property = $prop_change->property; 
+
+        $old = undef if ($old eq '');
+        $new = undef if ($new eq '');
+
+        # walk back $ticket's state
+        if ((!defined $new && !defined $ticket->{$property}) || ( defined $new && defined $ticket->{$property} && $ticket->{$property} eq $new)) { $ticket->{$property} = $old }; 
+
+        $change->add_prop_change(name => $property, old => $old, new => $new);
+
+    }
+
+    $changeset->add_change({change =>$change});
 
     return $changeset;
 }
@@ -244,8 +291,6 @@ sub translate_status {
     my $status = shift;
 
     $status =~ s/^resolved$/closed/;
-    
-
     return $status;
 }
 
@@ -278,6 +323,15 @@ sub translate_prop_names {
     }
     return $changeset;
 }
+
+sub resolve_user_id_to {
+    my $self = shift;
+    my $to = shift;
+    my $id = shift;
+    return $id.'@trac-instance.local';
+
+}
+
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
