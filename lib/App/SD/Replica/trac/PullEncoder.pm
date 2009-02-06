@@ -120,7 +120,7 @@ sub find_matching_tickets {
     my $self  = shift;
     my %query = (@_);
     my $search
-        = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 10 );
+        = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 50 );
     $search->query(%query);
     return $search->results;
 }
@@ -182,6 +182,7 @@ sub build_create_changeset {
 
             #original_sequence_no => 1, # XXX TODO THIS IS JNOT A VALID SEQUENCE NUMBER
             creator => $self->resolve_user_id_to( email_address => $ticket->reporter ),
+            created => $ticket->created->ymd ." ".$ticket->created->hms
         }
     );
 
@@ -249,8 +250,8 @@ sub transcode_one_txn {
             change_type => 'add_file'
         });
 
-    my $content = $txn->content;
-
+    if (my $content = $txn->content ) {
+        if ($content !~ /^\s*$/s) {
     $comment->add_prop_change( name => 'created', new  => $txn->date->ymd. ' ' .$txn->date->hms);
     $comment->add_prop_change( name => 'creator', new  => $self->resolve_user_id_to( email_address => $txn->author) );
     $comment->add_prop_change( name => 'content', new => $content );
@@ -261,6 +262,8 @@ sub transcode_one_txn {
     );
 
     $changeset->add_change({change => $comment});
+    }
+    }
     return $changeset;
 }
 
