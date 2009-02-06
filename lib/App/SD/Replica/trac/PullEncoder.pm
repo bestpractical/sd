@@ -120,7 +120,7 @@ sub find_matching_tickets {
     my $self  = shift;
     my %query = (@_);
     my $search
-        = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 20 );
+        = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 10 );
     $search->query(%query);
     return $search->results;
 }
@@ -241,7 +241,7 @@ sub transcode_one_txn {
 
     }
 
-    $changeset->add_change( { change => $change } );
+    $changeset->add_change( { change => $change } ) if $change->has_prop_changes;
 
     my $comment = Prophet::Change->new(
         {   record_type => 'comment',
@@ -249,7 +249,12 @@ sub transcode_one_txn {
             change_type => 'add_file'
         });
 
-    $comment->add_prop_change( name => 'content', new => $txn->content );
+    my $content = $txn->content;
+
+    $comment->add_prop_change( name => 'created', new  => $txn->date->ymd. ' ' .$txn->date->hms);
+    $comment->add_prop_change( name => 'creator', new  => $self->resolve_user_id_to( email_address => $txn->author) );
+    $comment->add_prop_change( name => 'content', new => $content );
+    $comment->add_prop_change( name => 'content_type', new => 'text/html' );
     $comment->add_prop_change(
         name => 'ticket',
         new => $self->sync_source->uuid_for_remote_id( $ticket->{ $self->sync_source->uuid . '-id' } )

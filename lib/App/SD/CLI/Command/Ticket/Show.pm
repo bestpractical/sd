@@ -38,9 +38,21 @@ override run => sub {
         for my $comment (@comments) {
             my $creator = $comment->prop('creator');
             my $created = $comment->prop('created');
+            my $content_type = $comment->prop('content_type') ||'text/plain';
+
             my $content = $comment->prop('content') || '';
+            if ($content_type =~ m{text/html}i ){
+
+                $content =~ s|</?b\s*>|*|gismx;
+                $content =~ s|</?i\s*>|_|gismx;
+                $content =~ s|<a(?:.*?)href="(.*?)".*?>(.*?)</a.*?>|$2 [link: $1 ]|gismx;
+                $content =~ s|<.*?>||gismx;
+            }
+
             print "$creator: " if $creator;
-            print "$created\n$content\n\n";
+            print "$created\n";
+            print $content;
+            print "\n\n";
         }
     }
 
