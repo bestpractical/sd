@@ -611,6 +611,10 @@ content {
 
 };
 
+template 'all_tickets' => page {'All tickets'} content {
+   shift->show_tickets( sub {1});
+};
+
 template 'milestones' => page {'Project milestones'} content {
     show 'milestone_list';
 };
@@ -919,7 +923,7 @@ private template 'ticket_list' => sub {
             for my $ticket (@$tickets) {
                 row {
                     cell { class is 'id'; ticket_link( $ticket => $ticket->luid ); };
-                    for (@BASIC_PROPS) {
+                    for (qw|status milestone component order reporter due created|) {
                     
                         cell { class is $_; $ticket->prop($_) };
                     }

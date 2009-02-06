@@ -41,6 +41,7 @@ on qr'.' => sub {
     }
     $components->child('None' => label => 'None', url => '/no_component');
 
+    $tickets->child( all => label => 'All' => url => '/tickets/all');
     $self->server->nav->child( create => label => 'New ticket', url => '/ticket/new') unless($self->server->static);
     $self->server->nav->child( home => label => 'Home', url => '/');
 
@@ -63,7 +64,8 @@ under 'GET' => sub {
         my $type = $2;
         shift->show_template( $name => $type );
     };
-
+    
+    on qr'^tickets/all$' => sub {shift->show_template('all_tickets')};
     under 'ticket' => sub {
         on '' => sub {
             my $self = shift;
