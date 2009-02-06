@@ -12,7 +12,7 @@ use App::SD::Model::Comment;
 use App::SD::Collection::Ticket;
 
 
-my @BASIC_PROPS = qw(status milestone component owner reporter due created);
+my @BASIC_PROPS = qw(status milestone component owner reporter due created tags description);
 
 
 template '/css/sd.css' => sub {
@@ -312,11 +312,22 @@ div.widget.status, div.widget.component, div.widget.milestone {
     width: 29%;
 }
 
+div.widget.description {
+    display: block;
+    height: auto;
+}
+
+div.widget.description textarea {
+    width: 100%;
+    font-size: 0.8em;
+    height: 6em;
+}
+
 div.widget.status {
     margin-left: 1em;
 }
 
-div.widget.status label, div.widget.component label, div.widget.milestone label
+div.widget.status label, div.widget.component label, div.widget.milestone label, div.widget.description label
 {
 display: block;
 text-align: left;
@@ -336,6 +347,7 @@ div.widget.milestone .value {
 width: 100%;
 
 }
+/* 
 
 .other-props { 
     margin-top: 0;
@@ -354,6 +366,7 @@ width: 100%;
 .other-props .widget input {
     width: 13em;
 }
+*/
 
 ul.page-nav {
     position: absolute;
@@ -503,12 +516,16 @@ ul.comments .creator:after {
     content: " wrote:";
 }
 
-ul.comments li .content {
-    margin-top: 1em;
+ul.comments li .content-pre {
     white-space: pre;
-    padding: 1em;
-    font-size: 0.9em;
     overflow-x: auto;
+}
+
+ul.comments li .content {
+    padding: 1em;
+    margin-top: 1em;
+    font-size: 0.9em;
+
 }
 
 ul.comments li:nth-child(odd) {
@@ -710,12 +727,16 @@ template edit_ticket => page {
     
         div { class is 'other-props';
         for my $prop (@BASIC_PROPS) {
-            next if $prop =~ /^(?:status|component|milestone|created)$/;
+            next if $prop =~ /^(?:status|component|milestone|created|description)$/;
 
             div { { class is "widget $prop"}; 
                     widget( function => $f, prop => $prop ) };
         }
-        }
+        }; 
+
+            div { { class is "widget description"}; 
+                    widget( function => $f, prop => 'description', type => 'textarea', autocomplete => 0) };
+
         };
         div { class is 'submit';
         input { attr { value => 'Save', type => 'submit' } };
@@ -778,10 +799,14 @@ template new_ticket => page {'Create a new ticket'} content {
         div { class is 'other-props';
 
         for my $prop (@BASIC_PROPS) {
-            next if $prop =~ /^(?:status|component|milestone|created)$/;
+            next if $prop =~ /^(?:status|component|milestone|created|description)$/;
             div { {class is 'widget '.$prop};
                  widget( function => $f, prop => $prop ) };
         }
+
+            div { {class is 'widget description'};
+                 widget( function => $f, prop => 'description', type => 'textarea', autocomplete => '0' ) };
+
         }
         };
 
@@ -997,20 +1022,19 @@ private template 'ticket_basics' => sub {
             div { { class is 'value uuid'}; $ticket->uuid; } 
             };
         for my $key (qw'status component milestone', 
-                        @BASIC_PROPS, (sort keys %props)) {
+                        (grep {$_ ne 'description'} (@BASIC_PROPS, (sort keys %props))), 'description') {
             next unless defined $props{$key}; 
-            next if ($key eq 'summary');
+            next if ($key =~ m{(?:summary)});
             next if ($key =~ /.{8}-.{4}-.{4}-.{12}-id/);
             div { class is 'widget '.$key;
                 label {$key};
                 div { { class is 'value ' . $key }; $props{$key}; }
+
             };
-
             delete $props{$key};
-
-        }
+        
         };
-
+    };
     script { outs_raw('$("div.created,div.due").prettyDateTag();
 setInterval(function(){ $("div.created,div.due").prettyDateTag(); }, 5000);') };
 
@@ -1055,25 +1079,33 @@ template ticket_comments => sub {
     my @comments = sort  @{ $ticket->comments };
     if (@comments) {
         h2 { { class is 'conmments'};  'Comments'};
-        ul { { class is 'comments'}; 
+        ul {
+            { class is 'comments' };
             for my $comment (@comments) {
                 li {
                     span {
                         { class is 'metadata' };
                         span { class is 'created'; $comment->prop('created') };
-                         outs(" ");
-                        span { class is 'creator';  $comment->prop('creator')};
+                        outs(" ");
+                        span { class is 'creator'; $comment->prop('creator') };
                     }
                     div {
                         class is 'content';
-                        $comment->prop('content') || i {'No body was entered for this comment'};
-                    };
+                        if ( !$comment->prop('content') ) {
+                            i {'No body was entered for this comment'};
+
+                        } elsif ( $comment->prop('content_type') =~ m{text/html}i ) {
+                            outs_raw( $comment->prop('content') );
+                        } else {
+                            div { class is 'content-pre';     $comment->prop('content');};
+                        }
+                    }
                 }
             }
         }
-    }
     script { outs_raw('$("span.created").prettyDateTag();
 setInterval(function(){ $("span.created").prettyDateTag(); }, 5000);') };
+    }
 
 };
 
