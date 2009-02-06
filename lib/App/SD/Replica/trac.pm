@@ -85,6 +85,12 @@ sub uuid {
 }
 
 
+sub remote_uri_path_for_comment {
+    my $self = shift;
+    my $id = shift;
+    return "/comment/".$id;
+}
+
 sub remote_uri_path_for_id {
     my $self = shift;
     my $id = shift;
