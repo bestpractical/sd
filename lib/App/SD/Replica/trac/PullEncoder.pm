@@ -137,7 +137,6 @@ sub skip_previously_seen_transactions {
     return \@txns;
 }
 
-
 sub build_initial_ticket_state {
     my $self          = shift;
     my $final_state   = shift;
@@ -156,7 +155,6 @@ sub build_initial_ticket_state {
     }
     return \%initial_state;
 }
-
 
 sub build_create_changeset {
     my $self = shift;
@@ -242,49 +240,6 @@ sub _recode_attachment_create {
     $change->add_prop_change( name => 'ticket', old  => undef, new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{ $self->sync_source->uuid . '-id'} ));
     $args{'changeset'}->add_change( { change => $change } );
 }
-
-use HTTP::Date;
-
-sub unix_time_to_iso {
-    my $self = shift;
-    my $date = shift;
-
-    return undef if $date eq 'Not set';
-    return HTTP::Date::time2iso($date);
-}
-
-our %PROP_MAP = (
-    subject         => 'summary',
-    status          => 'status',
-    owner           => 'owner',
-    initialpriority => '_delete',
-    finalpriority   => '_delete',
-    told            => '_delete',
-    requestor       => 'reporter',
-    requestors      => 'reporter',
-    cc              => 'cc',
-    ccs             => 'cc',
-    admincc         => 'admin_cc',
-    adminccs        => 'admin_cc',
-    refersto        => 'refers_to',
-    referredtoby    => 'referred_to_by',
-    dependson       => 'depends_on',
-    dependedonby    => 'depended_on_by',
-    hasmember       => 'members',
-    memberof        => 'member_of',
-    priority        => 'priority_integer',
-    resolved        => 'completed',
-    due             => 'due',
-    creator         => 'creator',
-    timeworked      => 'time_worked',
-    timeleft        => 'time_left',
-    timeestimated   => 'time_estimated',
-    lastupdated     => '_delete',
-    created         => 'created',
-    queue           => 'queue',
-    starts          => '_delete',
-    started         => '_delete',
-);
 
 sub translate_status {
     my $self = shift;
