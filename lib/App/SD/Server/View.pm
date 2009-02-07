@@ -20,6 +20,7 @@ template '/css/sd.css' => sub {
 
 html {
   font-family: Helvetica;
+  background: url(/static/sd/images/gradient.png) repeat-x;
   background-color: #601;
   padding: 1em;
 
