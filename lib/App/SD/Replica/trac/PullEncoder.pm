@@ -20,14 +20,14 @@ sub run {
         }
     );
 
-    my $first_rev = ( $args{'after'} + 1 ) || 1;
-
-    my $tickets = {};
-    my @transactions;
-
     my @tickets = @{ $self->find_matching_tickets() };
-    $self->sync_source->log("No tickets found.") if @tickets == 0;
 
+    if ( @tickets == 0 ) {
+        $self->sync_source->log("No tickets found.");
+        return;
+    }
+
+    my @changesets;
     my $counter = 0;
     $self->sync_source->log("Discovering ticket history");
     my $progress = Time::Progress->new();
@@ -35,20 +35,10 @@ sub run {
     local $| = 1;
 
     for my $ticket (@tickets) {
-        $counter++;
         print $progress->report( "%30b %p Est: %E\r", $counter );
-        $self->sync_source->log(
-            "Fetching ticket @{[$ticket->id]} - $counter of " . scalar @tickets );
+        $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - " . $counter++ . " of " . scalar @tickets );
 
-        $tickets->{ $ticket->id } = $ticket;
-    }
-
-    my @changesets;
-
-    foreach my $ticket ( values %$tickets ) {
         my $ticket_data = $self->_translate_final_ticket_state($ticket);
-
-        #my $ticket_initial_data = $self->build_initial_ticket_state($ticket_data, $ticket);
         my $ticket_initial_data = {%$ticket_data};
         my $txns                = $self->skip_previously_seen_transactions(
             ticket       => $ticket,
@@ -58,50 +48,43 @@ sub run {
         # Walk transactions newest to oldest.
         for my $txn ( sort { $b->date <=> $a->date } @$txns ) {
             $self->sync_source->log( $ticket->id . " - Transcoding transaction  @{[$txn->date]} " );
-            my $changeset = $self->transcode_one_txn( $txn, $ticket_initial_data );
-            $changeset->created( $txn->date->ymd . " " . $txn->date->hms );
-            next unless $changeset->has_changes;
-
-            # the changeset is older than the one that came before it, so it goes first
-            unshift @changesets, $changeset;
-            $counter++;
+            # the changesets are older than the ones that came before, so they goes first
+            unshift @changesets, grep { defined } $self->transcode_one_txn( $txn, $ticket_initial_data, $ticket_data );
         }
 
         # create is oldest of all
         unshift @changesets, $self->build_create_changeset( $ticket_initial_data, $ticket );
     }
 
-    my $cs_counter = 1;
-    for my $changeset (@changesets) {
-        $changeset->original_sequence_no( $cs_counter++ );
-        $self->sync_source->log( "Applying changeset "
-                . $changeset->original_sequence_no . " of "
-                . scalar @changesets );
-        $args{callback}->($changeset);
-    }
+        $args{callback}->($_) for @changesets;
 }
 
 sub _translate_final_ticket_state {
     my $self          = shift;
     my $ticket_object = shift;
-
+    
+    my $content = $ticket_object->description;
     my $ticket_data = {
 
         $self->sync_source->uuid . '-id' => $ticket_object->id,
 
-        owner => ( $ticket_object->owner || '' ),
+        owner => ( $ticket_object->owner || undef ),
+        type => ($ticket_object->type || undef),
         created     => ( $ticket_object->created->ymd . " " . $ticket_object->created->hms ),
-        reporter    => ( $ticket_object->reporter || '' ),
+        reporter    => ( $ticket_object->reporter || undef ),
         status      => $self->translate_status( $ticket_object->status ),
-        summary     => ( $ticket_object->summary || '' ),
-        description => ( $ticket_object->description || '' ),
-        tags        => ( $ticket_object->keywords || '' ),
-        component   => ( $ticket_object->component || '' ),
-        milestone   => ( $ticket_object->milestone || '' ),
-        priority    => ( $ticket_object->priority || '' ),
-        severity    => ( $ticket_object->severity || '' ),
-        cc          => ( $ticket_object->cc || '' ),
+        summary     => ( $ticket_object->summary || undef ),
+        description => ( $content||undef),
+        tags        => ( $ticket_object->keywords || undef ),
+        component   => ( $ticket_object->component || undef ),
+        milestone   => ( $ticket_object->milestone || undef ),
+        priority    => ( $ticket_object->priority || undef ),
+        severity    => ( $ticket_object->severity || undef ),
+        cc          => ( $ticket_object->cc || undef ),
     };
+
+
+
 
     # delete undefined and empty fields
     delete $ticket_data->{$_}
@@ -120,7 +103,7 @@ sub find_matching_tickets {
     my $self  = shift;
     my %query = (@_);
     my $search
-        = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 50 );
+        = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 500 );
     $search->query(%query);
     return $search->results;
 }
@@ -133,16 +116,16 @@ Returns a reference to an array of all transactions (as hashes) on ticket $id af
 
 sub skip_previously_seen_transactions {
     my $self = shift;
-    my %args = validate( @_, { ticket => 1, transactions => 1 } );
+    my %args = validate( @_, { ticket => 1, transactions => 1, starting_transaction => 0 } );
     my @txns;
 
     for my $txn ( sort @{ $args{transactions} } ) {
 
         # Skip things we know we've already pulled
-        #next if $txn < $args{'starting_transaction'};
+        next if $txn < ( $args{'starting_transaction'} ||0 );
 
         # Skip things we've pushed
-        #next if $self->sync_source->foreign_transaction_originated_locally($txn, $args{'ticket'});
+        next if $self->sync_source->foreign_transaction_originated_locally($txn, $args{'ticket'});
         push @txns, $txn;
     }
     return \@txns;
@@ -176,11 +159,13 @@ sub build_create_changeset {
     my $self        = shift;
     my $create_data = shift;
     my $ticket      = shift;
-    warn "My ticket id is " . $ticket->id;
+             # this sequence_no only works because trac tickets only allow one update 
+             # per ticket per second.
+             # we decrement by 1 on the off chance that someone created and 
+             # updated the ticket in the first second
     my $changeset = Prophet::ChangeSet->new(
         {   original_source_uuid => $self->sync_source->uuid_for_remote_id( $ticket->id ),
-
-            #original_sequence_no => 1, # XXX TODO THIS IS JNOT A VALID SEQUENCE NUMBER
+            original_sequence_no => ( $ticket->created->epoch-1),
             creator => $self->resolve_user_id_to( email_address => $ticket->reporter ),
             created => $ticket->created->ymd ." ".$ticket->created->hms
         }
@@ -195,6 +180,7 @@ sub build_create_changeset {
 
     for my $prop ( keys %$create_data ) {
         next unless defined $create_data->{$prop};
+        next if $prop =~ /^(?:patch)$/;
         $change->add_prop_change( name => $prop, old => '', new => $create_data->{$prop} );
     }
 
@@ -202,34 +188,47 @@ sub build_create_changeset {
     return $changeset;
 }
 
+            # we might get return:
+            # 0 changesets if it was a null txn
+            # 1 changeset if it was a normal txn
+            # 2 changesets if we needed to to some magic fixups.
 sub transcode_one_txn {
-    my ( $self, $txn, $ticket, $txn_number ) = (@_);
-    my $changeset = Prophet::ChangeSet->new(
-        {   original_source_uuid => $self->sync_source->uuid_for_remote_id(
-                $ticket->{ $self->sync_source->uuid . '-id' }
-            ),
+    my ( $self, $txn, $ticket, $ticket_final ) = (@_);
 
-         #        original_sequence_no => $txn_number, #XXX TODO THIS IS NOT A VALID SEQUENCE NUMBER
+    my $ticket_uuid = $self->sync_source->uuid_for_remote_id( $ticket->{ $self->sync_source->uuid . '-id' } );
+
+    my $changeset = Prophet::ChangeSet->new(
+        {   original_source_uuid => $ticket_uuid,
+            original_sequence_no => $txn->date->epoch,    # see comment on ticket
+                                                          # create changeset
             creator => $self->resolve_user_id_to( email_address => $txn->author ),
+            created => $txn->date->ymd . " " . $txn->date->hms
         }
     );
 
     my $change = Prophet::Change->new(
         {   record_type => 'ticket',
-            record_uuid => $self->sync_source->uuid_for_remote_id(
-                $ticket->{ $self->sync_source->uuid . '-id' }
-            ),
+            record_uuid => $ticket_uuid,
             change_type => 'update_file'
         }
     );
+
+    warn "right here, we need to deal with changed data that trac failed to record";
 
     foreach my $prop_change ( values %{ $txn->prop_changes || {} } ) {
         my $new      = $prop_change->new_value;
         my $old      = $prop_change->old_value;
         my $property = $prop_change->property;
+        next if $property =~ /^(?:patch)$/;
 
         $old = undef if ( $old eq '' );
         $new = undef if ( $new eq '' );
+
+        if (!exists $ticket_final->{$property}) {
+                $ticket_final->{$property} = $new;
+                $ticket->{$property} = $new;
+        }
+
 
         # walk back $ticket's state
         if (   ( !defined $new && !defined $ticket->{$property} )
@@ -246,24 +245,25 @@ sub transcode_one_txn {
 
     my $comment = Prophet::Change->new(
         {   record_type => 'comment',
-            record_uuid => Data::UUID->new->create_str(),
+            record_uuid => Data::UUID->new->create_str()
+            ,    # comments are never edited, we can have a random uuid
             change_type => 'add_file'
-        });
-
-    if (my $content = $txn->content ) {
-        if ($content !~ /^\s*$/s) {
-    $comment->add_prop_change( name => 'created', new  => $txn->date->ymd. ' ' .$txn->date->hms);
-    $comment->add_prop_change( name => 'creator', new  => $self->resolve_user_id_to( email_address => $txn->author) );
-    $comment->add_prop_change( name => 'content', new => $content );
-    $comment->add_prop_change( name => 'content_type', new => 'text/html' );
-    $comment->add_prop_change(
-        name => 'ticket',
-        new => $self->sync_source->uuid_for_remote_id( $ticket->{ $self->sync_source->uuid . '-id' } )
+        }
     );
 
-    $changeset->add_change({change => $comment});
+    if ( my $content = $txn->content ) {
+        if ( $content !~ /^\s*$/s ) {
+            $comment->add_prop_change( name => 'created', new  => $txn->date->ymd . ' ' . $txn->date->hms);
+            $comment->add_prop_change( name => 'creator', new  => $self->resolve_user_id_to( email_address => $txn->author ));
+            $comment->add_prop_change( name => 'content',      new => $content );
+            $comment->add_prop_change( name => 'content_type', new => 'text/html' );
+            $comment->add_prop_change( name => 'ticket', new  => $ticket_uuid);
+
+            $changeset->add_change( { change => $comment } );
+        }
     }
-    }
+
+    return undef unless $changeset->has_changes;
     return $changeset;
 }
 
