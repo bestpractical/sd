@@ -317,10 +317,22 @@ div.widget.description {
     height: auto;
 }
 
+
+
+div.widget.description .value {
+    white-space: pre;
+    display: block;
+    overflow-x: auto;
+}
+
+
 div.widget.description textarea {
     width: 100%;
     font-size: 0.8em;
     height: 6em;
+    padding-left: 0.5em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
 }
 
 div.widget.status {
@@ -525,6 +537,7 @@ ul.comments li .content {
     padding: 1em;
     margin-top: 1em;
     font-size: 0.9em;
+    overflow-x: auto;
 
 }
 
@@ -1026,7 +1039,7 @@ private template 'ticket_basics' => sub {
             div { { class is 'value uuid'}; $ticket->uuid; } 
             };
         for my $key (qw'status component milestone', 
-                        (grep {$_ ne 'description'} (@BASIC_PROPS, (sort keys %props))), 'description') {
+                        (grep {$_ ne 'description'} (@BASIC_PROPS, (sort keys %props)))){
             next unless defined $props{$key}; 
             next if ($key =~ m{(?:summary)});
             next if ($key =~ /.{8}-.{4}-.{4}-.{12}-id/);
@@ -1038,11 +1051,20 @@ private template 'ticket_basics' => sub {
             delete $props{$key};
         
         };
+
+            div { class is 'widget description';
+                label {'description'};
+                div { { class is 'value description' };
+                        outs($props{description});
+                }
+            };
     };
     script { outs_raw('$("div.created,div.due").prettyDateTag();
 setInterval(function(){ $("div.created,div.due").prettyDateTag(); }, 5000);') };
 
 };
+
+
 template ticket_attachments => sub {
     my $self = shift;
     my $ticket = shift;
@@ -1080,7 +1102,7 @@ setInterval(function(){ $("span.created").prettyDateTag(); }, 5000);') };
 template ticket_comments => sub {
     my $self     = shift;
     my $ticket    = shift;
-    my @comments = sort  @{ $ticket->comments };
+    my @comments = sort {$a->prop('created') cmp $b->prop('created')}  @{ $ticket->comments };
     if (@comments) {
         h2 { { class is 'conmments'};  'Comments'};
         ul {
