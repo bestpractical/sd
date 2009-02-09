@@ -35,12 +35,12 @@ sub BUILD {
     }
     $self->remote_url( $uri->as_string );
 
-    #( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
+    ( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
     $self->trac(
         Net::Trac::Connection->new(
             url      => $self->remote_url,
-            user     => 'jesse',#$username,
-            password => 'iron' #$password
+            user     => $username,
+            password => $password
         )
     );
     $self->trac->ensure_logged_in;
