@@ -2,7 +2,7 @@ package App::SD::Server;
 use base 'Prophet::Server';
 
 sub css {
-    return shift->SUPER::css(@_), "/css/sd.css";
+    return shift->SUPER::css(@_), "/static/sd/css/main.css";
 }
 
 sub js {
