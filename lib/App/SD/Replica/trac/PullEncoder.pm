@@ -5,6 +5,8 @@ extends 'App::SD::ForeignReplica::PullEncoder';
 use Params::Validate qw(:all);
 use Memoize;
 use Time::Progress;
+use DateTime;
+use DateTime::Format::ISO8601;
 
 has sync_source => (
     isa => 'App::SD::Replica::trac',
@@ -34,9 +36,13 @@ sub run {
     $progress->attr( max => $#tickets );
     local $| = 1;
 
+    my $last_modified_date;
+
     for my $ticket (@tickets) {
         print $progress->report( "%30b %p Est: %E\r", $counter );
         $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - " . $counter++ . " of " . scalar @tickets );
+
+        $last_modified_date = $ticket->last_modified if (!$last_modified_date || $ticket->last_modified > $last_modified_date);
 
         my $ticket_data = $self->_translate_final_ticket_state($ticket);
         my $ticket_initial_data = {%$ticket_data};
@@ -56,8 +62,17 @@ sub run {
         unshift @changesets, $self->build_create_changeset( $ticket_initial_data, $ticket );
     }
 
+    $self->_record_upstream_last_modified_date($last_modified_date);
+
         $args{callback}->($_) for @changesets;
 }
+
+sub _record_upstream_last_modified_date {
+    my $self = shift;
+    my $date = shift;         
+    return $self->sync_source->store_local_metadata('last_changeset_date' => $date);
+}
+
 
 sub _translate_final_ticket_state {
     my $self          = shift;
@@ -102,10 +117,25 @@ Returns a Trac::TicketSearch collection for all tickets found matching your QUER
 sub find_matching_tickets {
     my $self  = shift;
     my %query = (@_);
+
+
+    my $last_changeset_seen_dt;
+    if (my $last_changeset_seen =   $self->sync_source->fetch_local_metadata('last_changeset_date') ) {
+        $last_changeset_seen  =~ s/ /T/;
+        $last_changeset_seen_dt =  DateTime::Format::ISO8601->parse_datetime( $last_changeset_seen );
+    }
+
+
     my $search
         = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 500 );
     $search->query(%query);
-    return $search->results;
+    my @results = @{$search->results};
+
+    if ($last_changeset_seen_dt) {
+        # >= is wasteful but may catch race conditions
+        @results = grep {$_->last_modified >= $last_changeset_seen_dt} @results; 
+    }
+    return \@results;
 }
 
 =head2 skip_previously_seen_transactions { ticket => $id, starting_transaction => $num, transactions => \@txns  }
