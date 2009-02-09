@@ -11,7 +11,7 @@ use File::Temp 'tempdir';
 has hm => ( isa => 'Net::Jifty', is => 'rw');
 has remote_url => ( isa => 'Str', is => 'rw');
 has hm_username => ( isa => 'Str', is => 'rw');
-has props => ( isa => 'HashRef[Str]', is => 'rw');
+has props => ( isa => 'HashRef', is => 'rw');
 
 use constant scheme => 'hm';
 use constant pull_encoder => 'App::SD::Replica::hm::PullEncoder';
