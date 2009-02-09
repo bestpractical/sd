@@ -25,6 +25,7 @@ features(
 );
 
 install_script('bin/sd');
+install_script('bin/git-sd');
 
 # Include subdirectory tests too.
 tests("t/*.t t/*/*.t");
