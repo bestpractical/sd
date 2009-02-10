@@ -304,7 +304,7 @@ like( $out, qr/Created comment/ );
         rt => $rt,
         id => $flyman_rt_id 
     )->retrieve;
-TODO {
+    TODO: {
     local $TODO = "Deleting tickets in RT still doesn't play nicely with SD";
     is( $fetched_ticket->status, "deleted" );
 }
