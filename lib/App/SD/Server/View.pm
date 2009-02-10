@@ -366,7 +366,7 @@ template 'show_ticket_history' => page {
         );
         $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       $ticket->luid.": ".$ticket->prop('summary');
+       $ticket->luid.": ".($ticket->prop('summary') || '(No summary)');
     } content {
         my $self = shift;
         my $id = shift;
@@ -390,7 +390,7 @@ template 'show_ticket' => page {
         );
         $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
 
-       $ticket->luid.": ".$ticket->prop('summary');
+       $ticket->luid.": ".($ticket->prop('summary') ||'(No summary)');
     } content {
         my $self = shift;
         my $id = shift;
@@ -518,7 +518,7 @@ template ticket_comments => sub {
                         if ( !$comment->prop('content') ) {
                             i {'No body was entered for this comment'};
 
-                        } elsif ( $comment->prop('content_type') =~ m{text/html}i ) {
+                        } elsif ( $comment->prop('content_type') &&  $comment->prop('content_type') =~ m{text/html}i ) {
                             outs_raw( $comment->prop('content') );
                         } else {
                             div { class is 'content-pre';     $comment->prop('content');};
