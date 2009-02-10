@@ -8,7 +8,7 @@ extends 'Prophet::Config';
 # with $ENV{PROPHET_REPO} because we need to instantiate App::SD::CLI to
 # get the location of the repo root, and then Prophet would load its own
 # config file before we got around to messing with the env var
-before 'app_config_file' => sub {
+sub app_config_file {
     my $self = shift;
 
     # The order of preference for config files is:
@@ -26,7 +26,8 @@ before 'app_config_file' => sub {
                 File::Spec->catfile($ENV{'HOME'}.'/.sdrc'))
             || $ENV{'PROPHET_APP_CONFIG'} # don't overwrite with nothing
             || ''; # don't write undef
-};
+        $self->SUPER::app_config_file(@_);
+}
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;

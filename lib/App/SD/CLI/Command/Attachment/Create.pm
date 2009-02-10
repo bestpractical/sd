@@ -4,7 +4,7 @@ extends 'Prophet::CLI::Command::Create';
 with 'App::SD::CLI::Model::Attachment';
 with 'App::SD::CLI::Command';
 
-before run => sub {
+sub run {
     my $self = shift;
 
     my $content = $self->get_content(type => 'attachment');
@@ -13,6 +13,7 @@ before run => sub {
         if length($content) == 0;
 
     $self->set_prop(content => $content);
+    $self->SUPER::run(@_);
 };
 
 __PACKAGE__->meta->make_immutable;

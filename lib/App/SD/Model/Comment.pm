@@ -8,7 +8,7 @@ has type => ( default => 'comment');
 
 sub _default_summary_format { '%s,$uuid | %s,content'}
 
-around declared_props => sub { shift->(@_), 'content' };
+sub declared_props { return ('content', shift->SUPER::declared_props(@_)) }
 
 sub canonicalize_props {
     my $self = shift;

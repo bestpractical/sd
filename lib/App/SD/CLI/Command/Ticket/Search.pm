@@ -6,7 +6,7 @@ with 'App::SD::CLI::Command';
 __PACKAGE__->register_arg_translations( s => 'sort', g => 'group' );
 
 # frob the sort routine before running prophet's search command
-before run => sub {
+sub run {
     my $self = shift;
 
     if (  (!$self->has_arg('sort') || !$self->arg('sort'))
@@ -71,7 +71,8 @@ before run => sub {
             }
         );
     }
-};
+    $self->SUPER::run(@_);
+}
 
 # implicit status != closed
 sub default_match {

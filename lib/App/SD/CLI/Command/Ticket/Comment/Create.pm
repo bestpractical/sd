@@ -8,7 +8,7 @@ with 'App::SD::CLI::Command';
 __PACKAGE__->register_arg_translations( f => 'file', m => 'content' );
 
 # override args to feed in that ticket's uuid as an argument to the comment
-before run => sub {
+sub run {
     my $self = shift;
     $self->require_uuid;
 
@@ -19,7 +19,8 @@ before run => sub {
 
     $self->set_prop(ticket => $self->uuid);
     $self->set_prop(content => $content);
-};
+    $self->SUPER::run(@_);
+}
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
