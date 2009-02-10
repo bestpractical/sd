@@ -161,8 +161,6 @@ th.headerSortDown {
 }
 
     
-}
-
 
 ul.comments {
     list-style: none;
@@ -249,7 +247,7 @@ div.comment-form {
     padding: 2em;
     padding-top: 0;
     align: center;
-    background: #eee;
+    background: #ddd;
 }
 
 div.comment-form textarea {
@@ -290,7 +288,9 @@ div.widget.status, div.widget.component, div.widget.milestone {
     padding-left: 0.5em;
     padding-right: 1em;
     margin-right: -0.3em;
-    width: 29%;
+    width: 28%;
+    border-bottom: none;
+    border-top: none;
 }
 
 div.widget.description {
@@ -438,7 +438,7 @@ ul.page-nav ul li:hover {
 }
 
  table.tablesorter tbody tr:nth-child(odd) td {
-    background: #eee;
+    background: #ddd;
 }
 
 
@@ -456,15 +456,26 @@ table.tablesorter tr td.summary {
 }
 
 
-
+dl.history {
+    margin-right: 1em;
+}
 dl.history dt {
     border-top: 1px solid #ccc;
-    padding: 0.5em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+
     color: #666; 
+    width: 100%;
+    font-size: 0.8em;
+}
+
+dl.history dt .source_info {
+    float: right;
 }
 
 dl.history dt .created {
-    padding-right: 1em;
+    width: 8em;
+    display: inline-block;
 
 }
 
@@ -474,7 +485,7 @@ dl.history dt .creator {
 }
 
 dl.history dt .original_sequence_no {
-    color: #ccc;
+    color: #666;
 }
 
 dl.history dt .original_sequence_no:after {
@@ -482,14 +493,46 @@ dl.history dt .original_sequence_no:after {
 }
 
 dl.history dt .original_source_uuid {
-    color: #ccc;
+    color: #666;
 }
+
+
 dl.history dd {
     margin-bottom: 0.5em; 
+    font-size: 0.9em;
+    margin-right: 0;
     }
 
-dl.history dd ul { 
-    list-style: none;
+dl.history dd ul li{ 
+    list-style-type: none;
+    padding: 0.5em;
+    padding-left: 1.5em;
+}
+
+dl.history dd ul li:nth-child(odd) {
+    background: #ddd;
+    -webkit-border-radius: 0.4em;
+    -moz-border-radius: 0.4em;
+}
+
+
+dl.history span.property {
+    font-weight: bold;
+    display: inline-block;
+    width: 8em;
+    text-align: right;
+    overflow: hidden;
+}
+
+dl.history span.prose {
+    color: #666;    
+}
+
+dl.history span.value.new,
+dl.history span.value.old {
+}
+
+dl.history span.value.old {
 }
 
 ul.comments li {
@@ -523,7 +566,9 @@ ul.comments li .content {
 }
 
 ul.comments li:nth-child(odd) {
-    background: #f5f5f5;
+    background: #ddd;
+    -moz-border-radius: 0.4em;
+    -webkit-border-radius: 0.4em;
 }
 
 table.tablesorter {
@@ -560,7 +605,7 @@ table.tablesorter td.summary {
  overflow: hidden;
  margin-top: 0.75em;
  height: 1em;
- left: 3.75em;
+ left: 4.5em;
  position: absolute;
  padding-bottom: 1.25em;
  border-bottom: none;
@@ -587,6 +632,7 @@ table.tablesorter td.id  {
     padding-top: 1.5em;
     text-align: right;
     margin-right: em;
+    width: 3.5em;
 }
 table.tablesorter td.id a {
     color: #bbb;

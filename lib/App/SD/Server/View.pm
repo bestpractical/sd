@@ -449,13 +449,14 @@ private template 'ticket_basics' => sub {
             delete $props{$key};
         
         };
-
+        if ($props{description} ) {
             div { class is 'widget description';
                 label {'description'};
                 div { { class is 'value description' };
                         outs($props{description});
                 }
             };
+            }
     };
     script { outs_raw('$("div.created,div.due").prettyDateTag();
 setInterval(function(){ $("div.created,div.due").prettyDateTag(); }, 5000);') };
@@ -470,32 +471,74 @@ template ticket_attachments => sub {
 
 };
 template ticket_history => sub {
-    my $self = shift;
+    my $self   = shift;
     my $ticket = shift;
 
-   
-    dl { { class is 'history'};
-    for my $changeset  (sort {$a->created cmp $b->created}  $ticket->changesets) {
-        dt {
-                span { { class is 'created'};  $changeset->created };
-                span { { class is 'creator'};  $changeset->creator || i { 'Missing author'};  };
-                span { { class is 'original_sequence_no'};  $changeset->original_sequence_no};
-                span { { class is 'original_source_uuid'}; $changeset->original_source_uuid };
+    dl {
+        { class is 'history' };
+        for my $changeset ( sort { $a->created cmp $b->created } $ticket->changesets ) {
+            dt {
+                span {
+                    { class is 'created' };
+                    $changeset->created;
                 };
-        dd { 
-                for my $change ($changeset->changes) {
-                    next unless $change->record_uuid eq $ticket->uuid;
-                        ul {
-                            map { li {$_->summary} } $change->prop_changes;
-                        };
+                span {
+                    { class is 'creator' };
+                    $changeset->creator || i {'Missing author'};
+                };
+                span { class is 'source_info';
+                span {
+                    { class is 'original_sequence_no' };
+                    $changeset->original_sequence_no;
+                };
+                span {
+                    { class is 'original_source_uuid' };
+                    $changeset->original_source_uuid;
+                };
+                };
+            };
+            dd {
+                for my $change ( $changeset->changes ) {
+                    if ( $change->record_uuid eq $ticket->uuid ) {
+                    ul {
+
+                        li { outs_raw($_) }
+                        for (grep {$_}
+                            map { show_history_prop_change($_) } ( $change->prop_changes ));
                     }
-                
+                    } else {
+                        i { 'Something else changed - It was ' . $change->record_type . " ".$change->record_uuid};
+                    }
+
+                }
             }
+
         }
-    }
-    script { outs_raw('$("span.created").prettyDateTag();
-setInterval(function(){ $("span.created").prettyDateTag(); }, 5000);') };
+    };
+    script {
+        outs_raw(
+            '$("span.created").prettyDateTag();
+setInterval(function(){ $("span.created").prettyDateTag(); }, 5000);'
+        );
+    };
 };
+
+sub show_history_prop_change {
+    my $pc = shift;
+    if ( defined $pc->old_value && defined $pc->new_value ) {
+        span { class is 'property'; $pc->name }
+        . span { class is 'prose'; ' changed from ' }
+            . span { class is 'value old'; $pc->old_value } . span { class is 'prose'; " to " }
+            . span { class is 'value new'; $pc->new_value };
+    } elsif ( defined $pc->new_value ) {
+        span                { class is 'property';  $pc->name }
+        . span { class is 'prose'; ' set to '} . span { class is 'value new'; $pc->new_value }
+
+    } elsif ( defined $pc->new_value ) {
+        span       { class is 'property';  $pc->name } . ' ' 
+            . span { class is 'value old'; $pc->new_value } . span { class is 'prose'; ' deleted'};
+    }
+}
 
 template ticket_comments => sub {
     my $self     = shift;
@@ -506,6 +549,19 @@ template ticket_comments => sub {
         ul {
             { class is 'comments' };
             for my $comment (@comments) {
+                show('ticket_comment', $comment);
+
+            }
+        }
+    script { outs_raw('$("span.created").prettyDateTag();
+setInterval(function(){ $("span.created").prettyDateTag(); }, 5000);') };
+    }
+
+};
+
+template ticket_comment => sub {
+    my $self = shift;
+    my $comment = shift;
                 li {
                     span {
                         { class is 'metadata' };
@@ -525,14 +581,7 @@ template ticket_comments => sub {
                         }
                     }
                 }
-            }
-        }
-    script { outs_raw('$("span.created").prettyDateTag();
-setInterval(function(){ $("span.created").prettyDateTag(); }, 5000);') };
-    }
-
-};
-
+                };
 
 sub ticket_link {
     my $ticket   = shift;
