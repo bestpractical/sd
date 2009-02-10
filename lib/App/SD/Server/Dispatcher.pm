@@ -30,8 +30,8 @@ on qr'.' => sub {
         $milestones->child( none => label => 'None', url => '/no_milestone');
     
     my $components = $tickets->child( components => label => 'Components', url => '/components');
-    my $items = $self->server->app_handle->setting( label => 'components' )->get();
-    foreach my $item (@$items) {
+    my $component_list = $self->server->app_handle->setting( label => 'components' )->get();
+    foreach my $item (@$component_list) {
         my $c= $components->child( $item => label => $item, url => '/component/'.$item);
         #$c->child('all' => label => 'All', url => '/component/'.$item.'/all');
         #$c->child('mine' => label => 'Mine', url => '/component/'.$item.'/mine');
