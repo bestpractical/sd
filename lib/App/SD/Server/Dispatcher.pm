@@ -51,13 +51,13 @@ on qr'.' => sub {
 };
 
 
-under 'POST' => sub {
+under { method => 'POST' } => sub {
     on qr'^ticket/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/ticket/' . $1 ); };
     on qr'^(?!records)$' => sub { shift->server->_send_redirect( to => $1 ); };
 };
 
 
-under 'GET' => sub {
+under { method => 'GET' } => sub {
     on qr'^static/sd/(.*)$' => sub { shift->server->send_static_file($1)};
     on qr'^(milestone|component)/([\w\d-]+)$' => sub {
         my $name = $1;
