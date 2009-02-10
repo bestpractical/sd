@@ -12,7 +12,7 @@ no warnings 'once';
 BEGIN {
     require File::Temp;
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'}
-        = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+        = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
     diag $ENV{'PROPHET_REPO'};
 }
 

@@ -5,7 +5,7 @@
 # RT_DBA_USER=root RT_DBA_PASSWORD= prove -lv -I/Users/clkao/work/bps/rt-3.7/lib t/sd-rt.t
 use strict;
 
-use Test::More;
+use Prophet::Test;
 use Path::Class;
 
 BEGIN {
@@ -15,18 +15,18 @@ BEGIN {
     }
 }
 
-use Prophet::Test tests => 6;
+plan tests => 6;
 use App::SD::Test;
 
 no warnings 'once';
 
 RT::Handle->InsertData( $RT::EtcPath . '/initialdata' );
-use Test::More;
+use Prophet::Test;
 
 BEGIN {
     require File::Temp;
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'}
-        = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+        = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
     diag "export SD_REPO=" . $ENV{'PROPHET_REPO'} . "\n";
 }
 

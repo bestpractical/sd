@@ -9,7 +9,7 @@ BEGIN {
     if ( $ENV{'JIFTY_APP_ROOT'} ) {
         plan tests => 10;
         require File::Temp;
-        $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+        $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
         diag $ENV{'PROPHET_REPO'};
         eval "use Jifty";
         push @INC, File::Spec->catdir( Jifty::Util->app_root, "lib" );

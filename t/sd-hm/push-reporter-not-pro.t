@@ -8,7 +8,7 @@ BEGIN {
     if ( $ENV{'JIFTY_APP_ROOT'} ) {
         plan tests => 29;
         require File::Temp;
-        $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+        $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
         diag $ENV{'PROPHET_REPO'};
         eval "use Jifty";
         push @INC, File::Spec->catdir( Jifty::Util->app_root, "lib" );
@@ -75,7 +75,7 @@ diag("non pro have no right to change requestor");
 diag("only one requestor");
 {
     flush_sd();
-    my ($luid, $uuid) = create_ticket_ok(qw(--summary YATTA --status new --reporter onlooker@example.com,test@localhost));
+    my ($luid, $uuid) = create_ticket_ok(qw(--summary YATTA --status new --reporter), 'onlooker@example.com,test@localhost');
     my ($ret, $out, $err) = run_script( 'sd', ['push', '--to', $sd_hm_url] );
 
     like $err, qr/A ticket has more than one requestor when HM supports only one/, 'warning issued';

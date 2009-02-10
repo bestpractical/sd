@@ -6,7 +6,7 @@ use strict;
 use warnings;
 no warnings 'once';
 
-use Test::More;
+use Prophet::Test;
 
 BEGIN {
     unless (eval 'use RT::Test; 1') {
@@ -17,12 +17,12 @@ BEGIN {
 
 BEGIN {
     require File::Temp;
-    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
 
 }
 
-use Prophet::Test tests => 23;
+plan tests => 23;
 use App::SD::Test;
 use RT::Client::REST;
 use RT::Client::REST::Ticket;

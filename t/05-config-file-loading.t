@@ -12,7 +12,7 @@ no warnings 'once';
 
 BEGIN {
     require File::Temp;
-    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = $ENV{'HOME'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = $ENV{'HOME'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
     diag "export HOME=".$ENV{'PROPHET_REPO'} ."\n";
     delete $ENV{'PROPHET_APP_CONFIG'}; # clear this because Prophet::Test sets it

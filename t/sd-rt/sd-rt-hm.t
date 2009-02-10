@@ -153,7 +153,7 @@ __END__
 
 
 
-use Test::More;
+use Prophet::Test;
 
 my ($url, $m) = RT::Test->started_ok;
 

@@ -5,7 +5,7 @@ use Test::HTTP::Server::Simple;
 
 BEGIN {
     use File::Temp qw(tempdir);
-    $ENV{'PROPHET_REPO'} = tempdir( CLEANUP => 0 ) . '/repo-' . $$;
+    $ENV{'PROPHET_REPO'} = tempdir( CLEANUP => 1 ) . '/repo-' . $$;
 
 }
 

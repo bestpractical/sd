@@ -4,7 +4,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Prophet::Test;
 use Path::Class;
 use File::Path qw(rmtree);
 
@@ -15,18 +15,18 @@ BEGIN {
     }
 }
 
-use Prophet::Test tests => 26;
+plan tests => 26;
 use App::SD::Test;
 
 no warnings 'once';
 
 RT::Handle->InsertData( $RT::EtcPath . '/initialdata' );
-use Test::More;
+use Prophet::Test;
 
 BEGIN {
     require File::Temp;
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'}
-        = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+        = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
     diag "export SD_REPO=" . $ENV{'PROPHET_REPO'} . "\n";
 }
 

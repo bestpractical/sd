@@ -6,7 +6,7 @@ use App::SD::Test;
 
 BEGIN {
     require File::Temp;
-    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
     diag 'export SD_REPO=' . $ENV{'PROPHET_REPO'} . "\n";
     App::SD::Test->set_editor('ticket-comment-update-editor.pl');
 }
