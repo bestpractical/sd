@@ -34,7 +34,8 @@ my ($uuid) = $t->create( props => { summary => 'The server works' } );
 ok( $uuid, "Created record $uuid" );
 
 $ua->get_ok( url('records.json') );
-is( $ua->content, '["__prophet_db_settings","ticket"]' );
+my $types = eval $ua->content;
+is_deeply ([sort @$types], [sort('__prophet_db_settings', 'ticket')]);
 
 $ua->get_ok( url( 'records', 'ticket', $uuid . ".json" ) );
 
