@@ -52,21 +52,21 @@ on qr'.' => sub {
 
 
 under { method => 'POST' } => sub {
-    on qr'^ticket/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/ticket/' . $1 ); };
-    on qr'^(?!records)$' => sub { shift->server->_send_redirect( to => $1 ); };
+    on qr'^/ticket/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/ticket/' . $1 ); };
+    on qr'^/(?!records)$' => sub { shift->server->_send_redirect( to => $1 ); };
 };
 
 
 under { method => 'GET' } => sub {
-    on qr'^static/sd/(.*)$' => sub { shift->server->send_static_file($1)};
-    on qr'^(milestone|component)/([\w\d-]+)$' => sub {
+    on qr'^/static/sd/(.*)$' => sub { shift->server->send_static_file($1)};
+    on qr'^/(milestone|component)/([\w\d-]+)$' => sub {
         my $name = $1;
         my $type = $2;
         shift->show_template( $name => $type );
     };
     
-    on qr'^tickets/all$' => sub {shift->show_template('all_tickets')};
-    under 'ticket' => sub {
+    on qr'^/tickets/all$' => sub {shift->show_template('all_tickets')};
+    under qr'^/ticket' => sub {
         on '' => sub {
             my $self = shift;
             if ( my $id = $self->server->cgi->param('id') ) {
