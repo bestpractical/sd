@@ -66,7 +66,7 @@ under { method => 'GET' } => sub {
     };
     
     on qr'^/tickets/all$' => sub {shift->show_template('all_tickets')};
-    under qr'^/ticket' => sub {
+    under qr'^/ticket/' => sub {
         on '' => sub {
             my $self = shift;
             if ( my $id = $self->server->cgi->param('id') ) {
