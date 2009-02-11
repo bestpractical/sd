@@ -518,8 +518,10 @@ dl.history dd ul li:nth-child(odd) {
 
 dl.history span.property {
     font-weight: bold;
-    display: inline-block;
+    display: block;
     width: 8em;
+    float: left; /* firefox can't text-align an inline block. nfc why */
+    padding-right: 0.25em;
     text-align: right;
     overflow: hidden;
 }
