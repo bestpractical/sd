@@ -10,19 +10,16 @@ requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Class::Accessor Te
 requires('HTTP::Date');
 requires('DateTime::Format::Natural');
 requires('HTML::Tree');
-features(
-    'RT sync' => [
+feature
+    'RT sync' => 
         -default => 0,
         'RT::Client::REST' => 0, # RT::Client::REST::Ticket
+;
 
-    ],
-
-    'Hiveminder sync' => [
+feature    'Hiveminder sync' => 
         -default => 0,
         'Net::Jifty' => 0.09,
-        'Email::Address' => 0,
-    ],
-);
+        'Email::Address' => 0;
 
 install_script('bin/sd');
 install_script('bin/git-sd');
