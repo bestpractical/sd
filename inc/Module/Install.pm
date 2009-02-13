@@ -30,7 +30,7 @@ BEGIN {
 	# This is not enforced yet, but will be some time in the next few
 	# releases once we can make sure it won't clash with custom
 	# Module::Install extensions.
-	$VERSION = '0.77';
+	$VERSION = '0.79';
 
 	*inc::Module::Install::VERSION = *VERSION;
 	@inc::Module::Install::ISA     = __PACKAGE__;
@@ -250,7 +250,7 @@ END_DIE
 sub load_extensions {
 	my ($self, $path, $top) = @_;
 
-	unless ( grep { lc $_ eq lc $self->{prefix} } @INC ) {
+	unless ( grep { !ref $_ and lc $_ eq lc $self->{prefix} } @INC ) {
 		unshift @INC, $self->{prefix};
 	}
 
@@ -366,4 +366,4 @@ sub _CLASS ($) {
 
 1;
 
-# Copyright 2008 Adam Kennedy.
+# Copyright 2008 - 2009 Adam Kennedy.
