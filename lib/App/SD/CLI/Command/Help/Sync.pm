@@ -28,10 +28,7 @@ print <<EOF
       Integrate changes from all replicas currently announcing themselves
       on the local network using Bonjour.
 
-    ${cmd}pull -l
-      -l is a shortcut for --local for this command.
-
-    ${cmd}publish jesse\@server:path/to/destination
+    ${cmd}publish --to jesse\@server:path/to/destination
       Publish a copy of this replica to a remote server using rsync.
 
     ${cmd}publish --html --replica --to jesse\@server:path/to/destination
@@ -59,11 +56,11 @@ replica types for RT (http://bestpractical.com/rt) and Hiveminder
 your bug tracker, you should get in touch with SD's developers (see
 http://syncwith.us/contact).
 
-    ${cmd}push rt:http://rt3.fsck.com|rt3|Owner='jesse'
+    ${cmd}push --to rt:http://rt3.fsck.com|rt3|Owner='jesse'
       Push changes to the given foreign replica. Foreign replica
       schemas will vary based on the replica type.
 
-    ${cmd}pull rt:http://rt3.fsck.com|rt3|Owner='jesse'
+    ${cmd}pull --to rt:http://rt3.fsck.com|rt3|Owner='jesse'
       Pull changes from a foreign replica to be merged into the
       local replica.
 EOF
