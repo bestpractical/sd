@@ -1,5 +1,5 @@
 use inc::Module::Install;
-name('SD');
+name('App-SD');
 author('Jesse Vincent and Chia-Liang Kao');
 copyright('2008 Best Practical Solutions, LLC');
 license('MIT');
@@ -27,6 +27,7 @@ feature    'Hiveminder sync' =>
 
 install_script('bin/sd');
 install_script('bin/git-sd');
+install_share('share');
 
 # Include subdirectory tests too.
 tests("t/*.t t/*/*.t");
