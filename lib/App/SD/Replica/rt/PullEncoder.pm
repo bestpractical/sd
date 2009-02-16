@@ -1,10 +1,11 @@
 package App::SD::Replica::rt::PullEncoder;
-use Any::Moose;
+use Any::Moose; use strict;
 extends 'App::SD::ForeignReplica::PullEncoder';
 
 use Params::Validate qw(:all);
 use Memoize;
 use Time::Progress;
+use HTTP::Date;
 
 has sync_source => 
     ( isa => 'App::SD::Replica::rt',
@@ -19,7 +20,6 @@ sub run {
         }
     );
 
-    my $first_rev = ( $args{'after'} + 1 ) || 1;
 
     my $tickets = {};
     my @transactions;
@@ -30,23 +30,29 @@ sub run {
 
     my $counter = 0;
     $self->sync_source->log("Discovering ticket history");
+
+    my ($last_modified, $last_txn);;
+
     my $progress = Time::Progress->new();
     $progress->attr( max => $#tickets );
+
     local $| = 1;
+
+
     for my $id (@tickets) {
         $counter++;
         print $progress->report( "%30b %p Est: %E\r", $counter );
 
-        $self->sync_source->log(
-            "Fetching ticket $id - $counter of " . scalar @tickets
-        );
+        $self->sync_source->log( "Fetching ticket $id - $counter of " . scalar @tickets);
+
         $tickets->{ $id } = $self->_translate_final_ticket_state(
             $self->sync_source->rt->show( type => 'ticket', id => $id )
         );
         push @transactions, @{
             $self->find_matching_transactions(
                 ticket               => $id,
-                starting_transaction => $first_rev
+                starting_transaction => (( $args{'after'} + 1 ) || 1)
+
             )
         };
     }
@@ -54,6 +60,10 @@ sub run {
     my $txn_counter = 0;
     my @changesets;
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
+
+        $last_modified = $txn->{'Created'} if ( !$last_modified || ($txn->{'Created'} > $last_modified ));
+        $last_txn = $txn->{'id'} if (!$last_txn || ($txn->{id} > $last_txn));
+
         $txn_counter++;
         $self->sync_source->log("Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of ". scalar @transactions);
         my $changeset = $self->transcode_one_txn( $txn, $tickets->{ $txn->{Ticket} } );
@@ -67,7 +77,36 @@ sub run {
         $self->sync_source->log("Applying changeset ".++$cs_counter . " of ".scalar @changesets); 
         $args{callback}->($_)
     }
+
+    $self->_record_upstream_last_modified_date($last_modified) if ($last_modified > $self->_upstream_last_modified_date);
+    $self->_record_upstream_last_txn($last_txn) if ($last_txn > $self->_upstream_last_txn);
 }
+
+sub _record_upstream_last_modified_date {
+    my $self = shift;
+    my $date = shift;
+    return $self->sync_source->store_local_metadata('last_modified_date' => $date);
+}
+
+sub _upstream_last_modified_date {
+    my $self = shift;
+    return $self->sync_source->fetch_local_metadata('last_modified_date');
+}
+
+sub _upstream_last_txn {
+    my $self = shift;
+    return $self->sync_source->fetch_local_metadata('last_txn_id');
+}
+
+sub _record_upstream_last_txn {
+    my $self = shift;
+    my $id = shift;
+    warn "Id is $id";
+    return $self->sync_source->store_local_metadata('last_txn_id' => $id);
+}
+
+
+
 
 sub _translate_final_ticket_state {
     my $self   = shift;
@@ -96,7 +135,7 @@ sub _translate_final_ticket_state {
         }
     }
 
-    $ticket->{$_} = $self->unix_time_to_iso( $ticket->{$_} )
+    $ticket->{$_} = $self->rt_time_to_iso( $ticket->{$_} )
         for grep defined $ticket->{$_}, qw(Created Resolved Told LastUpdated Due Starts Started);
 
     $ticket->{$_} =~ s/ minutes$//
@@ -121,6 +160,22 @@ Returns an RT::Client ticket collection for all tickets found matching your QUER
 sub find_matching_tickets {
     my $self = shift;
     my ($query) = validate_pos(@_, 1);
+
+    # If we've ever synced, we can limit our search to only newer things
+    if ($self->_upstream_last_modified_date){
+        # last modified date is in GMT and searches are in user-time XXX -check assumption
+        # because of this, we really want to back that date down by one day to catch overlap
+        # XXX TODO we are playing FAST AND LOOSE WITH DATE MATH
+        # XXX TODO THIS WILL HURT US SOME DAY
+        # At that time, Jesse will buy you a beer.
+        my $before = HTTP::Date::str2time($self->_upstream_last_modified_date() ) - (86400 + 7200) ; # 26 hours ago deals with most any possible edge case
+
+
+        $query = "($query) AND LastUpdated >= '".HTTP::Date::time2iso($before) ."'";
+
+        $self->sync_source->log("Skipping all tickets not updated since ".HTTP::Date::time2iso($before));
+    }
+
     return $self->sync_source->rt->search( type => 'ticket', query => $query );
 }
 
@@ -137,13 +192,15 @@ sub find_matching_transactions {
 
     my $rt_handle = $self->sync_source->rt;
 
+     my $latest = $self->_upstream_last_txn();
     for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $args{'ticket'} ) ) {
-        # Skip things we know we've already pulled
+        # Skip things calling code told us to skip
         next if $txn < $args{'starting_transaction'}; 
-        
+        # skip things we had on our last pull
+        next if $txn <=  $latest;
+
         # Skip things we've pushed
         next if $self->sync_source->foreign_transaction_originated_locally($txn, $args{'ticket'});
-
 
         my $txn_hash = $rt_handle->get_transaction(
             parent_id => $args{'ticket'},
@@ -156,8 +213,7 @@ sub find_matching_transactions {
                 my $id = $1;
                 my $a  = $rt_handle->get_attachment( parent_id => $args{'ticket'}, id        => $id);
 
-                push( @{ $txn_hash->{_attachments} }, $a )
-                    if ( $a->{Filename} );
+                push( @{ $txn_hash->{_attachments} }, $a ) if ( $a->{Filename} );
 
             }
 
@@ -174,7 +230,6 @@ sub transcode_one_txn {
     unless ( $sub ) {
         die "Transaction type $txn->{Type} (for transaction $txn->{id}) not implemented yet";
     }
-
     my $changeset = Prophet::ChangeSet->new(
         {   original_source_uuid => $self->sync_source->uuid,
             original_sequence_no => $txn->{'id'},
@@ -204,6 +259,9 @@ sub transcode_one_txn {
 
     return $changeset;
 }
+
+
+{ # Recoding RT transactions
 
 sub _recode_attachment_create {
     my $self   = shift;
@@ -312,6 +370,7 @@ sub _recode_txn_Create {
     $self->_recode_content_update(%args);    # add the create content txn as a seperate change in this changeset
 }
 
+*_recode_txn_Link  = \&_recode_txn_AddLink;
 sub _recode_txn_AddLink {
     # XXX, TODO: syncing links doesn't work
     return;
@@ -438,6 +497,9 @@ sub _recode_txn_CustomField {
     );
 }
 
+}
+
+
 sub resolve_user_id_to {
     my $self = shift;
     my $attr = shift;
@@ -463,9 +525,8 @@ sub resolve_user_id_to {
 
 memoize 'resolve_user_id_to';
 
-use HTTP::Date;
 
-sub unix_time_to_iso {
+sub rt_time_to_iso {
     my $self = shift;
     my $date = shift;
 
