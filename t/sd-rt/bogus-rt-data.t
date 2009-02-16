@@ -91,8 +91,6 @@ run_output_matches_unordered(
 $RT::Handle->dbh->do("UPDATE Tickets SET Status = 'rejected' WHERE id = ".$ticket->id);
 RT::Client::REST::Ticket->new( rt     => $rt, id     => $ticket->id, status => 'open',)->store();
 
-TODO: {
-    local $TODO = "need to deal with pulling from a foreign replica";
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url, '--prefer', 'from' ] );
 ok( $ret, $out );
 run_output_matches_unordered(
@@ -100,6 +98,5 @@ run_output_matches_unordered(
     [ 'ticket',              'list', '--regex', '.' ],
     [ "$flyman_id Fly Man open", ]
 );
-}
 1;
 

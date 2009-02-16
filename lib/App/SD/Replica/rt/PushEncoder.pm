@@ -16,6 +16,9 @@ sub integrate_change {
     );
     my $id;
     local $@;
+
+    my $before_integration = time();
+
     eval {
         if (    $change->record_type eq 'ticket'
             and $change->change_type eq 'add_file' )
@@ -50,6 +53,7 @@ sub integrate_change {
 
         $self->sync_source->record_pushed_transactions(
             ticket    => $id,
+            start_time => $before_integration,
             changeset => $changeset
         );
 

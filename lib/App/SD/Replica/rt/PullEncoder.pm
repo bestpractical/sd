@@ -78,34 +78,9 @@ sub run {
         $args{callback}->($_)
     }
 
-    $self->_record_upstream_last_modified_date($last_modified) if ($last_modified > $self->_upstream_last_modified_date);
-    $self->_record_upstream_last_txn($last_txn) if ($last_txn > $self->_upstream_last_txn);
+    $self->sync_source->record_upstream_last_modified_date($last_modified) if ($last_modified > $self->sync_source->upstream_last_modified_date);
+    $self->sync_source->record_upstream_last_txn($last_txn) if ($last_txn > $self->sync_source->upstream_last_txn);
 }
-
-sub _record_upstream_last_modified_date {
-    my $self = shift;
-    my $date = shift;
-    return $self->sync_source->store_local_metadata('last_modified_date' => $date);
-}
-
-sub _upstream_last_modified_date {
-    my $self = shift;
-    return $self->sync_source->fetch_local_metadata('last_modified_date');
-}
-
-sub _upstream_last_txn {
-    my $self = shift;
-    return $self->sync_source->fetch_local_metadata('last_txn_id');
-}
-
-sub _record_upstream_last_txn {
-    my $self = shift;
-    my $id = shift;
-    warn "Id is $id";
-    return $self->sync_source->store_local_metadata('last_txn_id' => $id);
-}
-
-
 
 
 sub _translate_final_ticket_state {
@@ -162,13 +137,13 @@ sub find_matching_tickets {
     my ($query) = validate_pos(@_, 1);
 
     # If we've ever synced, we can limit our search to only newer things
-    if ($self->_upstream_last_modified_date){
+    if ($self->sync_source->upstream_last_modified_date){
         # last modified date is in GMT and searches are in user-time XXX -check assumption
         # because of this, we really want to back that date down by one day to catch overlap
         # XXX TODO we are playing FAST AND LOOSE WITH DATE MATH
         # XXX TODO THIS WILL HURT US SOME DAY
         # At that time, Jesse will buy you a beer.
-        my $before = HTTP::Date::str2time($self->_upstream_last_modified_date() ) - (86400 + 7200) ; # 26 hours ago deals with most any possible edge case
+        my $before = HTTP::Date::str2time($self->sync_source->upstream_last_modified_date() ) - (86400 + 7200) ; # 26 hours ago deals with most any possible edge case
 
 
         $query = "($query) AND LastUpdated >= '".HTTP::Date::time2iso($before) ."'";
@@ -192,7 +167,7 @@ sub find_matching_transactions {
 
     my $rt_handle = $self->sync_source->rt;
 
-     my $latest = $self->_upstream_last_txn();
+     my $latest = $self->sync_source->upstream_last_txn();
     for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $args{'ticket'} ) ) {
         # Skip things calling code told us to skip
         next if $txn < $args{'starting_transaction'}; 

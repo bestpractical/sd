@@ -69,10 +69,7 @@ as_alice {
     ok($ret);
     like($out, qr/No new changesets/);
 
-    TODO: {
-        local $TODO = "not coming through for some reason";
         like($err, qr/No tickets found/);
-        }
 };
 diag("grant read rights, ensure we can pull it");
 

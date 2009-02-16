@@ -5,6 +5,7 @@ extends qw/App::SD::ForeignReplica/;
 use Params::Validate qw(:all);
 use Path::Class;
 use File::Temp 'tempdir';
+use HTTP::Date;
 use Memoize;
 
 use constant scheme => 'rt';
@@ -18,6 +19,7 @@ has rt => ( isa => 'RT::Client::REST', is => 'rw');
 has remote_url => ( isa => 'Str', is => 'rw');
 has rt_queue => ( isa => 'Str', is => 'rw');
 has rt_query => ( isa => 'Str', is => 'rw');
+has rt_username => (isa => 'Str', is => 'rw');
 
 sub BUILD {
     my $self = shift;
@@ -40,8 +42,9 @@ sub BUILD {
     $self->rt_query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
     $self->rt( RT::Client::REST->new( server => $server ) );
 
-    ( $username, $password ) = $self->prompt_for_login( $uri, $username )
-        unless $password;
+    ( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
+
+    $self->rt_username($username);
 
     $self->rt->login( username => $username, password => $password );
 }
@@ -49,23 +52,46 @@ sub BUILD {
 sub record_pushed_transactions {
     my $self = shift;
     my %args = validate( @_,
-        { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
+        { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' }, start_time => 1} );
+
+
+    my $earliest_valid_txn_date;
 
     # walk through every transaction on the ticket, starting with the latest
-    for my $txn ( reverse RT::Client::REST::Ticket->new(
+    for my $txn ( sort {$b->{'Created'} <=> $a->{'Created'}}  RT::Client::REST::Ticket->new(
             rt => $self->rt,
             id => $args{'ticket'})->transactions->get_iterator->()) {
 
+
+        # walk backwards through all transactions on the ticket we just updated
+        
+
+        # Skip any transaction where the remote user isn't me, this might include any transaction
+        # RT created with a scrip on your behalf
+        next unless $txn->creator eq $self->rt_username;
+
+
+        # get the completion time _after_ we do our next round trip to rt to try to make sure
+        # a bit of lag doesn't skew us to the wrong side of a 1s boundary
+        my $txn_created = HTTP::Date::str2time($txn->created);
+        if (!$earliest_valid_txn_date){
+            my $change_window =  time() - $args{start_time};
+            # skip any transaction created more than 5 seconds before the push started.
+            # I can't think of any reason that number shouldn't be 1, but clocks are fickle
+            $earliest_valid_txn_date = $txn_created - ($change_window + 5); 
+        }      
+
+        last if $txn_created < $earliest_valid_txn_date;
+
+
         # if the transaction id is older than the id of the last changeset
         # we got from the original source of this changeset, we're done
-        last if $txn->id <= $self->last_changeset_from_source(
-                    $args{changeset}->original_source_uuid
-            );
+        last if $txn->id <= $self->upstream_last_txn();
+        
 
         # if the transaction from RT is more recent than the most recent
         # transaction we got from the original source of the changeset
         # then we should record that we sent that transaction upstream
-        # XXX TODO - THIS IS WRONG - we should only be recording transactions we pushed
         $self->record_pushed_transaction(
             transaction => $txn->id,
             changeset   => $args{'changeset'},
@@ -73,6 +99,30 @@ sub record_pushed_transactions {
         );
     }
 }
+
+
+sub record_upstream_last_modified_date {
+    my $self = shift;
+    my $date = shift;
+    return $self->store_local_metadata('last_modified_date' => $date);
+}
+
+sub upstream_last_modified_date {
+    my $self = shift;
+    return $self->fetch_local_metadata('last_modified_date');
+}
+
+sub upstream_last_txn {
+    my $self = shift;
+    return $self->fetch_local_metadata('last_txn_id');
+}
+
+sub record_upstream_last_txn {
+    my $self = shift;
+    my $id = shift;
+    return $self->store_local_metadata('last_txn_id' => $id);
+}
+
 
 
 =head2 uuid

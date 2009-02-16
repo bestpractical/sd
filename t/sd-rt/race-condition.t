@@ -78,11 +78,7 @@ my ( $yatta_id, $flyman_id );
 
 #   make sure ticket is new
 
-run_output_matches(
-    'sd',
-    [ 'ticket', 'list', '--regex', '.' ],
-    [qr/(.*?)(?{ $flyman_id = $1 }) Fly Man new/]
-);
+run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/(.*?)(?{ $flyman_id = $1 }) Fly Man new/]);
 
 
 
@@ -90,9 +86,7 @@ run_output_matches(
 
 # comment on ticket in sd
 
-( $ret, $out, $err )
-    = run_script( 'sd',
-    [ 'ticket', 'comment', $flyman_id, '--content', 'helium is a noble gas' ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'comment', $flyman_id, '--content', 'helium is a noble gas' ] );
 ok( $ret, $out );
 like( $out, qr/Created comment/ );
 
@@ -102,21 +96,18 @@ like( $out, qr/Created comment/ );
 
 #   make sure ticket is new
 
-run_output_matches(
-    'sd',
-    [ 'ticket', 'list', '--regex', '.' ],
-    ["$flyman_id Fly Man new"]
-);
+run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_id Fly Man new"]);
 
-
+diag("About to push to RT");
 # push to rt
 {
 
     my ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_rt_url ] );
-    diag($out);
     diag($err);
 
 }
+
+
 
 #   make sure ticket is open in rt, since after we commented the scrip popped it open.
 {
