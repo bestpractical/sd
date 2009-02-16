@@ -17,14 +17,11 @@ print <<EOF
       Integrate changes from a published SD replica over http, ftp or 
       file URL.
 
-    ${cmd}pull --all
+    ${cmd}pull --all (or -a)
       Integrate changes from all replicas this replica has pulled from
       before.
 
-    ${cmd}pull -a
-      -a is a shortcut for --all for this command.
-
-    ${cmd}pull --local
+    ${cmd}pull --local (or -l)
       Integrate changes from all replicas currently announcing themselves
       on the local network using Bonjour.
 
