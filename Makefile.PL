@@ -24,7 +24,10 @@ feature    'Hiveminder sync' =>
         -default => 0,
         'Net::Jifty' => 0.09,
         'Email::Address' => 0;
-
+feature 'Trac sync' => 
+        -default => 0,
+         'Net::Trac' => 0.06,
+        'LWP::Simple' => 0;
 install_script('bin/sd');
 install_script('bin/git-sd');
 install_share('share');
