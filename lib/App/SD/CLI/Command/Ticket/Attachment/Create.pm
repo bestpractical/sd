@@ -2,7 +2,7 @@ package App::SD::CLI::Command::Ticket::Attachment::Create;
 use Any::Moose;
 extends 'App::SD::CLI::Command::Attachment::Create';
 
-__PACKAGE__->register_arg_translations( f => 'file' );
+around ARG_TRANSLATIONS => sub { shift->(),  f => 'file'  };
 
 # override args to feed in that ticket's uuid as an argument to the comment
 sub run {

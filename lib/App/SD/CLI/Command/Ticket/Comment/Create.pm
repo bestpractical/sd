@@ -5,7 +5,7 @@ extends 'Prophet::CLI::Command::Create';
 with 'App::SD::CLI::Model::TicketComment';
 with 'App::SD::CLI::Command';
 
-__PACKAGE__->register_arg_translations( f => 'file', m => 'content' );
+around ARG_TRANSLATIONS => sub { shift->(),  f => 'file', m => 'content'  };
 
 # override args to feed in that ticket's uuid as an argument to the comment
 sub run {

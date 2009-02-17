@@ -3,7 +3,7 @@ use Any::Moose;
 extends 'Prophet::CLI::Command::Search';
 with 'App::SD::CLI::Command';
 
-__PACKAGE__->register_arg_translations( s => 'sort', g => 'group' );
+around ARG_TRANSLATIONS => sub { shift->(),  s => 'sort', g => 'group'  };
 
 # frob the sort routine before running prophet's search command
 sub run {

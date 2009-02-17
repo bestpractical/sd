@@ -7,7 +7,7 @@ with 'App::SD::CLI::Model::Ticket';
 with 'App::SD::CLI::Command';
 with 'Prophet::CLI::TextEditorCommand';
 
-__PACKAGE__->register_arg_translations( e => 'edit' );
+around ARG_TRANSLATIONS => sub { shift->(),  e => 'edit'  };
 
 # we want to launch an $EDITOR window to grab props and a comment if no
 # props are specified on the commandline
