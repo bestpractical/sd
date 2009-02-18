@@ -16,7 +16,7 @@ on qr'.' => sub {
 on qr'.' => sub {
     my $self = shift;
     my $tickets = $self->server->nav->child( tickets => label => 'Tickets', url => '/');
-    $tickets->child( go => label => '<form method="GET" action="/ticket"><a href="#">Show ticket # <input type=text name=id size=3></a></form>', escape_label => 0) unless($self->server->static);
+    $tickets->child( go => label => '<form method="GET" action="/ticket/"><a href="#">Show ticket # <input type=text name=id size=3></a></form>', escape_label => 0) unless($self->server->static);
 
 
     my $milestones = $tickets->child( milestones => label => 'Milestones', url => '/milestones');
