@@ -40,7 +40,7 @@ sub run {
 
     for my $ticket (@tickets) {
         print $progress->report( "%30b %p Est: %E\r", $counter );
-        $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - " . $counter++ . " of " . scalar @tickets );
+        $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - " . ++$counter . " of " . scalar @tickets );
 
         $last_modified_date = $ticket->last_modified if (!$last_modified_date || $ticket->last_modified > $last_modified_date);
 
