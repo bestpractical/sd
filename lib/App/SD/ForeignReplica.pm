@@ -57,7 +57,7 @@ sub record_pushed_transaction {
 
 =head2 foreign_transaction_originated_locally $transaction_id $foreign_record_id
 
-Given an transaction id, will return true if this transaction originated in Prophet 
+Given a transaction id, will return true if this transaction originated in Prophet 
 and was pushed to RT or originated in RT and has already been pulled to the prophet replica.
 
 
