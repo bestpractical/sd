@@ -20,14 +20,26 @@ feature
         'RT::Client::REST' => 0, # RT::Client::REST::Ticket
 ;
 
+recommends 'RT::Client::Rest';
+
+
 feature    'Hiveminder sync' => 
         -default => 0,
         'Net::Jifty' => 0.09,
         'Email::Address' => 0;
+
+recommends 'Net::Jifty';
+recommends 'Email::Address';
+
+
 feature 'Trac sync' => 
         -default => 0,
          'Net::Trac' => 0.06,
         'LWP::Simple' => 0;
+
+recommends 'Net::Trac';
+recommends 'LWP::Simple';
+
 install_script('bin/sd');
 install_script('bin/git-sd');
 install_share('share');
