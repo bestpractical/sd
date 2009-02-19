@@ -1,7 +1,10 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use Test::HTTP::Server::Simple;
+use Prophet::Test;
+
+eval {require Test::HTTP::Server::Simple } || plan skip_all =>'You need Test::HTTP::Server::Simple to run these tests';
+eval {require Test::WWW::Mechanize } || plan skip_all => 'You need Test::WWW::Mechanize to run these tests';
 
 BEGIN {
     use File::Temp qw(tempdir);
@@ -9,9 +12,9 @@ BEGIN {
 
 }
 
-use Prophet::Test tests => 19;
+
+plan tests => 19;
 use App::SD::Server;
-use Test::WWW::Mechanize;
 use JSON;
 
 use_ok('App::SD::Model::Ticket');
