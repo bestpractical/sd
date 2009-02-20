@@ -31,7 +31,7 @@ sub run {
     my $counter = 0;
     $self->sync_source->log("Discovering ticket history");
 
-    my ($last_modified, $last_txn);;
+    my ($last_modified, $last_txn);
 
     my $progress = Time::Progress->new();
     $progress->attr( max => $#tickets );
@@ -61,7 +61,9 @@ sub run {
     my @changesets;
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
 
-        $last_modified = $txn->{'Created'} if ( !$last_modified || ($txn->{'Created'} > $last_modified ));
+        my $created = str2time($txn->{Created}); 
+
+        $last_modified = $created if ( !$last_modified || ($created > $last_modified ));
         $last_txn = $txn->{'id'} if (!$last_txn || ($txn->{id} > $last_txn));
 
         $txn_counter++;
@@ -78,8 +80,8 @@ sub run {
         $args{callback}->($_)
     }
 
-    $self->sync_source->record_upstream_last_modified_date($last_modified) if ($last_modified > $self->sync_source->upstream_last_modified_date);
-    $self->sync_source->record_upstream_last_txn($last_txn) if ($last_txn > $self->sync_source->upstream_last_txn);
+    $self->sync_source->record_upstream_last_modified_date($last_modified) if (($last_modified ||0) > ($self->sync_source->upstream_last_modified_date ||0 ));
+    $self->sync_source->record_upstream_last_txn($last_txn) if (($last_txn ||0) > ($self->sync_source->upstream_last_txn ||0 ));
 }
 
 
@@ -167,7 +169,7 @@ sub find_matching_transactions {
 
     my $rt_handle = $self->sync_source->rt;
 
-     my $latest = $self->sync_source->upstream_last_txn();
+     my $latest = $self->sync_source->upstream_last_txn() || 0;
     for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $args{'ticket'} ) ) {
         # Skip things calling code told us to skip
         next if $txn < $args{'starting_transaction'}; 
