@@ -57,7 +57,7 @@ http://syncwith.us/contact).
       Push changes to the given foreign replica. Foreign replica
       schemas will vary based on the replica type.
 
-    ${cmd}pull --to rt:http://rt3.fsck.com|rt3|Owner='jesse'
+    ${cmd}pull --from rt:http://rt3.fsck.com|rt3|Owner='jesse'
       Pull changes from a foreign replica to be merged into the
       local replica.
 EOF
