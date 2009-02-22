@@ -7,7 +7,7 @@ with 'App::SD::CLI::Model::Ticket';
 with 'App::SD::CLI::Command';
 with 'Prophet::CLI::TextEditorCommand';
 
-around ARG_TRANSLATIONS => sub { shift->(),  a => 'all-props'  };
+sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  a => 'all-props'  };
 
 # use an editor to edit if no props are specified on the commandline,
 # allowing the creation of a new comment in the process

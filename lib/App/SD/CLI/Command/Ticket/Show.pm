@@ -4,7 +4,7 @@ extends 'Prophet::CLI::Command::Show';
 with 'App::SD::CLI::Command';
 with 'App::SD::CLI::Model::Ticket';
 
-around ARG_TRANSLATIONS => sub { shift->(),  a => 'all-props', s => 'skip-history',
+sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  a => 'all-props', s => 'skip-history',
                                         h => 'with-history', b => 'batch' };
 
 sub by_creation_date { $a->prop('created') cmp $b->prop('created') };
