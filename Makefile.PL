@@ -5,7 +5,6 @@ copyright('2008 Best Practical Solutions, LLC');
 license('MIT');
 version_from('lib/App/SD.pm');
 requires('DateTime');
-requires('DateTime::Format::ISO8601');
 requires('Time::Progress');
 requires('Path::Class');
 requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Class::Accessor Template::Declare::Tags Test::HTTP::Server::Simple JSON Test::WWW::Mechanize Any::Moose
@@ -34,7 +33,7 @@ recommends 'Email::Address';
 
 feature 'Trac sync' => 
         -default => 0,
-         'Net::Trac' => 0.06,
+         'Net::Trac' => 0.08,
         'LWP::Simple' => 0;
 
 recommends 'Net::Trac';
