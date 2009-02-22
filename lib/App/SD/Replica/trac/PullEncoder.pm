@@ -6,7 +6,6 @@ use Params::Validate qw(:all);
 use Memoize;
 use Time::Progress;
 use DateTime;
-use DateTime::Format::ISO8601;
 
 has sync_source => (
     isa => 'App::SD::Replica::trac',
@@ -21,7 +20,7 @@ sub run {
             callback => 1,
         }
     );
-
+    $self->sync_source->log('Finding matching tickets');
     my @tickets = @{ $self->find_matching_tickets() };
 
     if ( @tickets == 0 ) {
@@ -29,6 +28,7 @@ sub run {
         return;
     }
 
+    warn "Time to get hist";
     my @changesets;
     my $counter = 0;
     $self->sync_source->log("Discovering ticket history");
@@ -39,6 +39,7 @@ sub run {
     my $last_modified_date;
 
     for my $ticket (@tickets) {
+        warn "working on a ticket";
         print $progress->report( "%30b %p Est: %E\r", $counter );
         $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - " . ++$counter . " of " . scalar @tickets );
 
@@ -121,16 +122,16 @@ sub find_matching_tickets {
 
     my $last_changeset_seen_dt;
     if (my $last_changeset_seen =   $self->sync_source->fetch_local_metadata('last_changeset_date') ) {
-        $last_changeset_seen  =~ s/ /T/;
-        $last_changeset_seen_dt =  DateTime::Format::ISO8601->parse_datetime( $last_changeset_seen );
+        $last_changeset_seen_dt = Net::Trac::Ticket->timestamp_to_datetime($last_changeset_seen);
     }
 
+    $self->sync_source->log("Searching for tickets");
 
     my $search
         = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 500 );
     $search->query(%query);
     my @results = @{$search->results};
-
+     $self->sync_source->log("Trimming things after our last pull");
     if ($last_changeset_seen_dt) {
         # >= is wasteful but may catch race conditions
         @results = grep {$_->last_modified >= $last_changeset_seen_dt} @results; 
@@ -243,7 +244,7 @@ sub transcode_one_txn {
         }
     );
 
-    warn "right here, we need to deal with changed data that trac failed to record";
+#    warn "right here, we need to deal with changed data that trac failed to record";
 
     foreach my $prop_change ( values %{ $txn->prop_changes || {} } ) {
         my $new      = $prop_change->new_value;
