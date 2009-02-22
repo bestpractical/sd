@@ -28,7 +28,6 @@ sub run {
         return;
     }
 
-    warn "Time to get hist";
     my @changesets;
     my $counter = 0;
     $self->sync_source->log("Discovering ticket history");
@@ -39,7 +38,6 @@ sub run {
     my $last_modified_date;
 
     for my $ticket (@tickets) {
-        warn "working on a ticket";
         print $progress->report( "%30b %p Est: %E\r", $counter );
         $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - " . ++$counter . " of " . scalar @tickets );
 
