@@ -16,7 +16,7 @@ sub open_browser {
     my %args = (@_);
     my $opener = $self->open_url_cmd;
     if ($args{url}) {
-        fork || do { sleep 2; `$opener $args{url}`; exit};
+        fork || do { sleep 2; exec($opener, $args{url}) };
     }
 }
 
