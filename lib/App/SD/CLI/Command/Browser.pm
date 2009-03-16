@@ -38,7 +38,7 @@ sub open_url_cmd {
         return 'start';
     }
 
-    for my $cmd (qw|www-browser htmlview /etc/alternatives/www-browser
+    for my $cmd (qw|www-browser htmlview
                     gnome-open gnome-moz-remote 
                     firefox iceweasel opera w3m lynx|) {
         my $cmd_path = `which $cmd`;
