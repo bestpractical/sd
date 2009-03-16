@@ -14,8 +14,17 @@ sub open_browser {
     my $self = shift;
     my %args = (@_);
     my $opener = $self->open_url_cmd;
+
+    if (!$opener) {
+        warn "I'm unable to figure out what browser I should open for you.\n";
+        return;
+    }
+
     if ($args{url}) {
-        fork || do { sleep 2; exec($opener, $args{url}) };
+        return if fork == 0;
+        sleep 2;
+        exec($opener, $args{url})
+            or die "Couldn't exec $opener: $!";
     }
 }
 
