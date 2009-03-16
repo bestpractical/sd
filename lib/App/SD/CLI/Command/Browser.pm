@@ -1,4 +1,4 @@
-package App::SD::CLI::Command::Server;
+package App::SD::CLI::Command::Browser;
 use Any::Moose;
 
 extends 'Prophet::CLI::Command::Server';
