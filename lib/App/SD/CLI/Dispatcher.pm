@@ -46,6 +46,7 @@ under help => sub {
 };
 
 on help => run_command('Help');
+on browser => run_command('Browser');
 
 under ticket => sub {
     on [ [ 'search', 'list', 'ls' ] ] => run_command('Ticket::Search');
