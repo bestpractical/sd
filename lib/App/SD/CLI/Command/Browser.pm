@@ -10,7 +10,6 @@ sub setup_server {
     return $server;
 }
 
-
 sub open_browser {
     my $self = shift;
     my %args = (@_);
@@ -22,9 +21,11 @@ sub open_browser {
 
 sub open_url_cmd {
     my $self = shift;
+
     if ( $^O eq 'darwin' ) {
         return 'open';
-    } elsif ( $^O eq 'MSWin32' ) {
+    }
+    elsif ( $^O eq 'MSWin32' ) {
         return 'start';
     }
 
@@ -39,3 +40,7 @@ sub open_url_cmd {
         }
     }
 }
+
+__PACKAGE__->meta->make_immutable;
+no Any::Moose;
+
