@@ -21,10 +21,9 @@ sub open_browser {
     }
 
     if ($args{url}) {
-        return if fork == 0;
+        return if fork != 0;
         sleep 2;
-        exec($opener, $args{url})
-            or die "Couldn't exec $opener: $!";
+        exec($opener, $args{url}) or die "Couldn't exec $opener: $!";
     }
 }
 
