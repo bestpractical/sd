@@ -43,8 +43,7 @@ sub open_url_cmd {
                     firefox iceweasel opera w3m lynx|) {
         my $cmd_path = `which $cmd`;
         chomp($cmd_path);
-        next unless $cmd_path;
-        if ( -f $cmd_path && -x _ ) {
+        if ( $cmd_path &&  -f $cmd_path && -x _ ) {
             return $cmd_path;
         }
     }
