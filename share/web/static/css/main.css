@@ -578,7 +578,6 @@ table.tablesorter {
     background: #fff;
     border: none;
     position: relative;
-    display: block;
     border-collapse: collapse;
     border-spacing: 0;
 }
