@@ -5,7 +5,7 @@ extends 'App::SD::ForeignReplica::PullEncoder';
 use Params::Validate qw(:all);
 use Memoize;
 use Time::Progress;
-use HTTP::Date;
+use App::SD::Util;
 
 has sync_source => 
     ( isa => 'App::SD::Replica::rt',
@@ -61,7 +61,7 @@ sub run {
     my @changesets;
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
 
-        my $created = str2time($txn->{Created}); 
+        my $created = App::SD::Util::string_to_datetime($txn->{Created}); 
 
         $last_modified = $created if ( !$last_modified || ($created > $last_modified ));
         $last_txn = $txn->{'id'} if (!$last_txn || ($txn->{id} > $last_txn));
@@ -80,8 +80,12 @@ sub run {
         $args{callback}->($_)
     }
 
-    $self->sync_source->record_upstream_last_modified_date($last_modified) if (($last_modified ||0) > ($self->sync_source->upstream_last_modified_date ||0 ));
-    $self->sync_source->record_upstream_last_txn($last_txn) if (($last_txn ||0) > ($self->sync_source->upstream_last_txn ||0 ));
+    my $last_modified_datetime = App::SD::Util::string_to_datetime($self->sync_source->upstream_last_modified_date);
+    $self->sync_source->record_upstream_last_modified_date($last_modified)
+        if ( ( $last_modified ? $last_modified->epoch : 0 )
+             > ( $last_modified_datetime ? $last_modified_datetime->epoch : 0 ) );
+    $self->sync_source->record_upstream_last_txn($last_txn)
+        if ( ( $last_txn || 0 ) > ( $self->sync_source->upstream_last_txn || 0 ) );
 }
 
 
@@ -112,8 +116,14 @@ sub _translate_final_ticket_state {
         }
     }
 
-    $ticket->{$_} = $self->rt_time_to_iso( $ticket->{$_} )
-        for grep defined $ticket->{$_}, qw(Created Resolved Told LastUpdated Due Starts Started);
+    for my $date (grep defined $ticket->{$_}, qw(Created Resolved Told LastUpdated Due Starts Started)) {
+        my $dt = App::SD::Util::string_to_datetime($ticket->{$date});
+        if ($dt) {
+            $ticket->{$date} =  $dt->ymd('-')." ".$dt->hms(":");
+        } else {
+            delete $ticket->{$date}
+        }
+    }
 
     $ticket->{$_} =~ s/ minutes$//
         for grep defined $ticket->{$_}, qw(TimeWorked TimeLeft TimeEstimated);
@@ -145,12 +155,17 @@ sub find_matching_tickets {
         # XXX TODO we are playing FAST AND LOOSE WITH DATE MATH
         # XXX TODO THIS WILL HURT US SOME DAY
         # At that time, Jesse will buy you a beer.
-        my $before = HTTP::Date::str2time($self->sync_source->upstream_last_modified_date() ) - (86400 + 7200) ; # 26 hours ago deals with most any possible edge case
+        my $before = App::SD::Util::string_to_datetime($self->sync_source->upstream_last_modified_date());
+        die "Failed to parse '".$self->sync_source->upstream_last_modified_date() ."' as a timestamp" unless ($before);
+        ; # 26 hours ago deals with most any possible edge case
+        $before->subtract(hours => 26);
 
 
-        $query = "($query) AND LastUpdated >= '".HTTP::Date::time2iso($before) ."'";
+        $query = "($query) AND LastUpdated >= '".$before->ymd('-'). " " .$before->hms(':') ."'";
 
-        $self->sync_source->log("Skipping all tickets not updated since ".HTTP::Date::time2iso($before));
+    
+        warn $query;
+        $self->sync_source->log("Skipping all tickets not updated since ".$before->iso8601);
     }
 
     return $self->sync_source->rt->search( type => 'ticket', query => $query );
@@ -503,13 +518,6 @@ sub resolve_user_id_to {
 memoize 'resolve_user_id_to';
 
 
-sub rt_time_to_iso {
-    my $self = shift;
-    my $date = shift;
-
-    return undef if $date eq 'Not set';
-    return HTTP::Date::time2iso($date);
-}
 
 our %PROP_MAP = (
     subject         => 'summary',

@@ -3,7 +3,7 @@ use Any::Moose;
 extends 'App::SD::Record';
 
 use Term::ANSIColor;
-use HTTP::Date;
+use App::SD::Util;
 
 use constant collection_class => 'App::SD::Collection::Ticket';
 has type => ( default => 'ticket');
@@ -262,23 +262,22 @@ in the future. Returns true if the due date has passed.
 
 =cut
 
-# this expects ISO dates. we should improve it in the future to require
 sub is_overdue {
     my $self = shift;
     my $date = shift || $self->prop('due');
 
-    return 0 if !$date;
+    my $then = App::SD::Util::string_to_datetime($date);
 
-    if ($date !~ /^(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/) {
+    if (!$then) {
         warn "Unknown date format '$date'";
         return 0;
     }
 
-    my $then = HTTP::Date::str2time($date, 'GMT');
-    return 0 if !$then;
+    if ($then < DateTime->now()){ 
+        return 1;
+    }
 
-    my $now = time();
-    return $now > $then;
+    return 0;
 }
 
 

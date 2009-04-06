@@ -5,7 +5,6 @@ extends qw/App::SD::ForeignReplica/;
 use Params::Validate qw(:all);
 use Path::Class;
 use File::Temp 'tempdir';
-use HTTP::Date;
 use Memoize;
 
 use constant scheme => 'rt';
@@ -73,7 +72,11 @@ sub record_pushed_transactions {
 
         # get the completion time _after_ we do our next round trip to rt to try to make sure
         # a bit of lag doesn't skew us to the wrong side of a 1s boundary
-        my $txn_created = HTTP::Date::str2time($txn->created);
+        my $txn_created_dt = App::SD::Util::string_to_datetime($txn->created);
+        unless($txn_created_dt) {
+            die "Couldn't parse '".$txn->created."' as a timestamp";
+        }
+        my $txn_created = $txn_created_dt->epoch;
         if (!$earliest_valid_txn_date){
             my $change_window =  time() - $args{start_time};
             # skip any transaction created more than 5 seconds before the push started.
