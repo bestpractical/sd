@@ -597,22 +597,6 @@ table.tablesorter tbody td {
 
 }
 
-table.tablesorter td.summary {
- margin-top: 0em;
- padding: 0;
- padding-left: 0.25em;
- font-weight: normal;
- right:1em;
- overflow: hidden;
- margin-top: 0.75em;
- height: 1em;
- left: 4.5em;
- position: absolute;
- padding-bottom: 1.25em;
- border-bottom: none;
-
-}
-
 table.tablesorter td.summary a, table.tablesorter td.id a {
  font-size: 1.6em;
  text-decoration: none;
@@ -632,8 +616,7 @@ table.tablesorter td.summary a {
 table.tablesorter td.id  {
     padding-top: 1.5em;
     text-align: right;
-    margin-right: em;
-    width: 3.5em;
+    width: 4em;
 }
 table.tablesorter td.id a {
     color: #bbb;
@@ -641,5 +624,22 @@ table.tablesorter td.id a {
 
 table.tablesorter td a:hover {
     text-decoration: underline;
+}
+
+
+
+table.tablesorter td.summary {
+ margin-top: 0em;
+ padding: 0;
+ font-weight: normal;
+ right:1.5em;
+ overflow: hidden;
+ margin-top: 0.5em;
+ height: 1em;
+ left: 6.75em;
+ position: absolute;
+ padding-bottom: 1.25em;
+ border-bottom: none;
+
 }
 
