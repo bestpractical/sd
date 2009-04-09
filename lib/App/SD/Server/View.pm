@@ -294,7 +294,7 @@ template '/tickets/hot' => sub {
             if (   $item->has_active_status
                 && ( $item->prop('milestone') || '' ) eq $current_milestone
                 && ( ( $item->prop('owner') || '' ) eq
-                    $item->app_handle->config->get('email_address') || !$item->prop('owner') )
+                    ( $item->app_handle->config->get('email_address') || '') || !$item->prop('owner') )
                 )
             {
                 return 1;
