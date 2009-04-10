@@ -2,7 +2,7 @@
 
 use strict;
 
-use Prophet::Test tests => 22;
+use Prophet::Test tests => 24;
 use App::SD::Test;
 no warnings 'once';
 
@@ -20,6 +20,11 @@ my ($yatta_id, $yatta_uuid) = create_ticket_ok(    '--summary', 'YATTA', '--stat
 
 run_output_matches( 'sd', [ 'ticket',  
     'list', '--regex', '.' ],
+    [  qr/(\d+) YATTA new/]
+);
+
+run_output_matches( 'sd', [ 'list', 'ticket',  
+    '--regex', '.' ],
     [  qr/(\d+) YATTA new/]
 );
 
@@ -182,6 +187,10 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $yatta_id ],
 );
 
 run_output_matches( 'sd', [ 'ticket', 'give' ],
+    [],
+    [ 'Usage: give <id> <email>' ]
+);
+run_output_matches( 'sd', [ 'give' , 'ticket' ],
     [],
     [ 'Usage: give <id> <email>' ]
 );
