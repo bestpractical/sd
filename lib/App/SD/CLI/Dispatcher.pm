@@ -48,6 +48,16 @@ under help => sub {
 on help => run_command('Help');
 on browser => run_command('Browser');
 
+on qr/^(\w+)\s+tickets?(.*)$/ => sub {
+    my $self = shift;
+    my $primary = $1;
+    my $secondary = $2;
+    my $cmd = join( ' ', grep { $_ ne '' } 'ticket',$primary, $secondary);
+    my @orig_argv = @{$self->cli->context->raw_args};
+    my ($subcommand, undef) = (shift @orig_argv, shift @orig_argv);
+    $self->cli->run_one_command( 'ticket', $subcommand, @orig_argv);
+};
+
 under ticket => sub {
     on [ [ 'search', 'list', 'ls' ] ] => run_command('Ticket::Search');
     on [ [ 'new',    'create' ] ]  => run_command('Ticket::Create');
@@ -135,7 +145,7 @@ on qr/^(.*)$/ => sub {
 
 };
 
-sub run_command {Prophet::CLI::Dispatcher::run_command(@_) }
+sub run_command { Prophet::CLI::Dispatcher::run_command(@_) }
 
 
 __PACKAGE__->meta->make_immutable;
