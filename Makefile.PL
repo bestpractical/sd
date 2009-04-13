@@ -32,11 +32,10 @@ recommends 'Email::Address';
 
 feature 'Trac sync' => 
         -default => 0,
-         'Net::Trac' => 0.08,
-        'LWP::Simple' => 0;
+        'LWP::Simple' => 0,
+         'Net::Trac' => 0.08;
 
 recommends 'Net::Trac';
-recommends 'LWP::Simple';
 
 install_script('bin/sd');
 install_script('bin/git-sd');
