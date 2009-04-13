@@ -1,5 +1,5 @@
 package App::SD::CLI::Command::Server;
-use Moose;
+use Any::Moose;
 extends 'Prophet::CLI::Command::Server';
 
 sub run {
