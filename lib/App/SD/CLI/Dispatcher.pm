@@ -109,9 +109,7 @@ under ticket => sub {
     # off to update
     on [ [ 'claim', 'take' ] ] => sub {
         my $self = shift;
-        my $email = $self->context->app_handle->config->get('email_address')
-                        || $ENV{EMAIL};
-
+        my $email = $self->context->app_handle->current_user_email;
         if ($email) {
             $self->context->set_prop(owner => $email);
             run('ticket update', $self, @_);

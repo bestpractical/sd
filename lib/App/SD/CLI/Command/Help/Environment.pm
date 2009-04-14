@@ -15,13 +15,10 @@ configuration. Example syntax is for bash-like shells.
     export SD_REPO=/path/to/sd/replica
       Specify where the ticket database SD is using should reside.
 
-    export PROPHET_USER=name
-      Use 'name' as the creator of changesets.
-
-    export EMAIL=jesse\@example.com
-      Use jesse\@example.com as the default email address for reporting 
-      tickets.
-
+    export PROPHET_EMAIL=jesse@example.com
+      Use 'jesse@example.com' as the creator of changesets. Prophet
+      will use EMAIL if PROPHET_EMAIL isn't defined.
+        
     export SD_CONFIG=/path/to/sd/config/file
       Specify where the configuration file SD is using should reside.
 

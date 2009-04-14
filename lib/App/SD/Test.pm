@@ -22,6 +22,7 @@ BEGIN {
     close $tmp_config;
     print "setting SD_CONFIG to " . $tmp_config->filename . "\n";
     $ENV{'SD_CONFIG'} = $tmp_config->filename;
+    $ENV{'PROPHET_EMAIL'} = 'nobody@example.com';
 }
 
 =head2 create_ticket_ok ARGS
@@ -125,7 +126,6 @@ passed on to sd ticket create.
 Returns a list of the ticket luid, ticket uuid, comment luid, and comment uuid.
 
 =cut
-
 
 sub create_ticket_with_editor_ok {
     my @extra_args = @_;

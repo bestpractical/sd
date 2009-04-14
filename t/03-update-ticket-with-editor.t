@@ -36,7 +36,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
         'owner: foo@bar.com',
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
-        'reporter: ' . $ENV{EMAIL},
+        'reporter: ' . $ENV{PROPHET_EMAIL},
         "original_replica: $replica_uuid",
     ]
 );
@@ -56,7 +56,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         'due: 2050-01-25 23:11:42',
         qr/^creator: /,
-        'reporter: ' . $ENV{EMAIL},
+        'reporter: ' . $ENV{PROPHET_EMAIL},
         "original_replica: $replica_uuid",
     ]
 );
@@ -93,10 +93,10 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id  ]
         'summary: now we are checking --all-props',
         'status: new',
         'milestone: alpha',
-        "owner: $ENV{EMAIL}",
+        "owner: $ENV{PROPHET_EMAIL}",
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
-        'reporter: ' . $ENV{EMAIL},
+        'reporter: ' . $ENV{PROPHET_EMAIL},
         "original_replica: $replica_uuid",
     ]
 );
@@ -119,7 +119,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         'due: 2050-01-31 19:14:09',
         qr/^creator: /,
-        'reporter: ' . $ENV{EMAIL},
+        'reporter: ' . $ENV{PROPHET_EMAIL},
         "original_replica: $replica_uuid",
     ]
 );
@@ -151,13 +151,13 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id, '
         'summary: now we are checking --verbose --all-props',
         'status: new',
         'milestone: alpha',
-        "owner: $ENV{EMAIL}",
+        "owner: $ENV{PROPHET_EMAIL}",
         qr/^created: \d{4}-\d{2}-\d{2}.+$/,
         qr/^creator: /,
         "original_replica: $replica_uuid",
         # no ordering is imposed on props not in common_ticket_props
-        qr/(?:reporter: $ENV{EMAIL}|component: core)/,
-        qr/(?:reporter: $ENV{EMAIL}|component: core)/,
+        qr/(?:reporter: $ENV{PROPHET_EMAIL}|component: core)/,
+        qr/(?:reporter: $ENV{PROPHET_EMAIL}|component: core)/,
     ]
 );
 

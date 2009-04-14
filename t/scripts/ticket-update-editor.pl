@@ -23,7 +23,7 @@ SDTestsEditor::edit( tmpl_files => { '--no-args' => 'sd-ticket-update.tmpl',
         } elsif ($option eq '--all-props') {
             s/(?<=summary: ).*$/now we are checking --all-props/;
             s/^due:.*//;              # deleting a prop
-            s/(?<=^owner: ).*$/$ENV{EMAIL}/; # adding a prop
+            s/(?<=^owner: ).*$/$ENV{PROPHET_EMAIL}/; # adding a prop
         } elsif ($option eq '--verbose') {
             s/(?<=^summary: ).*$/now we are checking --verbose/;
             s/^owner:.*//;               # deleting a prop
@@ -31,7 +31,7 @@ SDTestsEditor::edit( tmpl_files => { '--no-args' => 'sd-ticket-update.tmpl',
         } elsif ($option eq '--verbose-and-all') {
             s/(?<=^summary: ).*$/now we are checking --verbose --all-props/;
             s/^due.*//;              # deleting a prop
-            s/(?<=^owner: ).*$/$ENV{EMAIL}/; # adding a prop
+            s/(?<=^owner: ).*$/$ENV{PROPHET_EMAIL}/; # adding a prop
         }
         print;
 

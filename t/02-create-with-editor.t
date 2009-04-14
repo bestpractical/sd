@@ -32,7 +32,7 @@ sub create_ticket_and_check {
             'component: core',
             qr/^created: \d{4}-\d{2}-\d{2}.+$/,
             qr/^creator: /,
-            'reporter: ' . $ENV{EMAIL},
+            'reporter: ' . $ENV{PROPHET_EMAIL},
             "original_replica: $replica_uuid",
         ]
     );

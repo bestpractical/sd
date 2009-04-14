@@ -53,7 +53,7 @@ the environmental variable C<EMAIL>.)
 =cut
 
 sub default_prop_reporter {
-    shift->app_handle->config->get('email_address') or $ENV{EMAIL}
+    shift->app_handle->current_user_email;
 }
 
 =head2 canonicalize_prop_status
