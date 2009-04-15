@@ -32,6 +32,10 @@ To create a ticket, run:
 
     ${cmd}ticket create
 
+To list all tickets in your database:
+
+    ${cmd}ticket list
+
 To publish your database:
 
     ${cmd}publish joeuser\@myhost.example.com:public_html/mydb
