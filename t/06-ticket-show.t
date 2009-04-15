@@ -92,7 +92,7 @@ diag("passing --skip history (doesn't show history)");
 
 check_output_without_history('--skip-history');
 
-my $config_filename = $ENV{'SD_REPO'} . '/sdrc';
+my $config_filename = $ENV{'SD_REPO'} . '/config';
 App::SD::Test->write_to_file($config_filename,
     "disable_ticket_show_history_by_default = 1\n");
 $ENV{'SD_CONFIG'} = $config_filename;

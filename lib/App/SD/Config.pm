@@ -12,7 +12,7 @@ sub app_config_file {
     my $self = shift;
 
     # The order of preference for config files is:
-    #   $ENV{SD_CONFIG} > fs_root/sdrc > fs_root/prophetrc (for backcompat)
+    #   $ENV{SD_CONFIG} > fs_root/config > fs_root/prophetrc (for backcompat)
     #   $HOME/.sdrc > $ENV{PROPHET_APP_CONFIG} > $HOME/.prophetrc
 
     $ENV{'PROPHET_APP_CONFIG'}

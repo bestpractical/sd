@@ -39,7 +39,7 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--sort', 'owner' ],
     ]
 );
 
-my $config_filename = $ENV{'SD_REPO'} . '/sdrc';
+my $config_filename = $ENV{'SD_REPO'} . '/config';
 App::SD::Test->write_to_file($config_filename,
     "default_sort_ticket_list = owner\n");
 $ENV{'SD_CONFIG'} = $config_filename;
@@ -83,7 +83,7 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--group', 'owner' ],
 );
 
 diag('using default_group_ticket_list = owner');
-$config_filename = $ENV{'SD_REPO'} . '/sdrc';
+$config_filename = $ENV{'SD_REPO'} . '/config';
 App::SD::Test->write_to_file($config_filename,
     "default_group_ticket_list = owner\n");
 $ENV{'SD_CONFIG'} = $config_filename;

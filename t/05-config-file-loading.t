@@ -94,9 +94,9 @@ run_output_matches( 'sd', [ 'ticket',
     [ qr/\s+(\d+) } new        YATTA/]
 );
 
-diag("Testing fs_root/sdrc\n");
+diag("Testing fs_root/config\n");
 
-$config_filename = $ENV{'SD_REPO'} . '/sdrc';
+$config_filename = $ENV{'SD_REPO'} . '/config';
 
 App::SD::Test->write_to_file($config_filename,
     "summary_format_ticket = %4s },\$luid | %-6.6s,status | %-60.60s,summary\n");
