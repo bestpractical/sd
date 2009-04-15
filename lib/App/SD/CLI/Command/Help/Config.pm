@@ -9,7 +9,7 @@ sub run {
 
 print <<EOF
 SD supports both a user-wide configuration file (\$HOME/.sdrc and
-per-database configuration file (/path/to/repo/sdrc). If both configuration
+per-database configuration file (/path/to/repo/config). If both configuration
 files are present, the database-specific config file will be used.
 
 You can use the '${cmd}config' command to view what configuration file

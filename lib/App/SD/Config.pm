@@ -18,7 +18,7 @@ sub app_config_file {
     $ENV{'PROPHET_APP_CONFIG'}
             =  $self->file_if_exists($ENV{'SD_CONFIG'})
             || $self->file_if_exists(
-                File::Spec->catfile($self->app_handle->handle->fs_root => 'sdrc'))
+                File::Spec->catfile($self->app_handle->handle->fs_root => 'config'))
             || $self->file_if_exists(
                 # backcompat
                 File::Spec->catfile($self->app_handle->handle->fs_root => 'prophetrc'))
