@@ -152,7 +152,8 @@ __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 
 package App::SD::Server::Static;
-use base 'App::SD::Server';
+use Any::Moose;
+extends 'App::SD::Server';
 use Params::Validate;
 use JSON;
 
