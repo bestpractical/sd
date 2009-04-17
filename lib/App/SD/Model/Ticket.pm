@@ -145,40 +145,6 @@ sub _recommended_values_for_prop_component {
    return @{ shift->app_handle->setting( label => 'components' )->get() };
 }
 
-=head2 color_prop_status $value
-
-Returns the stats prop value C<$value> wrapped in colorization escape
-codes (from L<Term::ANSIColor>).
-
-=cut
-
-sub color_prop_status {
-    my ($self, $value) = @_;
-
-    # these colors were picked out of a hat
-    my $color = $value eq 'new'     ? 'red'
-              : $value eq 'open'    ? 'yellow'
-              : $value eq 'closed'  ? 'green'
-              : $value eq 'stalled' ? 'blue'
-                                    : '';
-
-    return colored($value, $color);
-}
-
-=head2 color_prop_due $due
-
-Returns the due prop value C<$due> wrapped in colorization escape
-codes if it is overdue.
-
-=cut
-
-sub color_prop_due {
-    my ($self, $due) = @_;
-
-    return colored($due, 'red') if $self->is_overdue($due);
-    return $due;
-}
-
 =head2 props_to_show { 'verbose' => 1, update => 0 }
 
 A list of which properties to display for the C<show> command (in order
