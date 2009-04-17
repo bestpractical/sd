@@ -82,7 +82,7 @@ sub change_header_ticket {
     return " # Ticket "
         . $self->app_handle->handle->find_or_create_luid(
         uuid => $change->record_uuid )
-        . " (".$t->prop('summary').")"
+        . " (".($t->prop('summary')||'').")"
 }
 
 __PACKAGE__->meta->make_immutable;
