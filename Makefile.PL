@@ -18,7 +18,7 @@ feature
         'RT::Client::REST' => 0, # RT::Client::REST::Ticket
 ;
 
-recommends 'RT::Client::Rest';
+recommends 'RT::Client::REST';
 
 
 feature    'Hiveminder sync' => 
