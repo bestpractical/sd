@@ -15,7 +15,7 @@ BEGIN {
 
 unless (`which trac-admin`) { plan skip_all => 'You need trac installed to run the tests'; }
 unless (eval { require Net::Trac} ) { plan skip_all => 'You need Net::Trac installed to run the tests'; }
-plan tests => 18;
+plan tests => 25;
 
 
 use_ok('Net::Trac::Connection');
@@ -87,7 +87,6 @@ like($out, qr/status: closed/);
 
 diag("The pony is $pony_id");
 my $new_ticket = Net::Trac::Ticket->new( connection => $trac);
-isa_ok($new_ticket, 'Net::Trac::Ticket');
 ok($new_ticket->load(1));
 is($new_ticket->status, 'new', "The ticket is new before we push to trac");
 
@@ -96,7 +95,11 @@ diag($out);
 diag($err);
 
 
-ok($new_ticket->load(1));
-is($new_ticket->status, 'closed', "The ticket is closed after we push to trac");
+my $closed_ticket = Net::Trac::Ticket->new( connection => $trac);
+ok($closed_ticket->load(1));
+is($closed_ticket->status, 'resolved', "The ticket is closed after we push to trac");
+( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_trac_url ] );
+diag($out);
+diag($err);
 
 
