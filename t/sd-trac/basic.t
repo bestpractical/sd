@@ -75,5 +75,28 @@ run_output_matches('sd',
     [qr/(.*?)(?{ $pony_id = $1 }) The product does not contain a pony new/]
 );
 
+ok($pony_id, "I got the ID of a pony - It's $pony_id");
+
+($ret,$out,$err) = run_script('sd', ["ticket", "update", $pony_id ,"--", "status=closed"]);
+like($out, qr/^Ticket(.*)updated/);
+diag($out);
+diag($err);
+($ret,$out,$err) = run_script('sd' => ["ticket" ,"basics" ,$pony_id ,"--batch"]);
+
+like($out, qr/status: closed/);
 
 diag("The pony is $pony_id");
+my $new_ticket = Net::Trac::Ticket->new( connection => $trac);
+isa_ok($new_ticket, 'Net::Trac::Ticket');
+ok($new_ticket->load(1));
+is($new_ticket->status, 'new', "The ticket is new before we push to trac");
+
+( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_trac_url ] );
+diag($out);
+diag($err);
+
+
+ok($new_ticket->load(1));
+is($new_ticket->status, 'closed', "The ticket is closed after we push to trac");
+
+
