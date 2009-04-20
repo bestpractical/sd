@@ -52,15 +52,16 @@ sub record_pushed_transactions {
         { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
 
     # walk through every transaction on the ticket, starting with the latest
-    for my $txn ( 'find all the transactions pushed upstream') {
-
+    warn "need to walk the pushed txns";
+    for my $txn ( undef ){# 'find all the transactions pushed upstream') {
+    last; 
         # if the transaction id is older than the id of the last changeset
         # we got from the original source of this changeset, we're done
         last if $txn->id <= $self->last_changeset_from_source(
                     $args{changeset}->original_source_uuid
             );
 
-        # if the transaction from RT is more recent than the most recent
+        # if the transaction from Trac is more recent than the most recent
         # transaction we got from the original source of the changeset
         # then we should record that we sent that transaction upstream
         # XXX TODO - THIS IS WRONG - we should only be recording transactions we pushed
