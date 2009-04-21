@@ -14,7 +14,13 @@ has debbugs => ( isa => 'Net::Debbugs', is => 'rw');
 has remote_url => ( isa => 'Str', is => 'rw');
 has debbugs_query => ( isa => 'Str', is => 'rw');
 
-sub setup {
+=head2 BUILD
+
+Open a connection to the source identified by C<$self->{url}>.
+
+=cut
+
+sub BUILD {
     my $self = shift;
 
     # require any specific libs needed by this foreign replica

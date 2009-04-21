@@ -20,9 +20,9 @@ use constant push_encoder => 'App::SD::Replica::hm::PushEncoder';
 use App::SD::Replica::rt;
 
 
-=head2 setup
+=head2 BUILD
 
-Open a connection to the source identified by C<$self->url>.
+Open a connection to the source identified by C<$self->{url}>.
 
 =cut
 
