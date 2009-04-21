@@ -8,6 +8,7 @@ use Memoize;
 use UNIVERSAL::require;
 use URI;
 use Memoize;
+use Net::Github;
 
 use Prophet::ChangeSet;
 
@@ -20,10 +21,8 @@ has remote_url => ( isa => 'Str',         is => 'rw' );
 has owner      => ( isa => 'Str',         is => 'rw' );
 has repo       => ( isa => 'Str',         is => 'rw' );
 
-
 sub BUILD {
     my $self = shift;
-    use Net::Github;
 
     my ( $server , $owner , $repo  ) = $self->{url} =~ m/^github:(.+?)\|(\w+)\|(\w+)\|$/
         or die "Can't parse Github server spec. Expected github:http://user\@github.com|owner|repository|";
@@ -58,8 +57,6 @@ sub uuid {
     Carp::cluck "- can't make a uuid for this" unless ($self->remote_url && $self->owner && $self->repo );
     return $self->uuid_for_url( join( '/', $self->remote_url, $self->owner , $self->repo ) );
 }
-
-
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
