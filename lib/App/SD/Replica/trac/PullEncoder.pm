@@ -39,11 +39,13 @@ sub run {
 
     for my $ticket (@tickets) {
         print $progress->report( "%30b %p Est: %E\r", $counter );
-        $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - " . ++$counter . " of " . scalar @tickets );
+        $self->sync_source->log(
+            "Fetching ticket @{[$ticket->id]} - " . ++$counter . " of " . scalar @tickets );
 
-        $last_modified_date = $ticket->last_modified if (!$last_modified_date || $ticket->last_modified > $last_modified_date);
+        $last_modified_date = $ticket->last_modified
+            if ( !$last_modified_date || $ticket->last_modified > $last_modified_date );
 
-        my $ticket_data = $self->_translate_final_ticket_state($ticket);
+        my $ticket_data         = $self->_translate_final_ticket_state($ticket);
         my $ticket_initial_data = {%$ticket_data};
         my $txns                = $self->skip_previously_seen_transactions(
             ticket       => $ticket,
@@ -53,8 +55,10 @@ sub run {
         # Walk transactions newest to oldest.
         for my $txn ( sort { $b->date <=> $a->date } @$txns ) {
             $self->sync_source->log( $ticket->id . " - Transcoding transaction  @{[$txn->date]} " );
+
             # the changesets are older than the ones that came before, so they goes first
-            unshift @changesets, grep { defined } $self->transcode_one_txn( $txn, $ticket_initial_data, $ticket_data );
+            unshift @changesets,
+                grep {defined} $self->transcode_one_txn( $txn, $ticket_initial_data, $ticket_data );
         }
 
         # create is oldest of all
@@ -63,7 +67,7 @@ sub run {
 
     $self->_record_upstream_last_modified_date($last_modified_date);
 
-        $args{callback}->($_) for @changesets;
+    $args{callback}->($_) for @changesets;
 }
 
 sub _record_upstream_last_modified_date {
@@ -71,7 +75,6 @@ sub _record_upstream_last_modified_date {
     my $date = shift;         
     return $self->sync_source->store_local_metadata('last_changeset_date' => $date);
 }
-
 
 sub _translate_final_ticket_state {
     my $self          = shift;

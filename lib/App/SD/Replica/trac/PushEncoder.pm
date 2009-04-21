@@ -2,6 +2,8 @@ package App::SD::Replica::trac::PushEncoder;
 use Any::Moose; 
 use Params::Validate;
 use Path::Class;
+use Time::HiRes qw/usleep/;
+
 has sync_source => 
     ( isa => 'App::SD::Replica::trac',
       is => 'rw');
@@ -15,7 +17,13 @@ sub integrate_change {
         { isa => 'Prophet::ChangeSet' }
     );
     my $id;
-    local $@;
+    my $record;
+        # if the original_sequence_no of this changeset is <= 
+        # the last changeset our sync source for the original_sequence_no, we can skip it.
+    # XXX TODO - this logic should be at the changeset level, not the cahnge level, as it applies to all
+    # changes in the changeset
+    return if $self->sync_source->app_handle->handle->last_changeset_from_source( $changeset->original_source_uuid) >= $changeset->original_sequence_no;
+
     eval {
         if (    $change->record_type eq 'ticket'
             and $change->change_type eq 'add_file' )
@@ -45,6 +53,7 @@ sub integrate_change {
 
         }
         else {
+            $self->sync_source->log('I have no idea what I am doing for '.$change->record_uuid);
             return undef;
         }
 
@@ -54,7 +63,12 @@ sub integrate_change {
         );
 
     };
-    warn $@ if $@;
+    if (my $err = $@) {
+        $self->sync_source->log("Push error: ".$err);
+    }
+
+    usleep(1100); # trac only accepts one ticket update per second. Yes. 
+
     return $id;
 }
 
@@ -69,12 +83,9 @@ sub integrate_ticket_update {
     # Figure out the remote site's ticket ID for this change's record
     my $remote_ticket_id =
       $self->sync_source->remote_id_for_uuid( $change->record_uuid );
-    my $ticket = Net::Trac::Ticket->new(
-       trac => $self->sync_source->trac,
-        id => $remote_ticket_id,
-        %{ $self->_recode_props_for_integrate($change) }
-    )->store();
-
+    my $ticket = Net::Trac::Ticket->new( connection => $self->sync_source->trac);
+    $ticket->load($remote_ticket_id);
+    $ticket->update( %{ $self->_recode_props_for_integrate($change) }, no_auto_status => 1);
     return $remote_ticket_id;
 }
 
@@ -88,12 +99,10 @@ sub integrate_ticket_create {
 
     # Build up a ticket object out of all the record's attributes
     my $ticket = Net::Trac::Ticket->new(
-       trac    => $self->sync_source->trac,
-        queue => $self->sync_source->trac_queue(),
-        %{ $self->_recode_props_for_integrate($change) }
-    )->store( text => "Not yet pulling in ticket creation comment" );
+       connection    => $self->sync_source->trac);
+    my $id = $ticket->create( %{ $self->_recode_props_for_integrate($change) });
 
-    return $ticket->id;
+    return $id
 }
 
 sub integrate_comment {
@@ -148,8 +157,6 @@ sub _recode_props_for_integrate {
         next unless ( $key =~ /^(summary|queue|status|owner|custom)/ );
         if ( $key =~ /^custom-(.*)/ ) {
             $attr{cf}->{$1} = $props{$key};
-        } elsif ( $key eq 'summary' ) {
-            $attr{'subject'} = $props{summary};
         } else {
             $attr{$key} = $props{$key};
         }

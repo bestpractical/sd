@@ -4,7 +4,6 @@ use Params::Validate;
 
 extends 'Prophet::ForeignReplica';
 
-
 =head2 integrate_change $change $changeset
 
 Given a change (and the changeset it's part of), this routine will load
@@ -34,11 +33,10 @@ sub integrate_change {
     $recoder->integrate_change($change,$changeset);
 }
 
-
-
 =head2 record_pushed_transaction $foreign_transaction_id, $changeset
 
-Record that this replica was the original source of $foreign_transaction_id (with changeset $changeset)
+Record that this replica was the original source of $foreign_transaction_id 
+(with changeset $changeset)
 
 =cut
 
@@ -48,8 +46,11 @@ sub record_pushed_transaction {
         { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' }, record => 1 } );
 
     $self->store_local_metadata(
-        "foreign-txn-from-".$self->uuid . '-record-'.$args{record}. '-txn-' . $args{transaction} => 
-        join( ':',
+              "foreign-txn-from-" 
+            . $self->uuid 
+            . '-record-' 
+            . $args{record} . '-txn-'
+            . $args{transaction} => join( ':',
             $args{changeset}->original_source_uuid,
             $args{changeset}->original_sequence_no )
     );
@@ -57,8 +58,10 @@ sub record_pushed_transaction {
 
 =head2 foreign_transaction_originated_locally $transaction_id $foreign_record_id
 
-Given a transaction id, will return true if this transaction originated in Prophet 
-and was pushed to RT or originated in RT and has already been pulled to the prophet replica.
+Given a transaction id, will return true if this transaction
+originated in Prophet and was pushed to the foreign replica or
+originated in the foreign replica and has already been pulled to
+the Prophet replica.
 
 
 This is a mapping of all the transactions we have pushed to the
@@ -75,8 +78,9 @@ remote replica when doing a subsequent pull
 
 sub foreign_transaction_originated_locally {
     my $self = shift;
-    my ($id, $record) = validate_pos( @_, 1, 1);
-    return $self->fetch_local_metadata("foreign-txn-from-". $self->uuid .'-record-'.$record. '-txn-' .$id );
+    my ( $id, $record ) = validate_pos( @_, 1, 1 );
+    return $self->fetch_local_metadata(
+        "foreign-txn-from-" . $self->uuid . '-record-' . $record . '-txn-' . $id );
 }
 
 sub traverse_changesets {
@@ -94,7 +98,8 @@ sub traverse_changesets {
 }
 
 sub remote_uri_path_for_id {
-    die "your subclass needds to implement this to be able to map a remote id to /ticket/id or soemthing";
+    die "your subclass needds to implement this to be able to ".
+        "map a remote id to /ticket/id or soemthing";
 
 }
 
@@ -105,10 +110,8 @@ construct it out of the remote url and the remote uri path for the record id;
 
 =cut
 
-
 sub uuid_for_remote_id {
     my ( $self, $id ) = @_;
-
 
     return $self->_lookup_uuid_for_remote_id($id)
         || $self->uuid_for_url( $self->remote_url . $self->remote_uri_path_for_id($id) );
@@ -181,14 +184,12 @@ sub _set_remote_id_for_uuid {
 
 }
 
-
 =head2 record_remote_id_for_pushed_record
 
 When pushing a record created within the prophet cloud to a foreign replica, we
 need to do bookkeeping to record the prophet uuid to remote id mapping.
 
 =cut
-
 
 sub record_remote_id_for_pushed_record {
     my $self = shift;

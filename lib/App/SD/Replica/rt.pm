@@ -103,7 +103,6 @@ sub record_pushed_transactions {
     }
 }
 
-
 sub record_upstream_last_modified_date {
     my $self = shift;
     my $date = shift;
@@ -126,8 +125,6 @@ sub record_upstream_last_txn {
     return $self->store_local_metadata('last_txn_id' => $id);
 }
 
-
-
 =head2 uuid
 
 Return the replica's UUID
@@ -140,13 +137,11 @@ sub uuid {
 
 }
 
-
 sub remote_uri_path_for_id {
     my $self = shift;
     my $id = shift;
     return "/ticket/".$id;
 }
-
 
 =head1 NOTES ON PUSH
 
