@@ -51,12 +51,11 @@ on qr'.*' => sub {
     my $self = shift;
     my $command = $_;
     next_rule if $command =~ /^(?:shell|clone|init)$/;
-    if ( !$self->cli->app_handle->handle->replica_exists ) {
-        print join("\n","No SD database was found at " . $self->cli->app_handle->handle->url(),
-            qq{Type "$0 help init" or "$0 help environment" for tips on how to sort that out.});
-    }
+    next_rule if $self->cli->app_handle->handle->replica_exists;
 
-    next_rule;
+    print join("\n","No SD database was found at " . $self->cli->app_handle->handle->url(),
+               qq{Type "$0 help init" or "$0 help environment" for tips on how to sort that out.});
+    exit 1;
 };
 
 
