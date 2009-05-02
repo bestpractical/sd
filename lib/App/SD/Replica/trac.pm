@@ -49,30 +49,61 @@ sub BUILD {
 sub record_pushed_transactions {
     my $self = shift;
     my %args = validate( @_,
-        { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' } } );
+        { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' }, start_time => 1} );
 
+
+    my $earliest_valid_txn_date;
+    
     # walk through every transaction on the ticket, starting with the latest
-    warn "need to walk the pushed txns";
-    for my $txn ( undef ){# 'find all the transactions pushed upstream') {
-    last; 
+    my $ticket = Net::Trac::Ticket->new( connection => $self->trac);
+    $ticket->load($args{ticket});
+
+    for my $txn ( sort {$b->date <=> $a->date }  @{$ticket->history->entries}) {
+
+        warn "Recording that we pushed ".$ticket->id. " " .$txn->date;
+
+        my $oldest_changeset_for_ticket = $self->app_handle->handle->last_changeset_from_source( $args{changeset}->original_source_uuid);
+
+        # walk backwards through all transactions on the ticket we just updated
+        # Skip any transaction where the remote user isn't me, this might include any transaction
+        # RT created with a scrip on your behalf
+
+        next unless $txn->author eq $self->trac->user;
+        # XXX - are we always decoding txn author correctly?
+
+        # get the completion time _after_ we do our next round trip to rt to try to make sure
+        # a bit of lag doesn't skew us to the wrong side of a 1s boundary
+        my $txn_created_dt = $txn->date;
+        unless($txn_created_dt) {
+            die $args{ticket}. " - Couldn't parse '".$txn->created."' as a timestamp";
+        }
+        my $txn_created = $txn_created_dt->epoch;
+
+
+        # skip any transaction created more than 5 seconds before the push started.
+        if (!$earliest_valid_txn_date){
+            my $change_window =  time() - $args{start_time};
+            # I can't think of any reason that number shouldn't be 1, but clocks are fickle
+            $earliest_valid_txn_date = $txn_created - ($change_window + 5); 
+        }      
+
+        last if $txn_created < $earliest_valid_txn_date;
+
         # if the transaction id is older than the id of the last changeset
         # we got from the original source of this changeset, we're done
-        last if $txn->id <= $self->last_changeset_from_source(
-                    $args{changeset}->original_source_uuid
-            );
+        last if $txn_created <= $oldest_changeset_for_ticket;
 
-        # if the transaction from Trac is more recent than the most recent
+        # if the transaction from trac is more recent than the most recent
         # transaction we got from the original source of the changeset
         # then we should record that we sent that transaction upstream
-        # XXX TODO - THIS IS WRONG - we should only be recording transactions we pushed
+
         $self->record_pushed_transaction(
-            transaction => $txn->id,
+            transaction => $txn_created,
             changeset   => $args{'changeset'},
             record      => $args{'ticket'}
         );
     }
 }
-
 
 =head2 uuid
 
@@ -85,7 +116,6 @@ sub uuid {
     return $self->uuid_for_url( $self->remote_url);
 }
 
-
 sub remote_uri_path_for_comment {
     my $self = shift;
     my $id = shift;
@@ -97,6 +127,7 @@ sub remote_uri_path_for_id {
     my $id = shift;
     return "/ticket/".$id;
 }
+
 
 
 __PACKAGE__->meta->make_immutable;

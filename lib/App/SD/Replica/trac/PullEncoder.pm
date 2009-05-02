@@ -49,7 +49,11 @@ sub run {
         my $ticket_initial_data = {%$ticket_data};
         my $txns                = $self->skip_previously_seen_transactions(
             ticket       => $ticket,
-            transactions => $ticket->history->entries
+            transactions => $ticket->history->entries,
+            starting_transaction => $self->sync_source->app_handle->handle->last_changeset_from_source(
+ $self->sync_source->uuid_for_remote_id( $ticket->id )
+        )
+
         );
 
         # Walk transactions newest to oldest.
@@ -65,16 +69,11 @@ sub run {
         unshift @changesets, $self->build_create_changeset( $ticket_initial_data, $ticket );
     }
 
-    $self->_record_upstream_last_modified_date($last_modified_date);
+    $self->sync_source->record_upstream_last_modified_date($last_modified_date);
 
     $args{callback}->($_) for @changesets;
 }
 
-sub _record_upstream_last_modified_date {
-    my $self = shift;
-    my $date = shift;         
-    return $self->sync_source->store_local_metadata('last_changeset_date' => $date);
-}
 
 sub _translate_final_ticket_state {
     my $self          = shift;
@@ -122,7 +121,7 @@ sub find_matching_tickets {
 
 
     my $last_changeset_seen_dt;
-    if (my $last_changeset_seen =   $self->sync_source->fetch_local_metadata('last_changeset_date') ) {
+    if (my $last_changeset_seen =   $self->sync_source->upstream_last_modified_date()) {
         $last_changeset_seen_dt = Net::Trac::Ticket->timestamp_to_datetime($last_changeset_seen);
     }
 
@@ -151,14 +150,25 @@ sub skip_previously_seen_transactions {
     my %args = validate( @_, { ticket => 1, transactions => 1, starting_transaction => 0 } );
     my @txns;
 
+    $self->sync_source->log('Looking at pulled txns');
     for my $txn ( sort @{ $args{transactions} } ) {
+        $self->sync_source->log('Looking at pulled txn ' . $txn);
 
         # Skip things we know we've already pulled
         next if $txn < ( $args{'starting_transaction'} ||0 );
 
+        $self->sync_source->log("It's after our starting txn");
         # Skip things we've pushed
-        next if $self->sync_source->foreign_transaction_originated_locally($txn, $args{'ticket'});
+        
+        warn "Considering pulling $txn from ".$args{ticket}; 
+         if ($self->sync_source->foreign_transaction_originated_locally($txn, $args{'ticket'}) ) {
+            warn "YES, it did come from us";
+            next
+        } else {
+
+        $self->sync_source->log("It's not something we pushed");
         push @txns, $txn;
+        }
     }
     return \@txns;
 }
