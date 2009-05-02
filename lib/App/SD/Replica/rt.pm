@@ -61,10 +61,7 @@ sub record_pushed_transactions {
             rt => $self->rt,
             id => $args{'ticket'})->transactions->get_iterator->()) {
 
-
         # walk backwards through all transactions on the ticket we just updated
-        
-
         # Skip any transaction where the remote user isn't me, this might include any transaction
         # RT created with a scrip on your behalf
         next unless $txn->creator eq $self->rt_username;
@@ -101,17 +98,6 @@ sub record_pushed_transactions {
             record      => $args{'ticket'}
         );
     }
-}
-
-sub record_upstream_last_modified_date {
-    my $self = shift;
-    my $date = shift;
-    return $self->store_local_metadata('last_modified_date' => $date);
-}
-
-sub upstream_last_modified_date {
-    my $self = shift;
-    return $self->fetch_local_metadata('last_modified_date');
 }
 
 sub upstream_last_txn {
