@@ -45,15 +45,11 @@ sub record_pushed_transaction {
     my %args = validate( @_,
         { transaction => 1, changeset => { isa => 'Prophet::ChangeSet' }, record => 1 } );
 
-    $self->store_local_metadata(
-              "foreign-txn-from-" 
-            . $self->uuid 
-            . '-record-' 
-            . $args{record} . '-txn-'
-            . $args{transaction} => join( ':',
-            $args{changeset}->original_source_uuid,
-            $args{changeset}->original_sequence_no )
-    );
+    my $key =  join('-', "foreign-txn-from" , $self->uuid , 'record' , $args{record} , 'txn' , $args{transaction} );
+    my $value = join(':', $args{changeset}->original_source_uuid, $args{changeset}->original_sequence_no );
+    warn "Recording a pushed transaction: $key -> $value";
+    $self->store_local_metadata($key => $value);
+
 }
 
 =head2 foreign_transaction_originated_locally $transaction_id $foreign_record_id
@@ -201,6 +197,17 @@ sub record_remote_id_for_pushed_record {
     );
     $self->_set_uuid_for_remote_id(%args);
     $self->_set_remote_id_for_uuid(%args);
+}
+
+sub record_upstream_last_modified_date {
+    my $self = shift;
+    my $date = shift;
+    return $self->store_local_metadata('last_modified_date' => $date);
+}
+
+sub upstream_last_modified_date {
+    my $self = shift;
+    return $self->fetch_local_metadata('last_modified_date');
 }
 
 __PACKAGE__->meta->make_immutable;
