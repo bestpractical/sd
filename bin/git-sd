@@ -11,7 +11,7 @@ if [ "fnord$replica" = "fnord" ]; then
         fi
         gitdir=`dirname $gitdir`
     done
-    replica=$gitdir/.sd
+    replica=$gitdir/.git/sd
     echo "You don't appear to have an sd.local-replica defined in your .git/config"
     echo "Setting it to '$replica':\n"
     echo "  git config --add sd.local-replica $replica"
