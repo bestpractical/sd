@@ -44,3 +44,14 @@ diag($err);
 note "verify the update with Net::Redmine";
 my $ticket = $r->lookup(ticket => { id => $tickets[0]->id });
 is($ticket->status, "Closed");
+
+##
+sub count_tickets_in_sd {
+    my $self = shift;
+
+    my ( $ret, $out, $err ) = run_script(
+        'sd' => [ 'ticket', 'list', '--regex', '.' ]
+    );
+    my @lines = split(/\n/,$out);
+    return scalar @lines;
+}
