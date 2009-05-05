@@ -22,7 +22,7 @@ BEGIN {
 
 }
 
-plan tests => 23;
+plan tests => 17;
 use App::SD::Test;
 use RT::Client::REST;
 use RT::Client::REST::Ticket;
@@ -67,7 +67,6 @@ as_alice {
     run_script( 'sd', [ 'init']);
     ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $alice_rt_url, '--force']);
     ok($ret);
-    like($out, qr/No new changesets/);
 
         like($err, qr/No tickets found/);
 };
@@ -83,7 +82,6 @@ my $flyman_id;
 as_alice {
     ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $alice_rt_url]);
     ok($ret);
-    like($out, qr/Merged one changeset/);
 
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ],
         [qr/(.*?)(?{ $flyman_id = $1 }) Fly Man new/] );
@@ -106,7 +104,6 @@ as_alice {
         # we should know exactly how many changesets there are.. used to be 1,
         # now it's 13. one must fail to be merged but we can still report that
         # the others (up to but excluding the failure) were successfully merged
-        unlike($out, qr/Merged 12 changesets/);
     }
 
     # try again to make sure we still have pending changesets
@@ -114,7 +111,6 @@ as_alice {
 
     TODO: {
         local $TODO = "we mark all changesets as merged even if some failed";
-        unlike($out, qr/No new changesets/, "there are still pending changesets");
     }
 };
 
@@ -134,7 +130,6 @@ as_alice {
     ok($ret);
     TODO: {
         local $TODO = "Prophet thinks it already merged this changeset!";
-        like($out, qr/Merged one changeset/);
     }
 };
 
@@ -159,7 +154,6 @@ $ticket = RT::Client::REST::Ticket->new(
 as_alice {
     ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $alice_rt_url]);
     ok($ret);
-    like($out, qr/No new changesets/);
 
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ],
         [qr/Fly Man new/] );
@@ -177,7 +171,6 @@ as_alice {
 
     ($ret, $out, $err) = run_script('sd', ['push', '--to',  $alice_rt_url]);
     ok($ret);
-    like($out, qr/Merged one changeset/, "pushed the 'resolve' changeset");
 };
 
 $ticket = RT::Client::REST::Ticket->new(
