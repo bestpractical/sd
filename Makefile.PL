@@ -43,6 +43,6 @@ install_share('share');
 
 # Include subdirectory tests too.
 tests("t/*.t t/*/*.t");
-
+extra_tests;
 auto_install;
 &WriteAll;
