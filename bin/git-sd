@@ -1,10 +1,20 @@
 #!/bin/sh
 replica=`git config --get sd.local-replica`
-if [ "fnord$replica" != "fnord" ]; then
-    SD_REPO=$replica exec sd $@
-else 
+if [ "fnord$replica" = "fnord" ]; then
+    # TODO: respect GIT_DIR
+    gitdir=`pwd`
+    while ! [ -e "$gitdir/.git" ]; do
+        if [ "$gitdir" = "/" ]; then
+            echo "Can't find a .git directory anywhere in your current directory"
+            echo "or any higher directories."
+            exit 1;
+        fi
+        gitdir=`dirname $gitdir`
+    done
+    replica=$gitdir/.git/sd
     echo "You don't appear to have an sd.local-replica defined in your .git/config"
-    echo "To remedy this, you want to run a command like:\n"
-    echo "  git config --add sd.local-replica \"~/.sd-for-this-project\"\n"
-    echo "  (Substituting, of course, the local SD database replica for this project)"
+    echo "Setting it to '$replica':\n"
+    echo "  git config --add sd.local-replica $replica"
+    git config --add sd.local-replica $replica
 fi
+SD_REPO=$replica exec sd $@

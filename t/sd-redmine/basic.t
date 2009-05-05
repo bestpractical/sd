@@ -29,9 +29,6 @@ $sd_redmine_url =~ s|http://|http://${user}:${pass}@|;
 diag "sd clone --from ${sd_redmine_url}";
 
 my ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_redmine_url ] );
-diag($out);
-diag($err);
-
 is(count_tickets_in_sd(),5, "the total cloned tickets is 5.");
 
 note "close one of them, push it to server.";
@@ -49,7 +46,6 @@ my $ticket = $r->lookup(ticket => { id => $tickets[0]->id });
 is($ticket->status, "Closed");
 
 ##
-# use YAML::XS;
 sub count_tickets_in_sd {
     my $self = shift;
 
@@ -57,8 +53,6 @@ sub count_tickets_in_sd {
         'sd' => [ 'ticket', 'list', '--regex', '.' ]
     );
     my @lines = split(/\n/,$out);
-
-    # diag Dump({ lines => @lines });
-
     return scalar @lines;
 }
+
