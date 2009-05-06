@@ -15,7 +15,7 @@ BEGIN {
     }
 }
 
-plan tests => 43;
+plan tests => 41;
 use App::SD::Test;
 
 no warnings 'once';
@@ -276,7 +276,6 @@ like( $out, qr/Created comment/ );
 
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
     ok( $ret, $out );
-    like( $out, qr/No new changesets/ );
 
     my $fetched_ticket = RT::Client::REST::Ticket->new(
         rt => $rt,
@@ -297,7 +296,6 @@ like( $out, qr/Created comment/ );
     diag($out);
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
     ok( $ret, $out );
-    like( $out, qr/No new changesets/ );
 
     my $fetched_ticket = RT::Client::REST::Ticket->new(
         rt => $rt,

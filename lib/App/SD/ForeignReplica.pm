@@ -47,7 +47,7 @@ sub record_pushed_transaction {
 
     my $key =  join('-', "foreign-txn-from" , $self->uuid , 'record' , $args{record} , 'txn' , $args{transaction} );
     my $value = join(':', $args{changeset}->original_source_uuid, $args{changeset}->original_sequence_no );
-    warn "Recording a pushed transaction: $key -> $value";
+
     $self->store_local_metadata($key => $value);
 
 }
@@ -110,31 +110,35 @@ sub uuid_for_remote_id {
     my ( $self, $id ) = @_;
 
     return $self->_lookup_uuid_for_remote_id($id)
-        || $self->uuid_for_url( $self->remote_url . $self->remote_uri_path_for_id($id) );
+        ||$self->_url_based_uuid_for_remote_ticket_id( $id);
 }
 
 sub _lookup_uuid_for_remote_id {
     my $self = shift;
     my ($id) = validate_pos( @_, 1 );
 
-
-
-    return $self->fetch_local_metadata('local_uuid_for_'.  
-        $self->uuid_for_url( $self->remote_url . $self->remote_uri_path_for_id($id))
-    );
+    return $self->fetch_local_metadata('local_uuid_for_'.  $self->_url_based_uuid_for_remote_ticket_id( $id));
 }
 
 sub _set_uuid_for_remote_id {
     my $self = shift;
     my %args = validate( @_, { uuid => 1, remote_id => 1 } );
     return $self->store_local_metadata('local_uuid_for_'.
-        $self->uuid_for_url(
-                  $self->remote_url
-                . $self->remote_uri_path_for_id( $args{'remote_id'} )
-        ),
+        $self->_url_based_uuid_for_remote_ticket_id( $args{'remote_id'} ),
         $args{uuid}
     );
 }
+
+sub _url_based_uuid_for_remote_ticket_id {
+    my $self = shift;
+    my $id = shift;
+        return $self->uuid_for_url(
+                  $self->remote_url
+                . $self->remote_uri_path_for_id( $id) 
+        );
+
+}
+
 
 # This mapping table stores uuids for tickets we've synced from a remote database
 # Basically, if we created the ticket to begin with, then we'll know its uuid

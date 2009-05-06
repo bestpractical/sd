@@ -148,27 +148,14 @@ sub find_matching_tickets {
     my ($query) = validate_pos(@_, 1);
 
     # If we've ever synced, we can limit our search to only newer things
-    if ($self->sync_source->upstream_last_modified_date){
-        # last modified date is in GMT and searches are in user-time XXX -check assumption
-        # because of this, we really want to back that date down by one day to catch overlap
-        # XXX TODO we are playing FAST AND LOOSE WITH DATE MATH
-        # XXX TODO THIS WILL HURT US SOME DAY
-        # At that time, Jesse will buy you a beer.
-        my $before = App::SD::Util::string_to_datetime($self->sync_source->upstream_last_modified_date());
-        die "Failed to parse '".$self->sync_source->upstream_last_modified_date() ."' as a timestamp" unless ($before);
-        ; # 26 hours ago deals with most any possible edge case
-        $before->subtract(hours => 26);
-
-
+    if (my $before = $self->_only_pull_tickets_modified_after) {
         $query = "($query) AND LastUpdated >= '".$before->ymd('-'). " " .$before->hms(':') ."'";
-
-    
-        warn $query;
         $self->sync_source->log("Skipping all tickets not updated since ".$before->iso8601);
     }
 
     return $self->sync_source->rt->search( type => 'ticket', query => $query );
 }
+
 
 =head2 find_matching_transactions { ticket => $id, starting_transaction => $num }
 

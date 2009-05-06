@@ -33,7 +33,7 @@ recommends 'Email::Address';
 feature 'Trac sync' => 
         -default => 0,
         'LWP::Simple' => 0,
-         'Net::Trac' => 0.08;
+         'Net::Trac' => 0.13;
 
 recommends 'Net::Trac';
 
@@ -43,6 +43,6 @@ install_share('share');
 
 # Include subdirectory tests too.
 tests("t/*.t t/*/*.t");
-
+extra_tests;
 auto_install;
 &WriteAll;

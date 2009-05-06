@@ -55,7 +55,7 @@ sub run {
         )
 
         );
-
+    
         # Walk transactions newest to oldest.
         for my $txn ( sort { $b->date <=> $a->date } @$txns ) {
             $self->sync_source->log( $ticket->id . " - Transcoding transaction  @{[$txn->date]} " );
@@ -65,13 +65,10 @@ sub run {
                 grep {defined} $self->transcode_one_txn( $txn, $ticket_initial_data, $ticket_data );
         }
 
-        # create is oldest of all
-        unshift @changesets, $self->build_create_changeset( $ticket_initial_data, $ticket );
     }
 
-    $self->sync_source->record_upstream_last_modified_date($last_modified_date);
-
     $args{callback}->($_) for @changesets;
+    $self->sync_source->record_upstream_last_modified_date($last_modified_date);
 }
 
 
@@ -118,17 +115,10 @@ Returns a Trac::TicketSearch collection for all tickets found matching your QUER
 sub find_matching_tickets {
     my $self  = shift;
     my %query = (@_);
-
-
-    my $last_changeset_seen_dt;
-    if (my $last_changeset_seen =   $self->sync_source->upstream_last_modified_date()) {
-        $last_changeset_seen_dt = Net::Trac::Ticket->timestamp_to_datetime($last_changeset_seen);
-    }
-
+   my $last_changeset_seen_dt =   $self->_only_pull_tickets_modified_after();
     $self->sync_source->log("Searching for tickets");
 
-    my $search
-        = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 500 );
+    my $search = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 9999 );
     $search->query(%query);
     my @results = @{$search->results};
      $self->sync_source->log("Trimming things after our last pull");
@@ -150,26 +140,18 @@ sub skip_previously_seen_transactions {
     my %args = validate( @_, { ticket => 1, transactions => 1, starting_transaction => 0 } );
     my @txns;
 
-    $self->sync_source->log('Looking at pulled txns');
     for my $txn ( sort @{ $args{transactions} } ) {
-        $self->sync_source->log('Looking at pulled txn ' . $txn);
+        my $txn_date = $txn->date->epoch;
 
         # Skip things we know we've already pulled
-        next if $txn < ( $args{'starting_transaction'} ||0 );
-
-        $self->sync_source->log("It's after our starting txn");
+        next if $txn_date < ( $args{'starting_transaction'} ||0 );
         # Skip things we've pushed
-        
-        warn "Considering pulling $txn from ".$args{ticket}; 
-         if ($self->sync_source->foreign_transaction_originated_locally($txn, $args{'ticket'}) ) {
-            warn "YES, it did come from us";
-            next
-        } else {
+        next if ($self->sync_source->foreign_transaction_originated_locally($txn_date, $args{'ticket'}->id) );
 
-        $self->sync_source->log("It's not something we pushed");
+        # ok. it didn't originate locally. we might want to integrate it
         push @txns, $txn;
-        }
     }
+    $self->sync_source->log('Done looking at pulled txns');
     return \@txns;
 }
 
@@ -197,10 +179,12 @@ sub build_initial_ticket_state {
     return \%initial_state;
 }
 
-sub build_create_changeset {
+sub transcode_create_txn {
     my $self        = shift;
+    my $txn         = shift;
     my $create_data = shift;
-    my $ticket      = shift;
+    my $final_data = shift;
+    my $ticket      = $txn->ticket;
              # this sequence_no only works because trac tickets only allow one update 
              # per ticket per second.
              # we decrement by 1 on the off chance that someone created and 
@@ -208,7 +192,7 @@ sub build_create_changeset {
     my $changeset = Prophet::ChangeSet->new(
         {   original_source_uuid => $self->sync_source->uuid_for_remote_id( $ticket->id ),
             original_sequence_no => ( $ticket->created->epoch-1),
-            creator => $self->resolve_user_id_to( email_address => $ticket->reporter ),
+            creator => $self->resolve_user_id_to( email_address => $create_data->{reporter} ),
             created => $ticket->created->ymd ." ".$ticket->created->hms
         }
     );
@@ -236,6 +220,11 @@ sub build_create_changeset {
             # 2 changesets if we needed to to some magic fixups.
 sub transcode_one_txn {
     my ( $self, $txn, $ticket, $ticket_final ) = (@_);
+
+
+    if ($txn->is_create) {
+        return $self->transcode_create_txn(@_);
+    }
 
     my $ticket_uuid = $self->sync_source->uuid_for_remote_id( $ticket->{ $self->sync_source->uuid . '-id' } );
 
