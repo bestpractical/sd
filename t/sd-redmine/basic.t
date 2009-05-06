@@ -9,8 +9,8 @@ $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '
 diag "export SD_REPO=" . $ENV{'PROPHET_REPO'} . "\n";
 
 unless ( eval { require Net::Redmine } ) {
-        plan skip_all => 'You need Net::Trac installed to run the tests';
-    }
+    plan skip_all => 'You need Net::Redmine installed to run the tests';
+}
 
 require 't/sd-redmine/net_redmine_test.pl';
 
