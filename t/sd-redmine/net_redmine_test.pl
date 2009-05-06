@@ -18,21 +18,17 @@ sub new_redmine {
     return Net::Redmine->new(url => $server,user => $user, password => $password);
 }
 
-use Text::Greeking;
 sub new_tickets {
     my ($r, $n) = @_;
     $n ||= 1;
 
-    my $g = Text::Greeking->new;
-    $g->paragraphs(1,1);
-    $g->sentences(1,1);
-    $g->words(8,24);
+    my (undef, $filename, $line) = caller;
 
     return map {
         $r->create(
             ticket => {
-                subject => $g->generate,
-                description => $g->generate
+                subject => "$filename $line " . time,
+                description => "$filename $line " . time
             }
         );        
     } (1..$n);
