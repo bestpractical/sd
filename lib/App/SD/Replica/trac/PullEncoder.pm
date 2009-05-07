@@ -223,7 +223,7 @@ sub transcode_one_txn {
 
 
     if ($txn->is_create) {
-        return $self->transcode_create_txn(@_);
+        return $self->transcode_create_txn($txn,$ticket,$ticket_final);
     }
 
     my $ticket_uuid = $self->sync_source->uuid_for_remote_id( $ticket->{ $self->sync_source->uuid . '-id' } );

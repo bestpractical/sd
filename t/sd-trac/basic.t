@@ -65,8 +65,8 @@ unlike( $ticket->summary, qr/moose/, "The summary does not look like a moose" );
 my $history = $ticket->history;
 ok( $history, "The ticket has some history" );
 my @entries = @{ $history->entries };
+is( scalar @entries, 2, "There are 2 txns");
 my $first   = shift @entries;
-is( $entries[0], undef, "there is only one history entry. no create txn" );
 is( $first->category, 'Ticket' );
 
 
