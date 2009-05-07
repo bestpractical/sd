@@ -17,6 +17,7 @@ use Prophet::ChangeSet;
 has trac => ( isa => 'Net::Trac::Connection', is => 'rw');
 has remote_url => ( isa => 'Str', is => 'rw');
 
+sub foreign_username { return shift->trac->user(@_) }
 
 sub BUILD {
     my $self = shift;
@@ -45,6 +46,22 @@ sub BUILD {
     );
     $self->trac->ensure_logged_in;
 }
+
+
+
+sub get_txn_list_by_date {
+    my $self   = shift;
+    my $ticket = shift;
+
+    my $ticket_obj = Net::Trac::Ticket->new( connection => $self->trac);
+    $ticket_obj->load($ticket);
+        
+    my @txns   = map { { id => $_->id, creator => $_->author, created => $_->date->epoch } }
+        sort {$b->date <=> $a->date }  @{$ticket_obj->history->entries};
+    return @txns;
+}
+
+
 
 sub record_pushed_transactions {
     my $self = shift;
