@@ -13,7 +13,8 @@ if [ "fnord$replica" = "fnord" ]; then
     done
     replica=$gitdir/.git/sd
     echo "You don't appear to have an sd.local-replica defined in your .git/config"
-    echo "Setting it to '$replica':\n"
+    echo "Setting it to '$replica':"
+    echo ""
     echo "  git config --add sd.local-replica $replica"
     git config --add sd.local-replica $replica
 fi
