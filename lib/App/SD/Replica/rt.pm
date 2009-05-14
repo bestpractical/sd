@@ -17,7 +17,7 @@ use Prophet::ChangeSet;
 has rt => ( isa => 'RT::Client::REST', is => 'rw');
 has remote_url => ( isa => 'Str', is => 'rw');
 has rt_queue => ( isa => 'Str', is => 'rw');
-has rt_query => ( isa => 'Str', is => 'rw');
+has query => ( isa => 'Str', is => 'rw');
 has rt_username => (isa => 'Str', is => 'rw');
 
 sub BUILD {
@@ -38,7 +38,7 @@ sub BUILD {
     }
     $self->remote_url($uri->as_string);
     $self->rt_queue($type);
-    $self->rt_query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
+    $self->query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
     $self->rt( RT::Client::REST->new( server => $server ) );
 
     ( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
@@ -92,7 +92,7 @@ Return the replica's UUID
 
 sub uuid {
     my $self = shift;
-    return $self->uuid_for_url( join( '/', $self->remote_url, $self->rt_query ) );
+    return $self->uuid_for_url( join( '/', $self->remote_url, $self->query ) );
 
 }
 

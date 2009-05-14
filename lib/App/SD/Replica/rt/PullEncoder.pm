@@ -23,7 +23,7 @@ sub run {
     my $tickets = {};
     my @transactions;
 
-    my @tickets = $self->find_matching_tickets( $self->sync_source->rt_query );
+    my @tickets = $self->find_matching_tickets( $self->sync_source->query );
 
     $self->sync_source->log("No tickets found.") if @tickets == 0;
 
