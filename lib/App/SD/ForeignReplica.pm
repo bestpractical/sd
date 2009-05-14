@@ -68,7 +68,7 @@ sub record_pushed_transactions {
 
         # if the transaction id is older than the id of the last changeset
         # we got from the original source of this changeset, we're done
-        last if $txn->{id} <= $self->upstream_last_txn();
+        last if $txn->{id} <= $self->upstream_last_txn($args{changeset});
         
         # if the transaction from RT is more recent than the most recent
         # transaction we got from the original source of the changeset
