@@ -62,8 +62,8 @@ sub get_txn_list_by_date {
 
 sub upstream_last_txn { 
     my $self = shift;
-    my $changeset = shift;
-    return $self->app_handle->handle->last_changeset_from_source( $changeset->original_source_uuid);
+    my $uuid = shift;
+    return $self->app_handle->handle->last_changeset_from_source( $uuid);
 }
 
 =head2 uuid
