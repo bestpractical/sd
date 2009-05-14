@@ -20,7 +20,6 @@ sub run {
         }
     );
 
-    my $tickets = {};
 
     my @tickets = $self->find_matching_tickets( $self->sync_source->query );
 
@@ -44,30 +43,29 @@ sub run {
 
         $self->sync_source->log( "Fetching ticket $id - $counter of " . scalar @tickets );
 
-        $tickets->{$id} = $self->_translate_final_ticket_state( $self->sync_source->rt->show( type => 'ticket', id => $id ) );
-        my @transactions =  @{ $self->find_matching_transactions( ticket               => $id, starting_transaction => ( ( $args{'after'} + 1 ) || 1 ) ) };
+        my $ticket= $self->_translate_final_ticket_state( $self->sync_source->rt->show( type => 'ticket', id => $id ) );
+        my @transactions = @{ $self->find_matching_transactions( ticket               => $id, starting_transaction => ( ( $args{'after'} + 1 ) || 1 )) };
 
-    my $txn_counter = 0;
-    for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
+        my $txn_counter = 0;
+        for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
 
-        my $created = App::SD::Util::string_to_datetime( $txn->{Created} );
+            my $created = App::SD::Util::string_to_datetime( $txn->{Created} );
 
-        $last_modified = $created     if ( !$last_modified || ( $created > $last_modified ) );
-        $last_txn      = $txn->{'id'} if ( !$last_txn      || ( $txn->{id} > $last_txn ) );
+            $last_modified = $created     if ( !$last_modified || ( $created > $last_modified ) );
+            $last_txn      = $txn->{'id'} if ( !$last_txn      || ( $txn->{id} > $last_txn ) );
 
-        $txn_counter++;
-        $self->sync_source->log( "Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of " . scalar @transactions );
-        my $changeset = $self->transcode_one_txn( $txn, $tickets->{ $txn->{Ticket} } );
-        $changeset->created( $txn->{'Created'} );
-        next unless $changeset->has_changes;
-        unshift @changesets, $changeset;
-    }
+            $txn_counter++;
+            $self->sync_source->log( "Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of " . scalar @transactions );
+            my $changeset = $self->transcode_one_txn( $txn, $ticket );
+            $changeset->created( $txn->{'Created'} );
+            next unless $changeset->has_changes;
+            unshift @changesets, $changeset;
+        }
     }
 
     my $cs_counter = 0;
     for (@changesets) {
-        $self->sync_source->log(
-            "Applying changeset " . ++$cs_counter . " of " . scalar @changesets );
+        $self->sync_source->log( "Applying changeset " . ++$cs_counter . " of " . scalar @changesets );
         $args{callback}->($_);
     }
 
