@@ -21,7 +21,6 @@ sub run {
     );
 
     my $tickets = {};
-    my @transactions;
 
     my @tickets = $self->find_matching_tickets( $self->sync_source->query );
 
@@ -30,9 +29,10 @@ sub run {
     my $counter = 0;
     $self->sync_source->log("Discovering ticket history");
 
-    my ( $last_txn );
+    my ( $last_txn, @changesets );
     my $previously_modified = App::SD::Util::string_to_datetime( $self->sync_source->upstream_last_modified_date );
 
+    my $last_modified;
     my $progress = Time::Progress->new();
     $progress->attr( max => $#tickets );
 
@@ -44,20 +44,10 @@ sub run {
 
         $self->sync_source->log( "Fetching ticket $id - $counter of " . scalar @tickets );
 
-        $tickets->{$id} = $self->_translate_final_ticket_state(
-            $self->sync_source->rt->show( type => 'ticket', id => $id ) );
-        push @transactions, @{
-            $self->find_matching_transactions(
-                ticket               => $id,
-                starting_transaction => ( ( $args{'after'} + 1 ) || 1 )
-
-            )
-            };
-    }
+        $tickets->{$id} = $self->_translate_final_ticket_state( $self->sync_source->rt->show( type => 'ticket', id => $id ) );
+        my @transactions =  @{ $self->find_matching_transactions( ticket               => $id, starting_transaction => ( ( $args{'after'} + 1 ) || 1 ) ) };
 
     my $txn_counter = 0;
-    my @changesets;
-    my $last_modified;
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
 
         my $created = App::SD::Util::string_to_datetime( $txn->{Created} );
@@ -71,6 +61,7 @@ sub run {
         $changeset->created( $txn->{'Created'} );
         next unless $changeset->has_changes;
         unshift @changesets, $changeset;
+    }
     }
 
     my $cs_counter = 0;
