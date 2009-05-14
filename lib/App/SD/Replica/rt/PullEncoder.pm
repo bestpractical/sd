@@ -30,7 +30,8 @@ sub run {
     my $counter = 0;
     $self->sync_source->log("Discovering ticket history");
 
-    my ( $last_modified, $last_txn );
+    my ( $last_txn );
+    my $previously_modified = App::SD::Util::string_to_datetime( $self->sync_source->upstream_last_modified_date );
 
     my $progress = Time::Progress->new();
     $progress->attr( max => $#tickets );
@@ -56,6 +57,7 @@ sub run {
 
     my $txn_counter = 0;
     my @changesets;
+    my $last_modified;
     for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
 
         my $created = App::SD::Util::string_to_datetime( $txn->{Created} );
@@ -64,8 +66,7 @@ sub run {
         $last_txn      = $txn->{'id'} if ( !$last_txn      || ( $txn->{id} > $last_txn ) );
 
         $txn_counter++;
-        $self->sync_source->log( "Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of "
-                . scalar @transactions );
+        $self->sync_source->log( "Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of " . scalar @transactions );
         my $changeset = $self->transcode_one_txn( $txn, $tickets->{ $txn->{Ticket} } );
         $changeset->created( $txn->{'Created'} );
         next unless $changeset->has_changes;
@@ -79,13 +80,8 @@ sub run {
         $args{callback}->($_);
     }
 
-    my $last_modified_datetime
-        = App::SD::Util::string_to_datetime( $self->sync_source->upstream_last_modified_date );
-    $self->sync_source->record_upstream_last_modified_date($last_modified)
-        if ( ( $last_modified ? $last_modified->epoch : 0 )
-        > ( $last_modified_datetime ? $last_modified_datetime->epoch : 0 ) );
-    $self->sync_source->record_upstream_last_txn($last_txn)
-        if ( ( $last_txn || 0 ) > ( $self->sync_source->upstream_last_txn || 0 ) );
+    $self->sync_source->record_upstream_last_modified_date($last_modified) if ( ( $last_modified ? $last_modified->epoch : 0 ) > ( $previously_modified ? $previously_modified->epoch : 0 ) );
+    $self->sync_source->record_upstream_last_txn($last_txn) if ( ( $last_txn || 0 ) > ( $self->sync_source->upstream_last_txn || 0 ) );
 }
 
 sub _translate_final_ticket_state {
