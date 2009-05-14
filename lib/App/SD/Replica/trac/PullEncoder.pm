@@ -12,16 +12,13 @@ has sync_source => (
     is  => 'rw'
 );
 
-sub run {
+sub run { # trac
     my $self = shift;
-    my %args = validate(
-        @_,
-        {   after    => 1,
-            callback => 1,
-        }
-    );
+    my %args = validate( @_, {   after    => 1, callback => 1, });
+
     $self->sync_source->log('Finding matching tickets');
-    my @tickets = @{ $self->find_matching_tickets() };
+        
+    my @tickets = $self->find_matching_tickets( query => $self->sync_source->query );
 
     if ( @tickets == 0 ) {
         $self->sync_source->log("No tickets found.");
@@ -31,44 +28,50 @@ sub run {
     my @changesets;
     my $counter = 0;
     $self->sync_source->log("Discovering ticket history");
+
     my $progress = Time::Progress->new();
     $progress->attr( max => $#tickets );
+
     local $| = 1;
 
     my $last_modified_date;
 
-    for my $ticket (@tickets) {
-        print $progress->report( "%30b %p Est: %E\r", $counter );
-        $self->sync_source->log(
-            "Fetching ticket @{[$ticket->id]} - " . ++$counter . " of " . scalar @tickets );
 
-        $last_modified_date = $ticket->last_modified
-            if ( !$last_modified_date || $ticket->last_modified > $last_modified_date );
+    for my $ticket (@tickets) {
+
+        $counter++;
+        print $progress->report( "%30b %p Est: %E\r", $counter );
+        $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - $counter of " . scalar @tickets );
+
+        $last_modified_date = $ticket->last_modified if ( !$last_modified_date || $ticket->last_modified > $last_modified_date );
 
         my $ticket_data         = $self->_translate_final_ticket_state($ticket);
         my $ticket_initial_data = {%$ticket_data};
-        my $txns                = $self->skip_previously_seen_transactions(
-            ticket       => $ticket,
-            transactions => $ticket->history->entries,
-            starting_transaction => $self->sync_source->app_handle->handle->last_changeset_from_source(
- $self->sync_source->uuid_for_remote_id( $ticket->id )
-        )
 
-        );
-    
+        my $transactions = $self->find_matching_transactions( ticket => $ticket, starting_transaction => $self->sync_source->app_handle->handle->last_changeset_from_source( $self->sync_source->uuid_for_remote_id( $ticket->id )) );
+
+
+
         # Walk transactions newest to oldest.
-        for my $txn ( sort { $b->date <=> $a->date } @$txns ) {
-            $self->sync_source->log( $ticket->id . " - Transcoding transaction  @{[$txn->date]} " );
+        for my $txn ( sort { $b->date <=> $a->date } @$transactions ) {
+            $self->sync_source->log( $ticket->id . " - Transcoding transaction  @{[$txn->{date}]} " );
 
             # the changesets are older than the ones that came before, so they goes first
             unshift @changesets,
                 grep {defined} $self->transcode_one_txn( $txn, $ticket_initial_data, $ticket_data );
         }
-
     }
 
-    $args{callback}->($_) for @changesets;
+    my $cs_counter = 0;
+    for (@changesets) {
+        $self->sync_source->log( "Applying changeset " . ++$cs_counter . " of " . scalar @changesets );
+        $args{callback}->($_);
+    }
+
     $self->sync_source->record_upstream_last_modified_date($last_modified_date);
+
+
+
 }
 
 
@@ -108,7 +111,7 @@ sub _translate_final_ticket_state {
 
 =head2 find_matching_tickets QUERY
 
-Returns a Trac::TicketSearch collection for all tickets found matching your QUERY hash.
+Returns a array of all tickets found matching your QUERY hash.
 
 =cut
 
@@ -126,21 +129,23 @@ sub find_matching_tickets {
         # >= is wasteful but may catch race conditions
         @results = grep {$_->last_modified >= $last_changeset_seen_dt} @results; 
     }
-    return \@results;
+    return @results;
 }
 
-=head2 skip_previously_seen_transactions { ticket => $id, starting_transaction => $num, transactions => \@txns  }
+=head2 find_matching_transactions { ticket => $id, starting_transaction => $num  }
 
 Returns a reference to an array of all transactions (as hashes) on ticket $id after transaction $num.
 
 =cut
 
-sub skip_previously_seen_transactions {
+sub find_matching_transactions { 
     my $self = shift;
-    my %args = validate( @_, { ticket => 1, transactions => 1, starting_transaction => 0 } );
-    my @txns;
+    my %args = validate( @_, { ticket => 1, starting_transaction => 1 } );
+    my @raw_txns = @{$args{ticket}->history->entries};
 
-    for my $txn ( sort @{ $args{transactions} } ) {
+    my @txns;
+    # XXX TODO make this one loop.
+    for my $txn ( sort @raw_txns) {
         my $txn_date = $txn->date->epoch;
 
         # Skip things we know we've already pulled
