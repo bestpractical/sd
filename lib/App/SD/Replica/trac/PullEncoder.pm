@@ -48,7 +48,13 @@ sub run { # trac
         my $ticket_data         = $self->_translate_final_ticket_state($ticket);
         my $ticket_initial_data = {%$ticket_data};
 
-        my $transactions = $self->find_matching_transactions( ticket => $ticket, starting_transaction => $self->sync_source->app_handle->handle->last_changeset_from_source( $self->sync_source->uuid_for_remote_id( $ticket->id )) );
+        my $transactions = $self->find_matching_transactions(
+            ticket => $ticket,
+            starting_transaction =>
+                $self->sync_source->app_handle->handle->last_changeset_from_source(
+                $self->sync_source->uuid_for_remote_id( $ticket->id )
+                )
+        );
 
 
 
