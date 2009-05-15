@@ -67,7 +67,7 @@ RT::Client::REST::Ticket->new(
 )->store();
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
-
+diag($err);
 
 run_output_matches(
     'sd',
@@ -112,14 +112,19 @@ RT::Client::REST::Ticket->new(
     id     => $ticket->id,
     status => 'stalled',
 )->store();
-
+diag("Making ".$ticket->id." stalled");
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_rt_url ] );
-
+diag($out);
+diag($err);
 run_output_matches_unordered(
     'sd',
     [ 'ticket',              'list', '--regex', '.' ],
     [ "$yatta_id YATTA new", "$flyman_id Fly Man stalled", ]
 );
+( $ret, $out, $err ) = run_script( 'sd', [ 'ticket' ,'list', '--regex', '.']);
+
+diag($out);
+diag($err); 
 
 RT::Client::REST::Ticket->new(
     rt     => $rt,

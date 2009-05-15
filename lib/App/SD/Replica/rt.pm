@@ -48,10 +48,7 @@ sub BUILD {
     $self->rt->login( username => $username, password => $password );
 }
 
-
 sub foreign_username { return shift->rt_username(@_)}
-
-
 
 sub get_txn_list_by_date {
     my $self   = shift;
@@ -71,17 +68,10 @@ sub get_txn_list_by_date {
     return @txns;
 }
 
-
-
 sub upstream_last_txn {
     my $self = shift;
-    return $self->fetch_local_metadata('last_txn_id');
-}
-
-sub record_upstream_last_txn {
-    my $self = shift;
-    my $id = shift;
-    return $self->store_local_metadata('last_txn_id' => $id);
+    my $uuid = shift;
+    return $self->app_handle->handle->last_changeset_from_source( $uuid);
 }
 
 =head2 uuid

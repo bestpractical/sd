@@ -1,66 +1,14 @@
 package App::SD::Replica::rt::PushEncoder;
 use Any::Moose; 
+
+extends 'App::SD::ForeignReplica::PushEncoder';
+
 use Params::Validate;
 use Path::Class;
+
 has sync_source => 
     ( isa => 'App::SD::Replica::rt',
       is => 'rw');
-
-
-sub integrate_change {
-    my $self = shift;
-    my ( $change, $changeset ) = validate_pos(
-        @_,
-        { isa => 'Prophet::Change' },
-        { isa => 'Prophet::ChangeSet' }
-    );
-    my $id;
-    local $@;
-
-    my $before_integration = time();
-
-    eval {
-        if (    $change->record_type eq 'ticket'
-            and $change->change_type eq 'add_file' )
-        {
-            $id = $self->integrate_ticket_create( $change, $changeset );
-            $self->sync_source->record_remote_id_for_pushed_record(
-                uuid      => $change->record_uuid,
-                remote_id => $id
-            );
-
-        }
-        elsif (
-                $change->record_type eq 'attachment'
-            and $change->change_type eq 'add_file'
-
-          )
-        {
-            $id = $self->integrate_attachment( $change, $changeset );
-        }
-        elsif ( $change->record_type eq 'comment'
-            and $change->change_type eq 'add_file' )
-        {
-            $id = $self->integrate_comment( $change, $changeset );
-        }
-        elsif ( $change->record_type eq 'ticket' ) {
-            $id = $self->integrate_ticket_update( $change, $changeset );
-
-        }
-        else {
-            return undef;
-        }
-
-        $self->sync_source->record_pushed_transactions(
-            ticket    => $id,
-            start_time => $before_integration,
-            changeset => $changeset
-        );
-
-    };
-    warn $@ if $@;
-    return $id;
-}
 
 sub integrate_ticket_update {
     my $self = shift;
@@ -71,8 +19,7 @@ sub integrate_ticket_update {
     );
 
     # Figure out the remote site's ticket ID for this change's record
-    my $remote_ticket_id =
-      $self->sync_source->remote_id_for_uuid( $change->record_uuid );
+    my $remote_ticket_id = $self->sync_source->remote_id_for_uuid( $change->record_uuid );
     my $ticket = RT::Client::REST::Ticket->new(
         rt => $self->sync_source->rt,
         id => $remote_ticket_id,
