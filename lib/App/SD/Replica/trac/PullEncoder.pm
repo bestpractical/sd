@@ -9,76 +9,7 @@ use DateTime;
 
 has sync_source => (
     isa => 'App::SD::Replica::trac',
-    is  => 'rw'
-);
-
-sub run { # trac
-    my $self = shift;
-    my %args = validate( @_, {   after    => 1, callback => 1, });
-
-    $self->sync_source->log('Finding matching tickets');
-        
-    my @tickets = $self->find_matching_tickets( query => $self->sync_source->query );
-
-    if ( @tickets == 0 ) {
-        $self->sync_source->log("No tickets found.");
-        return;
-    }
-
-    my @changesets;
-    my $counter = 0;
-    $self->sync_source->log("Discovering ticket history");
-
-    my $progress = Time::Progress->new();
-    $progress->attr( max => $#tickets );
-
-    local $| = 1;
-
-    my $last_modified_date;
-
-
-    for my $ticket (@tickets) {
-
-        $counter++;
-        print $progress->report( "%30b %p Est: %E\r", $counter );
-        $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - $counter of " . scalar @tickets );
-
-        $last_modified_date = $ticket->last_modified if ( !$last_modified_date || $ticket->last_modified > $last_modified_date );
-
-        my $ticket_data         = $self->_translate_final_ticket_state($ticket);
-        my $ticket_initial_data = {%$ticket_data};
-
-        my $transactions = $self->find_matching_transactions(
-            ticket => $ticket,
-            starting_transaction =>
-                $self->sync_source->app_handle->handle->last_changeset_from_source(
-                $self->sync_source->uuid_for_remote_id( $ticket->id )
-                )
-        );
-
-
-
-        # Walk transactions newest to oldest.
-        for my $txn ( sort { $b->date <=> $a->date } @$transactions ) {
-            $self->sync_source->log( $ticket->id . " - Transcoding transaction  @{[$txn->{date}]} " );
-
-            # the changesets are older than the ones that came before, so they goes first
-            unshift @changesets,
-                grep {defined} $self->transcode_one_txn( $txn, $ticket_initial_data, $ticket_data );
-        }
-    }
-
-    my $cs_counter = 0;
-    for (@changesets) {
-        $self->sync_source->log( "Applying changeset " . ++$cs_counter . " of " . scalar @changesets );
-        $args{callback}->($_);
-    }
-
-    $self->sync_source->record_upstream_last_modified_date($last_modified_date);
-
-
-
-}
+    is  => 'rw');
 
 
 sub _translate_final_ticket_state {
@@ -160,7 +91,9 @@ sub find_matching_transactions {
         next if ($self->sync_source->foreign_transaction_originated_locally($txn_date, $args{'ticket'}->id) );
 
         # ok. it didn't originate locally. we might want to integrate it
-        push @txns, $txn;
+        push @txns, { timestamp => $txn->date,
+                      serial => $txn->date->epoch,
+                      object => $txn};
     }
     $self->sync_source->log('Done looking at pulled txns');
     return \@txns;
@@ -230,8 +163,9 @@ sub transcode_create_txn {
             # 1 changeset if it was a normal txn
             # 2 changesets if we needed to to some magic fixups.
 sub transcode_one_txn {
-    my ( $self, $txn, $ticket, $ticket_final ) = (@_);
+    my ( $self, $txn_wrapper, $ticket, $ticket_final ) = (@_);
 
+    my $txn = $txn_wrapper->{object};
 
     if ($txn->is_create) {
         return $self->transcode_create_txn($txn,$ticket,$ticket_final);
