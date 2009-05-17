@@ -122,8 +122,7 @@ sub find_matching_tickets {
     require Net::Google::Code::Issue::Search;
     my $search = Net::Google::Code::Issue::Search->new( project =>  $self->sync_source->project, limit => 9999 );
     $search->search();
-    my @ids = @{$search->ids};
-    my @results;
+    my @results = @{$search->results};
     foreach my $item (@results) {
         my $t = $self->sync_source->ticket->load($item);
         if (!$last_changeset_seen_dt || ($t->last_modified >= $last_changeset_seen_dt)) {
