@@ -33,6 +33,56 @@ sub integrate_change {
     $recoder->integrate_change($change,$changeset);
 }
 
+# XXX TODO docs
+
+sub record_pushed_transactions {
+    my $self = shift;
+    my %args = validate( @_,
+        { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' }, start_time => 1} );
+
+
+    my $earliest_valid_txn_date;
+
+    # walk through every transaction on the ticket, starting with the latest
+    
+    for my $txn ( $self->get_txn_list_by_date($args{ticket}) ) {
+       
+        # walk backwards through all transactions on the ticket we just updated
+        # Skip any transaction where the remote user isn't me, this might include any transaction
+        # RT created with a scrip on your behalf
+   
+        next unless $txn->{creator} eq $self->foreign_username;
+
+        # get the completion time _after_ we do our next round trip to rt to try to make sure
+        # a bit of lag doesn't skew us to the wrong side of a 1s boundary
+      
+     
+       if (!$earliest_valid_txn_date){
+            my $change_window =  time() - $args{start_time};
+            # skip any transaction created more than 5 seconds before the push started.
+            # I can't think of any reason that number shouldn't be 1, but clocks are fickle
+            $earliest_valid_txn_date = $txn->{created} - ($change_window + 5); 
+        }      
+
+        last if $txn->{created} < $earliest_valid_txn_date;
+
+        # if the transaction id is older than the id of the last changeset
+        # we got from the original source of this changeset, we're done
+        last if $txn->{id} <= $self->upstream_last_txn($args{changeset}->original_source_uuid);
+        
+        # if the transaction from RT is more recent than the most recent
+        # transaction we got from the original source of the changeset
+        # then we should record that we sent that transaction upstream
+
+        $self->record_pushed_transaction(
+            transaction => $txn->{id},
+            changeset   => $args{'changeset'},
+            record      => $args{'ticket'}
+        );
+    }
+}
+    
+
 =head2 record_pushed_transaction $foreign_transaction_id, $changeset
 
 Record that this replica was the original source of $foreign_transaction_id 

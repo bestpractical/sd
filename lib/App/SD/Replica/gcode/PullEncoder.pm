@@ -1,4 +1,4 @@
-package App::SD::Replica::trac::PullEncoder;
+package App::SD::Replica::gcode::PullEncoder;
 use Any::Moose;
 extends 'App::SD::ForeignReplica::PullEncoder';
 
@@ -8,17 +8,22 @@ use Time::Progress;
 use DateTime;
 
 has sync_source => (
-    isa => 'App::SD::Replica::trac',
-    is  => 'rw'
+    isa => 'App::SD::Replica::gcode',
+    is  => 'rw',
+    weak_ref => 1
 );
 
-sub run { # trac
+sub run {
+    ### XXX TODO - can we factor this out?
     my $self = shift;
-    my %args = validate( @_, {   after    => 1, callback => 1, });
-
+    my %args = validate(
+        @_,
+        {   after    => 1,
+            callback => 1,
+        }
+    );
     $self->sync_source->log('Finding matching tickets');
-        
-    my @tickets = $self->find_matching_tickets( query => $self->sync_source->query );
+    my @tickets = @{ $self->find_matching_tickets() };
 
     if ( @tickets == 0 ) {
         $self->sync_source->log("No tickets found.");
@@ -28,56 +33,44 @@ sub run { # trac
     my @changesets;
     my $counter = 0;
     $self->sync_source->log("Discovering ticket history");
-
     my $progress = Time::Progress->new();
     $progress->attr( max => $#tickets );
-
     local $| = 1;
 
     my $last_modified_date;
 
-
     for my $ticket (@tickets) {
-
-        $counter++;
         print $progress->report( "%30b %p Est: %E\r", $counter );
-        $self->sync_source->log( "Fetching ticket @{[$ticket->id]} - $counter of " . scalar @tickets );
+        $self->sync_source->log(
+            "Fetching ticket @{[$ticket->id]} - " . ++$counter . " of " . scalar @tickets );
 
-        $last_modified_date = $ticket->last_modified if ( !$last_modified_date || $ticket->last_modified > $last_modified_date );
+        $last_modified_date = $ticket->last_modified
+            if ( !$last_modified_date || $ticket->last_modified > $last_modified_date );
 
         my $ticket_data         = $self->_translate_final_ticket_state($ticket);
         my $ticket_initial_data = {%$ticket_data};
+        my $txns                = $self->skip_previously_seen_transactions(
+            ticket       => $ticket,
+            transactions => $ticket->history->entries,
+            starting_transaction => $self->sync_source->app_handle->handle->last_changeset_from_source(
+ $self->sync_source->uuid_for_remote_id( $ticket->id )
+        )
 
-        my $transactions = $self->find_matching_transactions(
-            ticket => $ticket,
-            starting_transaction =>
-                $self->sync_source->app_handle->handle->last_changeset_from_source(
-                $self->sync_source->uuid_for_remote_id( $ticket->id )
-                )
         );
-
-
-
+    
         # Walk transactions newest to oldest.
-        for my $txn ( sort { $b->date <=> $a->date } @$transactions ) {
-            $self->sync_source->log( $ticket->id . " - Transcoding transaction  @{[$txn->{date}]} " );
+        for my $txn ( sort { $b->date <=> $a->date } @$txns ) {
+            $self->sync_source->log( $ticket->id . " - Transcoding transaction  @{[$txn->date]} " );
 
             # the changesets are older than the ones that came before, so they goes first
             unshift @changesets,
                 grep {defined} $self->transcode_one_txn( $txn, $ticket_initial_data, $ticket_data );
         }
+
     }
 
-    my $cs_counter = 0;
-    for (@changesets) {
-        $self->sync_source->log( "Applying changeset " . ++$cs_counter . " of " . scalar @changesets );
-        $args{callback}->($_);
-    }
-
+    $args{callback}->($_) for @changesets;
     $self->sync_source->record_upstream_last_modified_date($last_modified_date);
-
-
-
 }
 
 
@@ -117,7 +110,7 @@ sub _translate_final_ticket_state {
 
 =head2 find_matching_tickets QUERY
 
-Returns a array of all tickets found matching your QUERY hash.
+Returns a Google Code::TicketSearch collection for all tickets found matching your QUERY hash.
 
 =cut
 
@@ -126,32 +119,32 @@ sub find_matching_tickets {
     my %query = (@_);
    my $last_changeset_seen_dt =   $self->_only_pull_tickets_modified_after();
     $self->sync_source->log("Searching for tickets");
-
-    my $search = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 9999 );
-    $search->query(%query);
-    my @results = @{$search->results};
-     $self->sync_source->log("Trimming things after our last pull");
-    if ($last_changeset_seen_dt) {
-        # >= is wasteful but may catch race conditions
-        @results = grep {$_->last_modified >= $last_changeset_seen_dt} @results; 
+    require Net::Google::Code::Issue::Search;
+    my $search = Net::Google::Code::Issue::Search->new( project =>  $self->sync_source->project, limit => 9999 );
+    $search->search();
+    my @ids = @{$search->ids};
+    my @results;
+    foreach my $item (@results) {
+        my $t = $self->sync_source->ticket->load($item);
+        if (!$last_changeset_seen_dt || ($t->last_modified >= $last_changeset_seen_dt)) {
+            push @results, $t;
+        }
     }
-    return @results;
+    return \@results;
 }
 
-=head2 find_matching_transactions { ticket => $id, starting_transaction => $num  }
+=head2 skip_previously_seen_transactions { ticket => $id, starting_transaction => $num, transactions => \@txns  }
 
 Returns a reference to an array of all transactions (as hashes) on ticket $id after transaction $num.
 
 =cut
 
-sub find_matching_transactions { 
+sub skip_previously_seen_transactions {
     my $self = shift;
-    my %args = validate( @_, { ticket => 1, starting_transaction => 1 } );
-    my @raw_txns = @{$args{ticket}->history->entries};
-
+    my %args = validate( @_, { ticket => 1, transactions => 1, starting_transaction => 0 } );
     my @txns;
-    # XXX TODO make this one loop.
-    for my $txn ( sort @raw_txns) {
+
+    for my $txn ( sort @{ $args{transactions} } ) {
         my $txn_date = $txn->date->epoch;
 
         # Skip things we know we've already pulled
@@ -196,7 +189,7 @@ sub transcode_create_txn {
     my $create_data = shift;
     my $final_data = shift;
     my $ticket      = $txn->ticket;
-             # this sequence_no only works because trac tickets only allow one update 
+             # this sequence_no only works because gcode tickets only allow one update 
              # per ticket per second.
              # we decrement by 1 on the off chance that someone created and 
              # updated the ticket in the first second
@@ -255,7 +248,7 @@ sub transcode_one_txn {
         }
     );
 
-#    warn "right here, we need to deal with changed data that trac failed to record";
+#    warn "right here, we need to deal with changed data that gcode failed to record";
 
     foreach my $prop_change ( values %{ $txn->prop_changes || {} } ) {
         my $new      = $prop_change->new_value;
@@ -395,7 +388,7 @@ sub resolve_user_id_to {
     my $self = shift;
     my $to   = shift;
     my $id   = shift;
-    return $id . '@trac-instance.local';
+    return $id . '@gcode-instance.local';
 
 }
 

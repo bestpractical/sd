@@ -17,7 +17,7 @@ use Prophet::ChangeSet;
 has rt => ( isa => 'RT::Client::REST', is => 'rw');
 has remote_url => ( isa => 'Str', is => 'rw');
 has rt_queue => ( isa => 'Str', is => 'rw');
-has rt_query => ( isa => 'Str', is => 'rw');
+has query => ( isa => 'Str', is => 'rw');
 has rt_username => (isa => 'Str', is => 'rw');
 
 sub BUILD {
@@ -38,7 +38,7 @@ sub BUILD {
     }
     $self->remote_url($uri->as_string);
     $self->rt_queue($type);
-    $self->rt_query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
+    $self->query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
     $self->rt( RT::Client::REST->new( server => $server ) );
 
     ( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
@@ -48,67 +48,30 @@ sub BUILD {
     $self->rt->login( username => $username, password => $password );
 }
 
-sub record_pushed_transactions {
-    my $self = shift;
-    my %args = validate( @_,
-        { ticket => 1, changeset => { isa => 'Prophet::ChangeSet' }, start_time => 1} );
+sub foreign_username { return shift->rt_username(@_)}
 
-
-    my $earliest_valid_txn_date;
-
-    # walk through every transaction on the ticket, starting with the latest
-    for my $txn ( sort {$b->{'Created'} <=> $a->{'Created'}}  RT::Client::REST::Ticket->new(
-            rt => $self->rt,
-            id => $args{'ticket'})->transactions->get_iterator->()) {
-
-        # walk backwards through all transactions on the ticket we just updated
-        # Skip any transaction where the remote user isn't me, this might include any transaction
-        # RT created with a scrip on your behalf
-        next unless $txn->creator eq $self->rt_username;
-
-
-        # get the completion time _after_ we do our next round trip to rt to try to make sure
-        # a bit of lag doesn't skew us to the wrong side of a 1s boundary
-        my $txn_created_dt = App::SD::Util::string_to_datetime($txn->created);
-        unless($txn_created_dt) {
-            die "Couldn't parse '".$txn->created."' as a timestamp";
+sub get_txn_list_by_date {
+    my $self   = shift;
+    my $ticket = shift;
+    my @txns   = map {
+        my $txn_created_dt = App::SD::Util::string_to_datetime( $_->created );
+        unless ($txn_created_dt) {
+            die "Couldn't parse '" . $_->created . "' as a timestamp";
         }
         my $txn_created = $txn_created_dt->epoch;
-        if (!$earliest_valid_txn_date){
-            my $change_window =  time() - $args{start_time};
-            # skip any transaction created more than 5 seconds before the push started.
-            # I can't think of any reason that number shouldn't be 1, but clocks are fickle
-            $earliest_valid_txn_date = $txn_created - ($change_window + 5); 
-        }      
 
-        last if $txn_created < $earliest_valid_txn_date;
+        return { id => $_->id, creator => $_->creator, created => $txn_created }
+        }
 
-
-        # if the transaction id is older than the id of the last changeset
-        # we got from the original source of this changeset, we're done
-        last if $txn->id <= $self->upstream_last_txn();
-        
-
-        # if the transaction from RT is more recent than the most recent
-        # transaction we got from the original source of the changeset
-        # then we should record that we sent that transaction upstream
-        $self->record_pushed_transaction(
-            transaction => $txn->id,
-            changeset   => $args{'changeset'},
-            record      => $args{'ticket'}
-        );
-    }
+        sort { $b->{'Created'} <=> $a->{'Created'} }
+        RT::Client::REST::Ticket->new( rt => $self->rt, id => $ticket )->transactions->get_iterator->();
+    return @txns;
 }
 
 sub upstream_last_txn {
     my $self = shift;
-    return $self->fetch_local_metadata('last_txn_id');
-}
-
-sub record_upstream_last_txn {
-    my $self = shift;
-    my $id = shift;
-    return $self->store_local_metadata('last_txn_id' => $id);
+    my $uuid = shift;
+    return $self->app_handle->handle->last_changeset_from_source( $uuid);
 }
 
 =head2 uuid
@@ -119,7 +82,7 @@ Return the replica's UUID
 
 sub uuid {
     my $self = shift;
-    return $self->uuid_for_url( join( '/', $self->remote_url, $self->rt_query ) );
+    return $self->uuid_for_url( join( '/', $self->remote_url, $self->query ) );
 
 }
 
