@@ -102,7 +102,7 @@ sub find_matching_transactions {
 
     my $rt_handle = $self->sync_source->rt;
     
-    my $ticket_id = $args{ticket}->{$self->sync_source->uuid . '-id'};
+    my $ticket_id = $self->ticket_id($args{ticket});
 
      my $latest = $self->sync_source->app_handle->handle->last_changeset_from_source($self->sync_source->uuid_for_remote_id( $ticket_id )) || 0;
     for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $ticket_id)) {
