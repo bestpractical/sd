@@ -11,73 +11,7 @@ has sync_source =>
     ( isa => 'App::SD::Replica::rt',
       is => 'rw');
 
-sub run {
-    my $self = shift;
-    my %args = validate(
-        @_,
-        {   after    => 1,
-            callback => 1,
-        }
-    );
 
-
-    my @tickets = $self->find_matching_tickets( $self->sync_source->query );
-    $self->sync_source->log("No tickets found.") if @tickets == 0;
-
-    my $counter = 0;
-    $self->sync_source->log("Discovering ticket history");
-
-    my ( $last_txn, @changesets );
-    my $previously_modified = App::SD::Util::string_to_datetime( $self->sync_source->upstream_last_modified_date );
-
-    my $last_modified;
-    my $progress = Time::Progress->new();
-    $progress->attr( max => $#tickets );
-
-    local $| = 1;
-
-    for my $ticket (@tickets) {
-        $counter++;
-
-        my $ticket_id = $ticket->{id};
-
-        print $progress->report( "%30b %p Est: %E\r", $counter );
-    
-        $self->sync_source->log( "Fetching ticket $ticket_id - $counter of " . scalar @tickets );
-
-        my $final_state= $self->_translate_final_ticket_state( $ticket);
-        my @transactions = $self->find_matching_transactions( 
-                ticket               => $ticket, 
-                starting_transaction => $self->sync_source->app_handle->handle->last_changeset_from_source( $self->sync_source->uuid_for_remote_id( $ticket_id )
-
-            
-                                          )|| 1 ) ;
-
-        my $txn_counter = 0;
-        for my $txn ( sort { $b->{'id'} <=> $a->{'id'} } @transactions ) {
-            my $created = App::SD::Util::string_to_datetime( $txn->{Created} );
-
-            $last_modified = $created     if ( !$last_modified || ( $created > $last_modified ) );
-            $last_txn      = $txn->{'id'} if ( !$last_txn      || ( $txn->{id} > $last_txn ) );
-
-            $txn_counter++;
-            $self->sync_source->log( "Transcoding transaction  @{[$txn->{'id'}]} - $txn_counter of " . scalar @transactions );
-            my $changeset = $self->transcode_one_txn( $txn, $final_state );
-            $changeset->created( $txn->{'Created'} );
-            next unless $changeset->has_changes;
-            unshift @changesets, $changeset;
-        }
-    }
-
-    my $cs_counter = 0;
-    for (@changesets) {
-        $self->sync_source->log( "Applying changeset " . ++$cs_counter . " of " . scalar @changesets );
-        $args{callback}->($_);
-    }
-
-    $self->sync_source->record_upstream_last_modified_date($last_modified) if ( ( $last_modified ? $last_modified->epoch : 0 ) > ( $previously_modified ? $previously_modified->epoch : 0 ) );
-#    $self->sync_source->record_upstream_last_txn($last_txn) if ( ( $last_txn || 0 ) > ( $self->sync_source->upstream_last_txn || 0 ) );
-}
 
 sub _translate_final_ticket_state {
     my $self   = shift;
@@ -128,7 +62,7 @@ sub _translate_final_ticket_state {
     return $ticket;
 }
 
-=head2 find_matching_tickets QUERY
+=head2 find_matching_tickets query => QUERY
 
 Returns an RT::Client ticket collection for all tickets found matching your QUERY string.
 
@@ -136,18 +70,18 @@ Returns an RT::Client ticket collection for all tickets found matching your QUER
 
 sub find_matching_tickets {
     my $self = shift;
-    my ($query) = validate_pos( @_, 1 );
-
+    my %args = validate(@_,{query => 1});
+    my $query = $args{query};
     # If we've ever synced, we can limit our search to only newer things
     if ( my $before = $self->_only_pull_tickets_modified_after ) {
        $query = "($query) AND LastUpdated >= '" . $before->ymd('-') . " " . $before->hms(':') . "'";
         $self->sync_source->log( "Skipping all tickets not updated since " . $before->iso8601 );
     }
-    return map {
+    return [map {
         my $hash = $self->sync_source->rt->show( type => 'ticket', id => $_ );
         $hash->{id} =~ s|^ticket/||g;
         $hash
-    } $self->sync_source->rt->search( type => 'ticket', query => $query );
+    } $self->sync_source->rt->search( type => 'ticket', query => $query )];
 }
 
 
@@ -166,7 +100,7 @@ sub find_matching_transactions {
     
     my $ticket_id = $args{ticket}->{$self->sync_source->uuid . '-id'};
 
-     my $latest = $self->sync_source->upstream_last_txn($self->sync_source->uuid_for_remote_id( $ticket_id )) || 0;
+     my $latest = $self->sync_source->app_handle->handle->last_changeset_from_source($self->sync_source->uuid_for_remote_id( $ticket_id )) || 0;
     for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $ticket_id)) {
         # Skip things calling code told us to skip
         next if $txn < $args{'starting_transaction'}; 
@@ -187,14 +121,18 @@ sub find_matching_transactions {
             }
 
         }
-        push @txns, $txn_hash;
+        push @txns, { timestamp => App::SD::Util::string_to_datetime( $txn_hash->{Created} ),
+                      serial => $txn_hash->{id},
+                      object => $txn_hash};
     }
-    return @txns;
+    return \@txns;
 }
 
 sub transcode_one_txn {
-    my ($self, $txn, $ticket) = (@_);
-    
+    my ($self, $txn_wrapper, $ticket_initial_state, $ticket) = (@_);
+   
+    my $txn = $txn_wrapper->{object};
+
     my $sub = $self->can( '_recode_txn_' . $txn->{'Type'} );
     unless ( $sub ) {
         die "Transaction type $txn->{Type} (for transaction $txn->{id}) not implemented yet";
@@ -202,6 +140,7 @@ sub transcode_one_txn {
     my $changeset = Prophet::ChangeSet->new(
         {   original_source_uuid => $self->sync_source->uuid_for_remote_id( $ticket->{ $self->sync_source->uuid . '-id' } ),
             original_sequence_no => $txn->{'id'},
+            created =>  $txn->{'Created'},
             creator => $self->resolve_user_id_to( email_address => $txn->{'Creator'} ),
         }
     );

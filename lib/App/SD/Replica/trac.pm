@@ -47,7 +47,6 @@ sub BUILD {
     $self->trac->ensure_logged_in;
 }
 
-
 sub get_txn_list_by_date {
     my $self   = shift;
     my $ticket = shift;
@@ -57,13 +56,6 @@ sub get_txn_list_by_date {
         
     my @txns   = map { { id => $_->date->epoch, creator => $_->author, created => $_->date->epoch } } sort {$b->date <=> $a->date }  @{$ticket_obj->history->entries};
     return @txns;
-}
-        
-
-sub upstream_last_txn { 
-    my $self = shift;
-    my $uuid = shift;
-    return $self->app_handle->handle->last_changeset_from_source( $uuid);
 }
 
 =head2 uuid

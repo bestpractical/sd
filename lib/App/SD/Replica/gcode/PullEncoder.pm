@@ -9,92 +9,27 @@ use DateTime;
 
 has sync_source => (
     isa => 'App::SD::Replica::gcode',
-    is  => 'rw',
-    weak_ref => 1
-);
-
-sub run {
-    ### XXX TODO - can we factor this out?
-    my $self = shift;
-    my %args = validate(
-        @_,
-        {   after    => 1,
-            callback => 1,
-        }
-    );
-    $self->sync_source->log('Finding matching tickets');
-    my @tickets = @{ $self->find_matching_tickets() };
-
-    if ( @tickets == 0 ) {
-        $self->sync_source->log("No tickets found.");
-        return;
-    }
-
-    my @changesets;
-    my $counter = 0;
-    $self->sync_source->log("Discovering ticket history");
-    my $progress = Time::Progress->new();
-    $progress->attr( max => $#tickets );
-    local $| = 1;
-
-    my $last_modified_date;
-
-    for my $ticket (@tickets) {
-        print $progress->report( "%30b %p Est: %E\r", $counter );
-        $self->sync_source->log(
-            "Fetching ticket @{[$ticket->id]} - " . ++$counter . " of " . scalar @tickets );
-
-        $last_modified_date = $ticket->last_modified
-            if ( !$last_modified_date || $ticket->last_modified > $last_modified_date );
-
-        my $ticket_data         = $self->_translate_final_ticket_state($ticket);
-        my $ticket_initial_data = {%$ticket_data};
-        my $txns                = $self->skip_previously_seen_transactions(
-            ticket       => $ticket,
-            transactions => $ticket->history->entries,
-            starting_transaction => $self->sync_source->app_handle->handle->last_changeset_from_source(
- $self->sync_source->uuid_for_remote_id( $ticket->id )
-        )
-
-        );
-    
-        # Walk transactions newest to oldest.
-        for my $txn ( sort { $b->date <=> $a->date } @$txns ) {
-            $self->sync_source->log( $ticket->id . " - Transcoding transaction  @{[$txn->date]} " );
-
-            # the changesets are older than the ones that came before, so they goes first
-            unshift @changesets,
-                grep {defined} $self->transcode_one_txn( $txn, $ticket_initial_data, $ticket_data );
-        }
-
-    }
-
-    $args{callback}->($_) for @changesets;
-    $self->sync_source->record_upstream_last_modified_date($last_modified_date);
-}
+    is  => 'rw');
 
 
 sub _translate_final_ticket_state {
     my $self          = shift;
     my $ticket_object = shift;
-    
-    my $content = $ticket_object->description;
+   
+    warn $ticket_object->reported; 
+    my $created = App::SD::Util::string_to_datetime($ticket_object->reported);
+warn $created;
     my $ticket_data = {
 
         $self->sync_source->uuid . '-id' => $ticket_object->id,
 
         owner => ( $ticket_object->owner || undef ),
-        type => ($ticket_object->type || undef),
-        created     => ( $ticket_object->created->ymd . " " . $ticket_object->created->hms ),
+        created     => ( $created->ymd . " " . $created->hms ),
         reporter    => ( $ticket_object->reporter || undef ),
         status      => $self->translate_status( $ticket_object->status ),
         summary     => ( $ticket_object->summary || undef ),
-        description => ( $content||undef),
-        tags        => ( $ticket_object->keywords || undef ),
-        component   => ( $ticket_object->component || undef ),
-        milestone   => ( $ticket_object->milestone || undef ),
-        priority    => ( $ticket_object->priority || undef ),
-        severity    => ( $ticket_object->severity || undef ),
+        description => ( $ticket_object->description||undef),
+        tags        => ( $ticket_object->labels || undef ),
         cc          => ( $ticket_object->cc || undef ),
     };
 
@@ -110,7 +45,7 @@ sub _translate_final_ticket_state {
 
 =head2 find_matching_tickets QUERY
 
-Returns a Google Code::TicketSearch collection for all tickets found matching your QUERY hash.
+Returns a array of all tickets found matching your QUERY hash.
 
 =cut
 
@@ -120,30 +55,37 @@ sub find_matching_tickets {
    my $last_changeset_seen_dt =   $self->_only_pull_tickets_modified_after();
     $self->sync_source->log("Searching for tickets");
     require Net::Google::Code::Issue::Search;
-    my $search = Net::Google::Code::Issue::Search->new( project =>  $self->sync_source->project, limit => 9999 );
+    my $search = Net::Google::Code::Issue::Search->new( project =>  $self->sync_source->project, limit => '10' ); 
     $search->search();
-    my @results = @{$search->results};
-    foreach my $item (@results) {
-        my $t = $self->sync_source->ticket->load($item);
-        if (!$last_changeset_seen_dt || ($t->last_modified >= $last_changeset_seen_dt)) {
-            push @results, $t;
+warn" did the search";
+    my @base_results = @{$search->results};
+    my @results;
+warn "got the results";
+    foreach my $item (@base_results) {
+        if (!$last_changeset_seen_dt || ($item->last_modified >= $last_changeset_seen_dt)) {
+            warn "Got a ticket ".$item->id;
+            push @results, $item;
         }
     }
     return \@results;
 }
 
-=head2 skip_previously_seen_transactions { ticket => $id, starting_transaction => $num, transactions => \@txns  }
+
+=head2 find_matching_transactions { ticket => $id, starting_transaction => $num  }
 
 Returns a reference to an array of all transactions (as hashes) on ticket $id after transaction $num.
 
 =cut
 
-sub skip_previously_seen_transactions {
+sub find_matching_transactions { 
     my $self = shift;
-    my %args = validate( @_, { ticket => 1, transactions => 1, starting_transaction => 0 } );
-    my @txns;
+    my %args = validate( @_, { ticket => 1, starting_transaction => 1 } );
+    my @raw_txns = @{ $args{ticket}->comments};
 
-    for my $txn ( sort @{ $args{transactions} } ) {
+    my @txns;
+    # XXX TODO make this one loop.
+    for my $txn ( sort @raw_txns) {
+warn $txn;
         my $txn_date = $txn->date->epoch;
 
         # Skip things we know we've already pulled
@@ -152,7 +94,9 @@ sub skip_previously_seen_transactions {
         next if ($self->sync_source->foreign_transaction_originated_locally($txn_date, $args{'ticket'}->id) );
 
         # ok. it didn't originate locally. we might want to integrate it
-        push @txns, $txn;
+        push @txns, { timestamp => $txn->date,
+                      serial => $txn->date->epoch,
+                      object => $txn};
     }
     $self->sync_source->log('Done looking at pulled txns');
     return \@txns;
@@ -222,12 +166,9 @@ sub transcode_create_txn {
             # 1 changeset if it was a normal txn
             # 2 changesets if we needed to to some magic fixups.
 sub transcode_one_txn {
-    my ( $self, $txn, $ticket, $ticket_final ) = (@_);
+    my ( $self, $txn_wrapper, $ticket, $ticket_final ) = (@_);
 
-
-    if ($txn->is_create) {
-        return $self->transcode_create_txn($txn,$ticket,$ticket_final);
-    }
+    my $txn = $txn_wrapper->{object};
 
     my $ticket_uuid = $self->sync_source->uuid_for_remote_id( $ticket->{ $self->sync_source->uuid . '-id' } );
 
@@ -248,7 +189,7 @@ sub transcode_one_txn {
     );
 
 #    warn "right here, we need to deal with changed data that gcode failed to record";
-
+    return; # XXX TODO
     foreach my $prop_change ( values %{ $txn->prop_changes || {} } ) {
         my $new      = $prop_change->new_value;
         my $old      = $prop_change->old_value;
