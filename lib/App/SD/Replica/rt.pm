@@ -68,12 +68,6 @@ sub get_txn_list_by_date {
     return @txns;
 }
 
-sub upstream_last_txn {
-    my $self = shift;
-    my $uuid = shift;
-    return $self->app_handle->handle->last_changeset_from_source( $uuid);
-}
-
 =head2 uuid
 
 Return the replica's UUID

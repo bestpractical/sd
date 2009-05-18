@@ -100,7 +100,7 @@ sub find_matching_transactions {
     
     my $ticket_id = $args{ticket}->{$self->sync_source->uuid . '-id'};
 
-     my $latest = $self->sync_source->upstream_last_txn($self->sync_source->uuid_for_remote_id( $ticket_id )) || 0;
+     my $latest = $self->sync_source->app_handle->handle->last_changeset_from_source($self->sync_source->uuid_for_remote_id( $ticket_id )) || 0;
     for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $ticket_id)) {
         # Skip things calling code told us to skip
         next if $txn < $args{'starting_transaction'}; 
