@@ -13,7 +13,7 @@ use constant push_encoder => 'App::SD::Replica::gcode::PushEncoder';
 
 
 use Prophet::ChangeSet;
-
+has query => ( isa => 'Str', is => 'rw');
 has gcode => ( isa => 'Net::Google::Code', is => 'rw');
 has project => ( isa => 'Str', is => 'rw');
 
@@ -35,7 +35,6 @@ sub BUILD {
     $self->gcode->load();
 }
 
-
 sub get_txn_list_by_date {
     my $self   = shift;
     my $ticket = shift;
@@ -46,13 +45,6 @@ sub get_txn_list_by_date {
     my @txns   = map { { id => $_->date->epoch, creator => $_->author, created => $_->date->epoch } }
         sort {$b->date <=> $a->date }  @{$ticket_obj->comments};
     return @txns;
-}
-        
-
-sub upstream_last_txn { 
-    my $self = shift;
-    my $changeset = shift;
-    return $self->app_handle->handle->last_changeset_from_source( $changeset->original_source_uuid);
 }
 
 =head2 uuid
@@ -77,8 +69,6 @@ sub remote_uri_path_for_id {
     my $id = shift;
     return "/ticket/".$id;
 }
-
-
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
