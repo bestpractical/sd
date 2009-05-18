@@ -12,6 +12,18 @@ has sync_source => (
     is  => 'rw');
 
 
+sub ticket_id {
+    my $self = shift;
+    my $ticket = shift;
+     return $ticket->id;
+}
+
+sub ticket_last_modified {
+    my $self = shift;
+    my $ticket = shift;
+    return $ticket->last_modified;
+}
+
 sub _translate_final_ticket_state {
     my $self          = shift;
     my $ticket_object = shift;
@@ -78,13 +90,12 @@ Returns a reference to an array of all transactions (as hashes) on ticket $id af
 sub find_matching_transactions { 
     my $self = shift;
     my %args = validate( @_, { ticket => 1, starting_transaction => 1 } );
-    my @raw_txns = $args{ticket}->comments;
+    my @raw_txns = @{$args{ticket}->history->entries};
 
     my @txns;
     # XXX TODO make this one loop.
-    for my $txn ( sort @raw_txns) {
+    for my $txn ( sort { $a->date cmp $b->date} @raw_txns) {
         my $txn_date = $txn->date->epoch;
-
         # Skip things we know we've already pulled
         next if $txn_date < ( $args{'starting_transaction'} ||0 );
         # Skip things we've pushed

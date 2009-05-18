@@ -49,7 +49,7 @@ sub BUILD {
 }
 
 sub foreign_username { return shift->rt_username(@_)}
-
+  
 sub get_txn_list_by_date {
     my $self   = shift;
     my $ticket = shift;

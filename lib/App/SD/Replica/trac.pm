@@ -47,6 +47,8 @@ sub BUILD {
     $self->trac->ensure_logged_in;
 }
 
+
+
 sub get_txn_list_by_date {
     my $self   = shift;
     my $ticket = shift;

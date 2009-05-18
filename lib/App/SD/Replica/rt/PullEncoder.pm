@@ -11,7 +11,11 @@ has sync_source =>
     ( isa => 'App::SD::Replica::rt',
       is => 'rw');
 
-
+sub ticket_id {
+    my $self = shift;
+    my $ticket = shift;
+     return $ticket->{id};
+}
 
 sub _translate_final_ticket_state {
     my $self   = shift;
