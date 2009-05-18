@@ -11,6 +11,11 @@ has sync_source => (
     isa => 'App::SD::Replica::gcode',
     is  => 'rw');
 
+sub ticket_id {
+    my $self = shift;
+    my $ticket = shift;
+     return $ticket->id;
+}
 
 sub _translate_final_ticket_state {
     my $self          = shift;
@@ -55,7 +60,7 @@ sub find_matching_tickets {
    my $last_changeset_seen_dt =   $self->_only_pull_tickets_modified_after();
     $self->sync_source->log("Searching for tickets");
     require Net::Google::Code::Issue::Search;
-    my $search = Net::Google::Code::Issue::Search->new( project =>  $self->sync_source->project, limit => '10' ); 
+    my $search = Net::Google::Code::Issue::Search->new( project =>  $self->sync_source->project, limit => '1' ); 
     $search->search();
 warn" did the search";
     my @base_results = @{$search->results};
@@ -71,6 +76,54 @@ warn "got the results";
 }
 
 
+
+sub translate_ticket_state {
+    my $self = shift;
+    my $ticket = shift;
+    my $transactions = shift;
+
+    my $final_state = $self->_translate_final_ticket_state($ticket);
+    my %earlier_state = %{$final_state};
+
+    for my $txn ( sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions ) {
+            %{$txn->{post_state}} = %earlier_state;
+
+            if ($txn->{create_contrived_by_sd}) {
+            %{$txn->{pre_state}} = %earlier_state;
+            next;
+            }
+
+
+     my $updates = $txn->{object}->updates;
+
+    for my $prop (qw(owner)) {
+        my @adds;
+        my @removes;
+        my $values = delete $updates->{$prop};
+        foreach my $value (ref($values) eq 'ARRAY' ? @$values : $values) {
+            if ($value eq '---') {
+                $value = ''
+            }
+            if ($value =~ /^\-(.*)$/) {
+                    $value = $1;
+                    $earlier_state{$prop} = $self->warp_list_to_old_value($earlier_state{$prop}, $value, undef); 
+            } else {
+                    $earlier_state{$prop} = $self->warp_list_to_old_value($earlier_state{$prop}, undef, $value);
+            }
+
+            }
+        }
+
+
+    
+        %{$txn->{pre_state}} = %earlier_state;    
+     }
+
+    return \%earlier_state, $final_state;
+}
+
+
+
 =head2 find_matching_transactions { ticket => $id, starting_transaction => $num  }
 
 Returns a reference to an array of all transactions (as hashes) on ticket $id after transaction $num.
@@ -84,8 +137,7 @@ sub find_matching_transactions {
 
     my @txns;
     # XXX TODO make this one loop.
-    for my $txn ( sort @raw_txns) {
-warn $txn;
+    for my $txn ( sort { $a->sequence cmp $b->sequence} @raw_txns) {
         my $txn_date = $txn->date->epoch;
 
         # Skip things we know we've already pulled
@@ -95,10 +147,16 @@ warn $txn;
 
         # ok. it didn't originate locally. we might want to integrate it
         push @txns, { timestamp => $txn->date,
-                      serial => $txn->date->epoch,
+                      serial => $txn->sequence,
                       object => $txn};
     }
     $self->sync_source->log('Done looking at pulled txns');
+
+    unshift @txns, { timestamp => $args{ticket}->reported,
+                    serial => 0,
+                    ticket => $args{ticket},
+                   create_contrived_by_sd => 1,
+              };
     return \@txns;
 }
 
@@ -131,16 +189,17 @@ sub transcode_create_txn {
     my $txn         = shift;
     my $create_data = shift;
     my $final_data = shift;
-    my $ticket      = $txn->ticket;
+    my $ticket      = $txn->{ticket};
+    warn "transcoding the create";
              # this sequence_no only works because gcode tickets only allow one update 
              # per ticket per second.
              # we decrement by 1 on the off chance that someone created and 
              # updated the ticket in the first second
     my $changeset = Prophet::ChangeSet->new(
         {   original_source_uuid => $self->sync_source->uuid_for_remote_id( $ticket->id ),
-            original_sequence_no => ( $ticket->created->epoch-1),
+            original_sequence_no => 0,
             creator => $self->resolve_user_id_to( email_address => $create_data->{reporter} ),
-            created => $ticket->created->ymd ." ".$ticket->created->hms
+            created => $ticket->reported->ymd ." ".$ticket->reported->hms
         }
     );
 
@@ -154,7 +213,7 @@ sub transcode_create_txn {
     for my $prop ( keys %$create_data ) {
         next unless defined $create_data->{$prop};
         next if $prop =~ /^(?:patch)$/;
-        $change->add_prop_change( name => $prop, old => '', new => $create_data->{$prop} );
+        $change->add_prop_change( name => $prop, old => '', new => ref ($create_data->{$prop}) eq 'ARRAY' ?  join ( ', ',@{ $create_data->{$prop} }) : $create_data->{$prop} );
     }
 
     $changeset->add_change( { change => $change } );
@@ -165,17 +224,23 @@ sub transcode_create_txn {
             # 0 changesets if it was a null txn
             # 1 changeset if it was a normal txn
             # 2 changesets if we needed to to some magic fixups.
+           
 sub transcode_one_txn {
-    my ( $self, $txn_wrapper, $ticket, $ticket_final ) = (@_);
+    my $self = shift;
+    my $txn_wrapper = shift;
+    my $older_ticket_state = shift;
+    my $newer_ticket_state = shift;
 
     my $txn = $txn_wrapper->{object};
+    if ($txn_wrapper->{create_contrived_by_sd}) {
+        return  $self->transcode_create_txn($txn_wrapper, $older_ticket_state, $newer_ticket_state);
+    }
 
-    my $ticket_uuid = $self->sync_source->uuid_for_remote_id( $ticket->{ $self->sync_source->uuid . '-id' } );
+    my $ticket_uuid = $self->sync_source->uuid_for_remote_id( $older_ticket_state->{ $self->sync_source->uuid . '-id' } );
 
     my $changeset = Prophet::ChangeSet->new(
         {   original_source_uuid => $ticket_uuid,
-            original_sequence_no => $txn->date->epoch,    # see comment on ticket
-                                                          # create changeset
+            original_sequence_no => $txn->id,
             creator => $self->resolve_user_id_to( email_address => $txn->author ),
             created => $txn->date->ymd . " " . $txn->date->hms
         }
@@ -189,27 +254,28 @@ sub transcode_one_txn {
     );
 
 #    warn "right here, we need to deal with changed data that gcode failed to record";
-    return; # XXX TODO
-    foreach my $prop_change ( values %{ $txn->prop_changes || {} } ) {
-        my $new      = $prop_change->new_value;
-        my $old      = $prop_change->old_value;
-        my $property = $prop_change->property;
-        next if $property =~ /^(?:patch)$/;
+    my %updates = %{$txn->updates};
 
+
+    my $props = $txn->updates;
+    foreach my $property ( values %{ $props || {} } ) {
+        my $new      = $props->new_value;
+        my $old = 'FUCK. UNKNOWN';
+        die "No idea what to do with $new for $property" . YAML::Dump($new) if ref($new); use YAML;
         $old = undef if ( $old eq '' );
-        $new = undef if ( $new eq '' );
+        $new = undef if ( $new eq ''  || $new eq '' );
 
-        if (!exists $ticket_final->{$property}) {
-                $ticket_final->{$property} = $new;
-                $ticket->{$property} = $new;
+        if (!exists $newer_ticket_state->{$property}) {
+                $newer_ticket_state->{$property} = $new;
+                $older_ticket_state->{$property} = $new;
         }
 
 
-        # walk back $ticket's state
-        if (   ( !defined $new && !defined $ticket->{$property} )
-            || ( defined $new && defined $ticket->{$property} && $ticket->{$property} eq $new ) )
+        # walk back $older_ticket_state's state
+        if (   ( !defined $new && !defined $older_ticket_state->{$property} )
+            || ( defined $new && defined $older_ticket_state->{$property} && $older_ticket_state->{$property} eq $new ) )
         {
-            $ticket->{$property} = $old;
+            $older_ticket_state->{$property} = $old;
         }
 
         $change->add_prop_change( name => $property, old => $old, new => $new );
@@ -217,6 +283,18 @@ sub transcode_one_txn {
     }
 
     $changeset->add_change( { change => $change } ) if $change->has_prop_changes;
+
+    $self->_include_change_comment($changeset, $ticket_uuid, $txn);
+
+    return undef unless $changeset->has_changes;
+    return $changeset;
+}
+
+sub _include_change_comment {
+    my $self =shift;
+    my $changeset = shift;
+    my $ticket_uuid = shift;
+    my $txn = shift;
 
     my $comment = Prophet::Change->new(
         {   record_type => 'comment',
@@ -231,17 +309,13 @@ sub transcode_one_txn {
             $comment->add_prop_change( name => 'created', new  => $txn->date->ymd . ' ' . $txn->date->hms);
             $comment->add_prop_change( name => 'creator', new  => $self->resolve_user_id_to( email_address => $txn->author ));
             $comment->add_prop_change( name => 'content',      new => $content );
-            $comment->add_prop_change( name => 'content_type', new => 'text/html' );
+            $comment->add_prop_change( name => 'content_type', new => 'text/plain' );
             $comment->add_prop_change( name => 'ticket', new  => $ticket_uuid);
 
             $changeset->add_change( { change => $comment } );
         }
     }
-
-    return undef unless $changeset->has_changes;
-    return $changeset;
 }
-
 sub _recode_attachment_create {
     my $self   = shift;
     my %args   = validate( @_, { ticket => 1, txn => 1, changeset => 1, attachment => 1 } );

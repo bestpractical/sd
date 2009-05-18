@@ -24,10 +24,10 @@ sub ticket_last_modified {
     return $ticket->last_modified;
 }
 
-sub _translate_final_ticket_state {
+sub translate_ticket_state {
     my $self          = shift;
     my $ticket_object = shift;
-    
+    my $transactions = shift;    
     my $content = $ticket_object->description;
     my $ticket_data = {
 
@@ -55,7 +55,7 @@ sub _translate_final_ticket_state {
     delete $ticket_data->{$_}
         for grep !defined $ticket_data->{$_} || $ticket_data->{$_} eq '', keys %$ticket_data;
 
-    return $ticket_data;
+    return $ticket_data, {%$ticket_data};
 }
 
 =head2 find_matching_tickets QUERY

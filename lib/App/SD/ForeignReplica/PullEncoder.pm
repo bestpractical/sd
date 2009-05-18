@@ -82,8 +82,7 @@ sub transcode_history {
 
     # Walk transactions newest to oldest.
     my $txn_counter         = 0;
-    my $final_state         = $self->_translate_final_ticket_state($ticket);
-    my $initial_data = {%$final_state};
+    my ($initial_state, $final_state)          = $self->translate_ticket_state($ticket, $transactions);
 
 
     for my $txn ( sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions ) {
@@ -91,7 +90,7 @@ sub transcode_history {
 
         $self->sync_source->log( "$ticket_id Transcoding transaction " . ++$txn_counter . " of " . scalar @$transactions );
 
-        my $changeset = $self->transcode_one_txn( $txn, $initial_data, $final_state );
+        my $changeset = $self->transcode_one_txn( $txn, $initial_state, $final_state );
         next unless $changeset && $changeset->has_changes;
 
         # the changesets are older than the ones that came before, so they goes first
@@ -100,6 +99,10 @@ sub transcode_history {
     return ( $last_modified, \@changesets );
 }
 
+
+sub translate_ticket_state {
+    die 'translate_ticket_state must be mplemented';
+}
 
 sub warp_list_to_old_value {
     my $self    = shift;

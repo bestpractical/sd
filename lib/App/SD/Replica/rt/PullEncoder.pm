@@ -17,9 +17,10 @@ sub ticket_id {
      return $ticket->{id};
 }
 
-sub _translate_final_ticket_state {
+sub translate_ticket_state {
     my $self   = shift;
     my $ticket = shift;
+    my $transactions = shift;
 
     # undefine empty fields, we'll delete after cleaning
     $ticket->{$_} = undef for
@@ -63,7 +64,7 @@ sub _translate_final_ticket_state {
         grep !defined $ticket->{$_} || $ticket->{$_} eq '',
         keys %$ticket;
 
-    return $ticket;
+    return $ticket, {%$ticket};
 }
 
 =head2 find_matching_tickets query => QUERY
