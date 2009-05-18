@@ -9,9 +9,9 @@ sub run {
 
     $self->sync_source->log('Finding matching tickets');
     
-    my @tickets = $self->find_matching_tickets( query => $self->sync_source->query );
+    my $tickets = $self->find_matching_tickets( query => $self->sync_source->query );
 
-    if ( @tickets == 0 ) {
+    if ( scalar @$tickets == 0 ) {
         $self->sync_source->log("No tickets found.");
         return;
     }
@@ -23,19 +23,19 @@ sub run {
     my $previously_modified = App::SD::Util::string_to_datetime( $self->sync_source->upstream_last_modified_date );
 
     my $progress = Time::Progress->new();
-    $progress->attr( max => $#tickets );
+    $progress->attr( max => $#$tickets );
 
     local $| = 1;
     
     my $last_modified;
 
-    for my $ticket (@tickets) {
+    for my $ticket (@$tickets) {
         $counter++;
 
         my $ticket_id = $ticket->{id};
 
         print $progress->report( "%30b %p Est: %E\r", $counter );
-        $self->sync_source->log( "Fetching ticket $ticket_id - $counter of " . scalar @tickets );
+        $self->sync_source->log( "Fetching ticket $ticket_id - $counter of " . scalar @$tickets );
 
         my $final_state         = $self->_translate_final_ticket_state($ticket);
         my $initial_state       = {%$final_state};

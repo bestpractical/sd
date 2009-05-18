@@ -77,11 +77,11 @@ sub find_matching_tickets {
        $query = "($query) AND LastUpdated >= '" . $before->ymd('-') . " " . $before->hms(':') . "'";
         $self->sync_source->log( "Skipping all tickets not updated since " . $before->iso8601 );
     }
-    return map {
+    return [map {
         my $hash = $self->sync_source->rt->show( type => 'ticket', id => $_ );
         $hash->{id} =~ s|^ticket/||g;
         $hash
-    } $self->sync_source->rt->search( type => 'ticket', query => $query );
+    } $self->sync_source->rt->search( type => 'ticket', query => $query )];
 }
 
 

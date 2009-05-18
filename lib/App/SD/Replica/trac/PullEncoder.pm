@@ -66,7 +66,7 @@ sub find_matching_tickets {
         # >= is wasteful but may catch race conditions
         @results = grep {$_->last_modified >= $last_changeset_seen_dt} @results; 
     }
-    return @results;
+    return \@results;
 }
 
 =head2 find_matching_transactions { ticket => $id, starting_transaction => $num  }
@@ -78,7 +78,7 @@ Returns a reference to an array of all transactions (as hashes) on ticket $id af
 sub find_matching_transactions { 
     my $self = shift;
     my %args = validate( @_, { ticket => 1, starting_transaction => 1 } );
-    my @raw_txns = @{$args{ticket}->history->entries};
+    my @raw_txns = $args{ticket}->comments;
 
     my @txns;
     # XXX TODO make this one loop.
