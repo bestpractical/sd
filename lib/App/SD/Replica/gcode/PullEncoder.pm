@@ -58,7 +58,8 @@ sub find_matching_tickets {
    my $last_changeset_seen_dt =   $self->_only_pull_tickets_modified_after();
     $self->sync_source->log("Searching for tickets");
     require Net::Google::Code::Issue::Search;
-    my $search = Net::Google::Code::Issue::Search->new( project =>  $self->sync_source->project, limit => '99999' ); 
+    my $search = Net::Google::Code::Issue::Search->new( project =>
+            $self->sync_source->project, limit => '99999', _can => 'all' ); 
     $search->search();
     my @base_results = @{$search->results};
     my @results;
