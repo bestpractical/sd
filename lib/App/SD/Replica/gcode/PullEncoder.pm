@@ -21,9 +21,7 @@ sub _translate_final_ticket_state {
     my $self          = shift;
     my $ticket_object = shift;
    
-    warn $ticket_object->reported; 
     my $created = App::SD::Util::string_to_datetime($ticket_object->reported);
-warn $created;
     my $ticket_data = {
 
         $self->sync_source->uuid . '-id' => $ticket_object->id,
@@ -31,7 +29,7 @@ warn $created;
         owner => ( $ticket_object->owner || undef ),
         created     => ( $created->ymd . " " . $created->hms ),
         reporter    => ( $ticket_object->reporter || undef ),
-        status      => $self->translate_status( $ticket_object->status ),
+        status      => $self->translate_prop_status( $ticket_object->status ),
         summary     => ( $ticket_object->summary || undef ),
         description => ( $ticket_object->description||undef),
         tags        => ( $ticket_object->labels || undef ),
@@ -43,7 +41,7 @@ warn $created;
 
     # delete undefined and empty fields
     delete $ticket_data->{$_}
-        for grep !defined $ticket_data->{$_} || $ticket_data->{$_} eq '', keys %$ticket_data;
+        for grep !defined $ticket_data->{$_} || $ticket_data->{$_} eq '' || $ticket_data->{$_} eq '----', keys %$ticket_data;
 
     return $ticket_data;
 }
@@ -60,15 +58,12 @@ sub find_matching_tickets {
    my $last_changeset_seen_dt =   $self->_only_pull_tickets_modified_after();
     $self->sync_source->log("Searching for tickets");
     require Net::Google::Code::Issue::Search;
-    my $search = Net::Google::Code::Issue::Search->new( project =>  $self->sync_source->project, limit => '1' ); 
+    my $search = Net::Google::Code::Issue::Search->new( project =>  $self->sync_source->project, limit => '99999' ); 
     $search->search();
-warn" did the search";
     my @base_results = @{$search->results};
     my @results;
-warn "got the results";
     foreach my $item (@base_results) {
         if (!$last_changeset_seen_dt || ($item->last_modified >= $last_changeset_seen_dt)) {
-            warn "Got a ticket ".$item->id;
             push @results, $item;
         }
     }
@@ -86,22 +81,25 @@ sub translate_ticket_state {
     my %earlier_state = %{$final_state};
 
     for my $txn ( sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions ) {
-            %{$txn->{post_state}} = %earlier_state;
+            $txn->{post_state} = {%earlier_state};
 
             if ($txn->{create_contrived_by_sd}) {
-            %{$txn->{pre_state}} = %earlier_state;
+            $txn->{pre_state} = {%earlier_state};
             next;
             }
 
 
      my $updates = $txn->{object}->updates;
 
-    for my $prop (qw(owner)) {
+    for my $prop (qw(owner status labels)) {
         my @adds;
         my @removes;
         my $values = delete $updates->{$prop};
         foreach my $value (ref($values) eq 'ARRAY' ? @$values : $values) {
-            if ($value eq '---') {
+            if(my $sub =  $self->can('translate_prop_'.$prop)) {
+                    $value = $sub->($self, $value);
+            }
+            if ($value eq '----') {
                 $value = ''
             }
             if ($value =~ /^\-(.*)$/) {
@@ -116,7 +114,7 @@ sub translate_ticket_state {
 
 
     
-        %{$txn->{pre_state}} = %earlier_state;    
+        $txn->{pre_state} ={ %earlier_state};    
      }
 
     return \%earlier_state, $final_state;
@@ -190,13 +188,13 @@ sub transcode_create_txn {
     my $create_data = shift;
     my $final_data = shift;
     my $ticket      = $txn->{ticket};
-    warn "transcoding the create";
              # this sequence_no only works because gcode tickets only allow one update 
              # per ticket per second.
              # we decrement by 1 on the off chance that someone created and 
              # updated the ticket in the first second
+             warn "recording create of ".$self->sync_source->uuid_for_remote_id( $ticket->{  'id' } );
     my $changeset = Prophet::ChangeSet->new(
-        {   original_source_uuid => $self->sync_source->uuid_for_remote_id( $ticket->id ),
+        {   original_source_uuid => $self->sync_source->uuid_for_remote_id( $ticket->{ 'id' } ),
             original_sequence_no => 0,
             creator => $self->resolve_user_id_to( email_address => $create_data->{reporter} ),
             created => $ticket->reported->ymd ." ".$ticket->reported->hms
@@ -205,17 +203,14 @@ sub transcode_create_txn {
 
     my $change = Prophet::Change->new(
         {   record_type => 'ticket',
-            record_uuid => $self->sync_source->uuid_for_remote_id( $ticket->id ),
+            record_uuid => $self->sync_source->uuid_for_remote_id( $ticket->{ 'id' } ),
             change_type => 'add_file'
         }
     );
 
-    for my $prop ( keys %$create_data ) {
-        next unless defined $create_data->{$prop};
-        next if $prop =~ /^(?:patch)$/;
-        $change->add_prop_change( name => $prop, old => '', new => ref ($create_data->{$prop}) eq 'ARRAY' ?  join ( ', ',@{ $create_data->{$prop} }) : $create_data->{$prop} );
+    for my $prop ( keys %{$txn->{post_state}}) {
+        $change->add_prop_change( name => $prop, new => ref ($txn->{post_state}->{$prop}) eq 'ARRAY' ?  join ( ', ',@{ $txn->{post_state}->{$prop} }) : $txn->{post_state}->{$prop} );
     }
-
     $changeset->add_change( { change => $change } );
     return $changeset;
 }
@@ -236,11 +231,11 @@ sub transcode_one_txn {
         return  $self->transcode_create_txn($txn_wrapper, $older_ticket_state, $newer_ticket_state);
     }
 
-    my $ticket_uuid = $self->sync_source->uuid_for_remote_id( $older_ticket_state->{ $self->sync_source->uuid . '-id' } );
-
+    my $ticket_uuid = $self->sync_source->uuid_for_remote_id( $newer_ticket_state->{'id' } );
+    warn "Recording an update to ".$ticket_uuid;
     my $changeset = Prophet::ChangeSet->new(
         {   original_source_uuid => $ticket_uuid,
-            original_sequence_no => $txn->id,
+            original_sequence_no => $txn->sequence,
             creator => $self->resolve_user_id_to( email_address => $txn->author ),
             created => $txn->date->ymd . " " . $txn->date->hms
         }
@@ -258,27 +253,8 @@ sub transcode_one_txn {
 
 
     my $props = $txn->updates;
-    foreach my $property ( values %{ $props || {} } ) {
-        my $new      = $props->new_value;
-        my $old = 'FUCK. UNKNOWN';
-        die "No idea what to do with $new for $property" . YAML::Dump($new) if ref($new); use YAML;
-        $old = undef if ( $old eq '' );
-        $new = undef if ( $new eq ''  || $new eq '' );
-
-        if (!exists $newer_ticket_state->{$property}) {
-                $newer_ticket_state->{$property} = $new;
-                $older_ticket_state->{$property} = $new;
-        }
-
-
-        # walk back $older_ticket_state's state
-        if (   ( !defined $new && !defined $older_ticket_state->{$property} )
-            || ( defined $new && defined $older_ticket_state->{$property} && $older_ticket_state->{$property} eq $new ) )
-        {
-            $older_ticket_state->{$property} = $old;
-        }
-
-        $change->add_prop_change( name => $property, old => $old, new => $new );
+    foreach my $prop ( keys %{ $props || {} } ) {
+        $change->add_prop_change( name => $prop, old => $txn->{pre_state}->{$prop}, new => $txn->{post_state}->{$prop} );
 
     }
 
@@ -351,23 +327,21 @@ sub _recode_attachment_create {
     $change->add_prop_change(
         name => 'ticket',
         old  => undef,
-        new  => $self->sync_source->uuid_for_remote_id(
-            $args{'ticket'}->{ $self->sync_source->uuid . '-id' }
-        )
+        new  => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{'id' })
     );
     $args{'changeset'}->add_change( { change => $change } );
 }
 
-sub translate_status {
+sub translate_prop_status {
     my $self   = shift;
     my $status = shift;
 
     $status =~ s/^resolved$/closed/;
-    return $status;
+    return lc($status);
 }
 
 my %PROP_MAP;
-sub translate_prop_names {
+sub translate_propnames {
     my $self      = shift;
     my $changeset = shift;
 
@@ -402,7 +376,7 @@ sub resolve_user_id_to {
     my $self = shift;
     my $to   = shift;
     my $id   = shift;
-    return $id . '@gcode-instance.local';
+    return $id . '@'.$self->sync_source->project.'googlecode.com';
 
 }
 
