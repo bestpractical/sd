@@ -42,8 +42,14 @@ sub get_txn_list_by_date {
     my $ticket_obj = Net::Google::Code::Issue->new( project => $self->project);
     $ticket_obj->load($ticket);
         
-    my @txns   = map { { id => $_->date->epoch, creator => $_->author, created => $_->date->epoch } }
-        sort {$b->date <=> $a->date }  @{$ticket_obj->comments};
+    my @txns = map {
+        {
+            id      => $_->sequence,
+            creator => $_->author,
+            created => $_->date->epoch,
+        }
+      }
+      sort { $b->date <=> $a->date } @{ $ticket_obj->comments };
     return @txns;
 }
 
