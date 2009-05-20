@@ -10,9 +10,20 @@ use Memoize;
 use constant scheme => 'gcode';
 use constant pull_encoder => 'App::SD::Replica::gcode::PullEncoder';
 use constant push_encoder => 'App::SD::Replica::gcode::PushEncoder';
-
-
 use Prophet::ChangeSet;
+
+our %PROP_MAP = (
+    summary  => 'summary',
+    status   => 'status',
+    owner    => 'owner',
+    reporter => 'reporter',
+    cc       => 'cc',
+    closed   => 'completed',
+    reported => 'created',
+    labels   => 'tags',
+);
+
+
 has query => ( isa => 'Str', is => 'rw');
 has gcode => ( isa => 'Net::Google::Code', is => 'rw');
 has project => ( isa => 'Str', is => 'rw');

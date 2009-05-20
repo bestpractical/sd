@@ -352,7 +352,7 @@ sub translate_prop_status {
     return lc($status);
 }
 
-my %PROP_MAP;
+my %PROP_MAP = %App::SD::Replica::gcode::PROP_MAP;
 
 sub translate_propnames {
     my $self      = shift;
@@ -363,18 +363,19 @@ sub translate_propnames {
 
         my @new_props;
         for my $prop ( $change->prop_changes ) {
-            next if ( ( $PROP_MAP{ lc( $prop->name ) } || '' ) eq '_delete' );
-            $prop->name( $PROP_MAP{ lc( $prop->name ) } )
-              if $PROP_MAP{ lc( $prop->name ) };
+            next
+              unless $PROP_MAP{ lc( $prop->name ) }
+                  && $PROP_MAP{ lc( $prop->name ) } ne '_delete';
 
-            # Normalize away undef -> "" and vice-versa
+            $prop->name( $PROP_MAP{ lc( $prop->name ) } );
+
+              # Normalize away undef -> "" and vice-versa
             for (qw/new_value old_value/) {
                 $prop->$_("") if !defined( $prop->$_() );
             }
             next if ( $prop->old_value eq $prop->new_value );
 
             push @new_props, $prop;
-
         }
         $change->prop_changes( \@new_props );
 
