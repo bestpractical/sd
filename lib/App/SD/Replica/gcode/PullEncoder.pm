@@ -12,6 +12,8 @@ has sync_source => (
     is  => 'rw',
 );
 
+my %PROP_MAP = %App::SD::Replica::gcode::PROP_MAP;
+
 sub ticket_id {
     my $self   = shift;
     return shift->id;
@@ -29,7 +31,7 @@ sub _translate_final_ticket_state {
         status      => $self->translate_prop_status( $ticket->status ),
         summary     => $ticket->summary,
         description => $ticket->description,
-        tags        => $ticket->labels,
+        tags        => (join ', ', @{$ticket->labels}),
         cc          => $ticket->cc,
     };
 
@@ -90,7 +92,7 @@ sub translate_ticket_state {
 
         my $updates = $txn->{object}->updates;
 
-        for my $prop (qw(owner status labels)) {
+        for my $prop (qw(owner status labels cc summary)) {
             my @adds;
             my @removes;
             my $values = delete $updates->{$prop};
@@ -100,13 +102,15 @@ sub translate_ticket_state {
                 }
                 if ( $value =~ /^\-(.*)$/ ) {
                     $value = $1;
-                    $earlier_state{$prop} =
-                      $self->warp_list_to_old_value( $earlier_state{$prop},
+                    $earlier_state{ $PROP_MAP{$prop} } =
+                      $self->warp_list_to_old_value(
+                        $earlier_state{ $PROP_MAP{$prop} },
                         $value, undef );
                 }
                 else {
-                    $earlier_state{$prop} =
-                      $self->warp_list_to_old_value( $earlier_state{$prop},
+                    $earlier_state{ $PROP_MAP{$prop} } =
+                      $self->warp_list_to_old_value(
+                        $earlier_state{ $PROP_MAP{$prop} },
                         undef, $value );
                 }
 
@@ -241,9 +245,9 @@ sub transcode_one_txn {
     my $props = $txn->updates;
     foreach my $prop ( keys %{ $props || {} } ) {
         $change->add_prop_change(
-            name => $prop,
-            old  => $txn->{pre_state}->{$prop},
-            new  => $txn->{post_state}->{$prop}
+            name => $PROP_MAP{$prop},
+            old  => $txn->{pre_state}->{$PROP_MAP{$prop}},
+            new  => $txn->{post_state}->{$PROP_MAP{$prop}}
         );
 
     }
@@ -350,37 +354,6 @@ sub translate_prop_status {
     my $self   = shift;
     my $status = shift;
     return lc($status);
-}
-
-my %PROP_MAP = %App::SD::Replica::gcode::PROP_MAP;
-
-sub translate_propnames {
-    my $self      = shift;
-    my $changeset = shift;
-
-    for my $change ( $changeset->changes ) {
-        next unless $change->record_type eq 'ticket';
-
-        my @new_props;
-        for my $prop ( $change->prop_changes ) {
-            next
-              unless $PROP_MAP{ lc( $prop->name ) }
-                  && $PROP_MAP{ lc( $prop->name ) } ne '_delete';
-
-            $prop->name( $PROP_MAP{ lc( $prop->name ) } );
-
-              # Normalize away undef -> "" and vice-versa
-            for (qw/new_value old_value/) {
-                $prop->$_("") if !defined( $prop->$_() );
-            }
-            next if ( $prop->old_value eq $prop->new_value );
-
-            push @new_props, $prop;
-        }
-        $change->prop_changes( \@new_props );
-
-    }
-    return $changeset;
 }
 
 sub resolve_user_id_to {
