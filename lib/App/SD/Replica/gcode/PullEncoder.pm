@@ -86,32 +86,32 @@ sub translate_ticket_state {
         $txn->{post_state} = {%earlier_state};
 
         if ( $txn->{serial} == 0 ) {
-            $txn->{pre_state} = {%earlier_state};
-            next;
+            $txn->{pre_state} = {};
+            last;
         }
 
         my $updates = $txn->{object}->updates;
 
         for my $prop (qw(owner status labels cc summary)) {
-            my @adds;
-            my @removes;
+            next unless exists $updates->{$prop};
             my $values = delete $updates->{$prop};
-            foreach my $value ( ref($values) eq 'ARRAY' ? @$values : $values ) {
+            for my $value ( ref($values) eq 'ARRAY' ? @$values : $values ) {
                 if ( my $sub = $self->can( 'translate_prop_' . $prop ) ) {
                     $value = $sub->( $self, $value );
                 }
-                if ( $value =~ /^\-(.*)$/ ) {
+
+                if ( $value =~ /^-(.*)$/ ) {
                     $value = $1;
                     $earlier_state{ $PROP_MAP{$prop} } =
                       $self->warp_list_to_old_value(
                         $earlier_state{ $PROP_MAP{$prop} },
-                        $value, undef );
+                        undef, $value );
                 }
                 else {
                     $earlier_state{ $PROP_MAP{$prop} } =
                       $self->warp_list_to_old_value(
                         $earlier_state{ $PROP_MAP{$prop} },
-                        undef, $value );
+                        $value, undef );
                 }
 
             }
@@ -218,8 +218,9 @@ sub transcode_one_txn {
             $newer_ticket_state );
     }
 
+    my $ticket_id   = $newer_ticket_state->{ $self->sync_source->uuid . '-id' };
     my $ticket_uuid =
-      $self->sync_source->uuid_for_remote_id( $newer_ticket_state->{'id'} );
+      $self->sync_source->uuid_for_remote_id( $ticket_id );
     warn "Recording an update to " . $ticket_uuid;
     my $changeset = Prophet::ChangeSet->new(
         {
@@ -239,6 +240,16 @@ sub transcode_one_txn {
         }
     );
 
+    for my $prop ( keys %{ $txn_wrapper->{post_state} } ) {
+        my $new = $txn_wrapper->{post_state}->{$prop};
+        my $old = $txn_wrapper->{pre_state}->{$prop};
+        $change->add_prop_change(
+            name => $prop,
+            new  => $new,
+            old  => $old,
+        ) unless $new eq $old;
+    }
+
 #    warn "right here, we need to deal with changed data that gcode failed to record";
     my %updates = %{ $txn->updates };
 
@@ -246,8 +257,8 @@ sub transcode_one_txn {
     foreach my $prop ( keys %{ $props || {} } ) {
         $change->add_prop_change(
             name => $PROP_MAP{$prop},
-            old  => $txn->{pre_state}->{$PROP_MAP{$prop}},
-            new  => $txn->{post_state}->{$PROP_MAP{$prop}}
+            old  => $txn_wrapper->{pre_state}->{$PROP_MAP{$prop}},
+            new  => $txn_wrapper->{post_state}->{$PROP_MAP{$prop}}
         );
 
     }
@@ -257,7 +268,7 @@ sub transcode_one_txn {
 
     $self->_include_change_comment( $changeset, $ticket_uuid, $txn );
 
-    return undef unless $changeset->has_changes;
+    return unless $changeset->has_changes;
     return $changeset;
 }
 
