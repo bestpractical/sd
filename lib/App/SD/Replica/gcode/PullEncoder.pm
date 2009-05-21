@@ -167,24 +167,27 @@ sub transcode_create_txn {
     my $create_data = shift;
     my $final_data  = shift;
     my $ticket_id   = $final_data->{ $self->sync_source->uuid . '-id' };
+    my $ticket_uuid = 
+          $self->sync_source->uuid_for_remote_id($ticket_id);
+    my $creator =
+      $self->resolve_user_id_to( email_address => $create_data->{reporter} );
+    my $created = $final_data->{created};
+
     warn "recording create of "
       . $self->sync_source->uuid_for_remote_id($ticket_id);
     my $changeset = Prophet::ChangeSet->new(
         {
-            original_source_uuid =>
-              $self->sync_source->uuid_for_remote_id($ticket_id),
+            original_source_uuid => $ticket_uuid,
             original_sequence_no => 0,
-            creator              => $self->resolve_user_id_to(
-                email_address => $create_data->{reporter}
-            ),
-            created => $final_data->{created},
+            creator              => $creator,
+            created              => $created,
         }
     );
 
     my $change = Prophet::Change->new(
         {
             record_type => 'ticket',
-            record_uuid => $self->sync_source->uuid_for_remote_id($ticket_id),
+            record_uuid => $ticket_uuid,
             change_type => 'add_file',
         }
     );
@@ -198,6 +201,15 @@ sub transcode_create_txn {
         );
     }
     $changeset->add_change( { change => $change } );
+
+    for my $att ( @{ $txn->{object}->attachments } ) {
+        $self->_recode_attachment_create(
+            ticket_uuid => $ticket_uuid,
+            txn         => $txn->{object},
+            changeset   => $changeset,
+            attachment  => $att,
+        );
+    }
     return $changeset;
 }
 
@@ -308,55 +320,66 @@ sub _include_change_comment {
             $changeset->add_change( { change => $comment } );
         }
     }
+
+    for my $att ( @{ $txn->attachments } ) {
+        $self->_recode_attachment_create(
+            ticket_uuid => $ticket_uuid,
+            txn         => $txn,
+            changeset   => $changeset,
+            attachment  => $att,
+        );
+    }
 }
 
 sub _recode_attachment_create {
     my $self = shift;
     my %args =
       validate( @_,
-        { ticket => 1, txn => 1, changeset => 1, attachment => 1 } );
+        { ticket_uuid => 1, txn => 1, changeset => 1, attachment => 1 } );
     my $change = Prophet::Change->new(
         {
             record_type => 'attachment',
             record_uuid => $self->sync_source->uuid_for_url(
                     $self->sync_source->remote_url
                   . "/attachment/"
-                  . $args{'attachment'}->{'id'}
+                  . $args{'attachment'}->id,
             ),
-            change_type => 'add_file'
+            change_type => 'add_file',
         }
     );
-    $change->add_prop_change(
-        name => 'content_type',
-        old  => undef,
-        new  => $args{'attachment'}->{'ContentType'}
-    );
+
+#    $change->add_prop_change(
+#        name => 'content_type',
+#        old  => undef,
+#        new  => 'text/plain',
+#    );
+
     $change->add_prop_change(
         name => 'created',
         old  => undef,
-        new  => $args{'txn'}->{'Created'}
+        new  => $args{'txn'}->date->ymd . ' ' . $args{'txn'}->date->hms,
     );
     $change->add_prop_change(
         name => 'creator',
         old  => undef,
-        new  => $self->resolve_user_id_to(
-            email_address => $args{'attachment'}->{'Creator'}
-        )
+        new =>
+          $self->resolve_user_id_to( email_address => $args{'txn'}->author )
     );
+
     $change->add_prop_change(
         name => 'content',
         old  => undef,
-        new  => $args{'attachment'}->{'Content'}
+        new  => $args{'attachment'}->content,
     );
     $change->add_prop_change(
         name => 'name',
         old  => undef,
-        new  => $args{'attachment'}->{'Filename'}
+        new  => $args{'attachment'}->name,
     );
     $change->add_prop_change(
         name => 'ticket',
         old  => undef,
-        new => $self->sync_source->uuid_for_remote_id( $args{'ticket'}->{'id'} )
+        new  => $args{ticket_uuid},
     );
     $args{'changeset'}->add_change( { change => $change } );
 }
