@@ -348,11 +348,11 @@ sub _recode_attachment_create {
         }
     );
 
-#    $change->add_prop_change(
-#        name => 'content_type',
-#        old  => undef,
-#        new  => 'text/plain',
-#    );
+    $change->add_prop_change(
+        name => 'content_type',
+        old  => undef,
+        new  => $args{'attachment'}->content_type,
+    );
 
     $change->add_prop_change(
         name => 'created',
