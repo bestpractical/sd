@@ -1,5 +1,8 @@
 package App::SD::Replica::hm::PushEncoder;
 use Any::Moose; 
+
+extends 'App::SD::ForeignReplica::PushEncoder';
+
 use Params::Validate;
 use Data::Dumper;
 use Path::Class;
@@ -7,79 +10,7 @@ has sync_source =>
     ( isa => 'App::SD::Replica::hm',
       is => 'rw');
 
-sub integrate_changes {
-    my $self = shift;
-    my ( $changeset ) = validate_pos(
-        @_, { isa => 'Prophet::ChangeSet' }
-    );
 
-    return if $self->sync_source->has_seen_changeset($changeset);
-
-    my @changes = $changeset->changes;
-    foreach my $change ( splice @changes ) {
-        # don't push internal records
-        next if $change->record_type =~ /^__/;
-
-        # integrate 'create ticket' earlier than other changes
-        if ( $change->record_type eq 'ticket'
-            and $change->change_type eq 'add_file'
-        ) {
-            $self->integrate_change( $change, $changeset );
-        } else {
-            push @changes, $change;
-        }
-    }
-
-    foreach my $change ( @changes ) {
-        $self->integrate_change( $change, $changeset );
-    }
-}
-
-
-sub integrate_change {
-    my $self = shift;
-    my ( $change, $changeset ) = validate_pos(
-        @_,
-        { isa => 'Prophet::Change' },
-        { isa => 'Prophet::ChangeSet' }
-    );
-    my $id;
-    eval {
-        if (    $change->record_type eq 'ticket'
-            and $change->change_type eq 'add_file' 
-    )
-        {
-            $id = $self->integrate_ticket_create( $change, $changeset );
-            $self->sync_source->record_remote_id_for_pushed_record(
-                uuid      => $change->record_uuid,
-                remote_id => $id
-            );
-
-        } elsif ( $change->record_type eq 'attachment'
-            and $change->change_type eq 'add_file' 
-        
-        ) {
-            $id = $self->integrate_attachment( $change, $changeset );
-        } elsif ( $change->record_type eq 'comment' 
-            and $change->change_type eq 'add_file' 
-        ) {
-            $id = $self->integrate_comment( $change, $changeset );
-        } elsif ( $change->record_type eq 'ticket' ) {
-            $id = $self->integrate_ticket_update( $change, $changeset );
-
-        } else {
-            return undef;
-        }
-
-        $self->sync_source->record_pushed_transactions(
-            ticket    => $id,
-            changeset => $changeset
-        );
-
-    };
-    warn $@ if $@;
-    return $id;
-}
 
 sub integrate_ticket_create {
     my $self = shift;

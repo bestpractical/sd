@@ -10,15 +10,15 @@ use File::Temp 'tempdir';
 
 has hm => ( isa => 'Net::Jifty', is => 'rw');
 has remote_url => ( isa => 'Str', is => 'rw');
-has hm_username => ( isa => 'Str', is => 'rw');
+has foreign_username => ( isa => 'Str', is => 'rw');
 has props => ( isa => 'HashRef', is => 'rw');
 
 use constant scheme => 'hm';
 use constant pull_encoder => 'App::SD::Replica::hm::PullEncoder';
 use constant push_encoder => 'App::SD::Replica::hm::PushEncoder';
 
-use App::SD::Replica::rt;
-
+# XXX TODO - kill the query requirement by refactoring sub run in the superclass
+use constant query => '';
 
 =head2 BUILD
 
@@ -41,7 +41,7 @@ sub BUILD {
         $uri->userinfo(undef);
     }
     $self->remote_url("$uri");
-    $self->hm_username($username);
+    $self->foreign_username($username) if ($username);
     ( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
     if ( $props ) {
         my %props = split /=|;/, $props;
@@ -66,19 +66,36 @@ Return the replica's UUID
 
 sub uuid {
     my $self = shift;
-    Carp::cluck "- can't make a uuid for this" unless ($self->remote_url && $self->hm_username);
-    return $self->uuid_for_url( join( '/', $self->remote_url, $self->hm_username ) );
+    return $self->uuid_for_url( join( '/', $self->remote_url, $self->foreign_username ) );
 }
 
-sub record_pushed_transactions {
-    # don't need this for hm
+
+sub get_txn_list_by_date {
+    my $self   = shift;
+    my $ticket = shift;
+    my @txns   = map {
+        my $txn_created_dt =App::SD::Util::string_to_datetime( $_->{modified_at});
+        unless ($txn_created_dt) {
+            die "Couldn't parse '" . $_->{modified_at} . "' as a timestamp";
+        }
+        my $txn_created = $txn_created_dt->epoch;
+
+        return { id => $_->{id}, creator => $_->{creator}, created => $txn_created }
+        }
+
+        sort { $a->{'id'} <=> $b->{'id'} }
+            @{ $self->hm->search( 'TaskTransaction', task_id => $ticket ) || []};
+
+    return @txns;
 }
+
+
 
 sub user_info {
     my $self = shift;
     my %args = @_;
     return $self->_user_info(
-        keys %args? (%args) : (email => $self->hm_username)
+        keys %args? (%args) : (email => $self->foreign_username)
     );
 }
 
@@ -93,17 +110,6 @@ sub _user_info {
 }
 memoize '_user_info';
 
-sub integrate_changes {
-    my ($self, $changeset) = validate_pos(
-        @_, {isa => 'Prophet::Replica'}, { isa => 'Prophet::ChangeSet' }
-    );
-
-    require App::SD::Replica::hm::PushEncoder;
-    my $recoder = App::SD::Replica::hm::PushEncoder->new( {
-        sync_source => $self,
-    } );
-    return $recoder->integrate_changes($changeset);
-}
 
 sub remote_uri_path_for_id {
     my $self = shift;
