@@ -85,8 +85,9 @@ run_output_matches_unordered(
     [ 'ticket',                     'list', '--regex', '.' ],
     [ sort "$yatta_id YATTA new", "$flyman_id Crash Man -" ]
 );
-
+diag("We did one pull from hm just fine");
 $task->set_summary('KILL');
+diag("pulling from hiveminder a second time");
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
 

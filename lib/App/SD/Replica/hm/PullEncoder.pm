@@ -99,9 +99,7 @@ sub find_matching_transactions {
         next if $txn->{'id'} < $args{'starting_transaction'};
 
         # Skip things we've pushed
-        next
-            if $self->sync_source->foreign_transaction_originated_locally( $txn->{'id'},
-                    $args{task} );
+        next if $self->sync_source->foreign_transaction_originated_locally( $txn->{'id'}, $args{ticket}->{id} );
 
         $txn->{history_entries}
             = $self->sync_source->hm->search( 'TaskHistory', transaction_id => $txn->{'id'} );
@@ -109,7 +107,7 @@ sub find_matching_transactions {
             = $self->sync_source->hm->search( 'TaskEmail', transaction_id => $txn->{'id'} );
         push @matched,
             {
-            timestamp => App::SD::Util::string_to_datetime( $txn->{modified_at} )->epoch,
+            timestamp => App::SD::Util::string_to_datetime( $txn->{modified_at} ),
             serial    => $txn->{id},
             object    => $txn
             };

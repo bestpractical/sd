@@ -7,7 +7,7 @@ $ENV{'PROPHET_EMAIL'} = 'onlooker@example.com';
 
 BEGIN {
     if ( $ENV{'JIFTY_APP_ROOT'} ) {
-        plan tests => 12;
+        plan tests => 11;
         require File::Temp;
         $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
         diag $ENV{'PROPHET_REPO'};
@@ -56,7 +56,6 @@ my ( $ret, $out, $err );
 
 my $sd_hm_url = "hm:$URL|tag=mytag";
 eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] ) };
-like($out, qr/one changeset/, "only one change");
 
 my ($flyman_uuid, $flyman_id );
 {
