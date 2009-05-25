@@ -23,6 +23,19 @@ sub _translate_final_ticket_state {
     my $self   = shift;
     my $ticket = shift;
 
+    my @labels = @{$ticket->labels};
+    my %prop;
+    my @tags;
+
+    for my $label (@labels) {
+        if ( $label =~ /(.*?)-(.*)/ ) {
+            $prop{$1} = $2;
+        }
+        else {
+            push @tags, $label;
+        }
+    }
+
     my $ticket_data = {
         $self->sync_source->uuid . '-id' => $ticket->id,
         owner                            => $ticket->owner,
@@ -31,9 +44,13 @@ sub _translate_final_ticket_state {
         status      => $self->translate_prop_status( $ticket->status ),
         summary     => $ticket->summary,
         description => $ticket->description,
-        tags        => (join ', ', @{$ticket->labels}),
+        tags        => (join ', ', @tags),
         cc          => $ticket->cc,
     };
+
+    for my $p ( keys %prop ) {
+        $ticket_data->{$p} = $prop{$p};
+    }
 
     # delete undefined and empty fields
     delete $ticket_data->{$_}
@@ -60,7 +77,7 @@ sub find_matching_tickets {
         limit   => '99999',
         _can    => 'all',
     );
-    $search->search( _q => $query{query} );
+    $search->search( _q => $query{query} || 'label:0.05 summary:not' );
     my @base_results = @{ $search->results };
     my @results;
 
@@ -92,28 +109,41 @@ sub translate_ticket_state {
 
         my $updates = $txn->{object}->updates;
 
-        for my $prop (qw(owner status labels cc summary)) {
+        for my $prop (qw(owner status cc summary)) {
             next unless exists $updates->{$prop};
-            my $values = delete $updates->{$prop};
-            for my $value ( ref($values) eq 'ARRAY' ? @$values : $values ) {
-                if ( my $sub = $self->can( 'translate_prop_' . $prop ) ) {
-                    $value = $sub->( $self, $value );
+            my $value = delete $updates->{$prop};
+            if ( my $sub = $self->can( 'translate_prop_' . $prop ) ) {
+                $value = $sub->( $self, $value );
+            }
+
+            $earlier_state{ $PROP_MAP{$prop} } =
+              $self->warp_list_to_old_value( $earlier_state{ $PROP_MAP{$prop} },
+                $value, undef );
+        }
+
+        if ( $updates->{labels} ) {
+            my $values = delete $updates->{labels};
+            for my $value (@$values) {
+                my $is_delete;
+                if ( $value =~ /^-(.*)$/ ) {
+                    $is_delete = 1;
+                    $value     = $1;
                 }
 
-                if ( $value =~ /^-(.*)$/ ) {
-                    $value = $1;
-                    $earlier_state{ $PROP_MAP{$prop} } =
-                      $self->warp_list_to_old_value(
-                        $earlier_state{ $PROP_MAP{$prop} },
-                        undef, $value );
+                my $name;
+                if ( $value =~ /(.*?)-(.*)/ ) {
+                    $name  = lc $1;
+                    $value = $2;
                 }
                 else {
-                    $earlier_state{ $PROP_MAP{$prop} } =
-                      $self->warp_list_to_old_value(
-                        $earlier_state{ $PROP_MAP{$prop} },
-                        $value, undef );
+                    $name = 'labels';
                 }
 
+                $name = $PROP_MAP{$name} || $name;
+
+                $earlier_state{$name} =
+                  $self->warp_list_to_old_value( $earlier_state{$name},
+                    $is_delete ? ( undef, $value ) : ( $value, undef ) );
             }
         }
 

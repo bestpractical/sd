@@ -21,6 +21,7 @@ our %PROP_MAP = (
     closed   => 'completed',
     reported => 'created',
     labels   => 'tags',
+    priority => 'priority_integer',
 );
 
 
