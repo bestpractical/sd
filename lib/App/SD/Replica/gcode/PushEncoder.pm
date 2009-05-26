@@ -1,12 +1,13 @@
-package App::SD::Replica::trac::PushEncoder;
+package App::SD::Replica::gcode::PushEncoder;
 use Any::Moose; 
 use Params::Validate;
 use Path::Class;
 use Time::HiRes qw/usleep/;
 
-has sync_source => 
-    ( isa => 'App::SD::Replica::trac',
-      is => 'rw');
+has sync_source => (
+    isa => 'App::SD::Replica::gcode',
+    is  => 'rw',
+);
 
 sub integrate_change {
     my $self = shift;
@@ -22,9 +23,8 @@ sub integrate_change {
     # XXX TODO - this logic should be at the changeset level, not the cahnge level, as it applies to all
     # changes in the changeset
     return
-        if $self->sync_source->app_handle->handle->last_changeset_from_source(
-                $changeset->original_source_uuid
-        ) >= $changeset->original_sequence_no;
+      if $self->sync_source->app_handle->handle->last_changeset_from_source(
+        $changeset->original_source_uuid ) >= $changeset->original_sequence_no;
 
     my $before_integration = time();
 
@@ -62,26 +62,9 @@ sub integrate_change {
         $self->sync_source->log("Push error: ".$err);
     }
 
-    usleep(1100); # trac only accepts one ticket update per second. Yes. 
+#    usleep(1100);
 
     return $id;
-}
-
-sub integrate_ticket_update {
-    my $self = shift;
-    my ( $change, $changeset ) = validate_pos(
-        @_,
-        { isa => 'Prophet::Change' },
-        { isa => 'Prophet::ChangeSet' }
-    );
-
-    # Figure out the remote site's ticket ID for this change's record
-    my $remote_ticket_id =
-      $self->sync_source->remote_id_for_uuid( $change->record_uuid );
-    my $ticket = Net::Trac::Ticket->new( connection => $self->sync_source->trac);
-    $ticket->load($remote_ticket_id);
-    $ticket->update( %{ $self->_recode_props_for_integrate($change) }, no_auto_status => 1);
-    return $remote_ticket_id;
 }
 
 sub integrate_ticket_create {
@@ -93,11 +76,11 @@ sub integrate_ticket_create {
     );
 
     # Build up a ticket object out of all the record's attributes
-    my $ticket = Net::Trac::Ticket->new(
-       connection    => $self->sync_source->trac);
+    my $ticket =
+      Net::Google::Code::Issue->new( project => $self->sync_source->project );
     my $id = $ticket->create( %{ $self->_recode_props_for_integrate($change) });
 
-    return $id
+    return $id;
 }
 
 sub integrate_comment {
@@ -108,35 +91,40 @@ sub integrate_comment {
 
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
 
-    my $ticket_id     = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
-    my $ticket = Net::Trac::Ticket->new( trac => $self->sync_source->trac, id => $ticket_id);
+    my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
+    my $ticket = Net::Google::Code::Issue->new(
+        project => $self->sync_source->project,
+        id    => $ticket_id,
+    );
 
-    my %content = ( message => $props{'content'},   
-                );
+    my %content = ( message => $props{'content'}, );
 
-    if (  ($props{'type'} ||'') eq 'comment' ) {
-        $ticket->comment( %content);
-    } else {
-        $ticket->correspond(%content);
-    }
+    $ticket->update( %content);
     return $ticket_id;
 } 
 
 sub integrate_attachment {
-    my ($self, $change, $changeset ) = validate_pos( @_, { isa => 'App::SD::Replica::rt::PushEncoder'}, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' });
+    my ( $self, $change, $changeset ) = validate_pos(
+        @_,
+        { isa => 'App::SD::Replica::gcode::PushEncoder' },
+        { isa => 'Prophet::Change' },
+        { isa => 'Prophet::ChangeSet' }
+    );
 
-
-    my %props = map { $_->name => $_->new_value } $change->prop_changes;
-    my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'});
-    my $ticket = Net::Trac::Ticket->new( trac => $self->sync_source->trac, id => $ticket_id );
+    my %props     = map { $_->name => $_->new_value } $change->prop_changes;
+    my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
+    my $ticket    = Net::Google::Code::Issue->new(
+        project => $self->sync_source->project,
+        id      => $ticket_id,
+    );
 
     my $tempdir = File::Temp::tempdir( CLEANUP => 1 );
     my $file = file( $tempdir => ( $props{'name'} || 'unnamed' ) );
     my $fh = $file->openw;
     print $fh $props{content};
     close $fh;
-    my %content = ( message     => '(See attachments)', attachments => ["$file"]);
-    $ticket->correspond(%content);
+    my %content = ( message => '(See attachments)', files => ["$file"] );
+    $ticket->update(%content);
     return $ticket_id;
 }
 
@@ -148,15 +136,8 @@ sub _recode_props_for_integrate {
     my %attr;
 
     for my $key ( keys %props ) {
-        next unless ( $key =~ /^(summary|queue|status|owner|custom)/ );
-        if ( $key =~ /^custom-(.*)/ ) {
-            $attr{cf}->{$1} = $props{$key};
-        } else {
-            $attr{$key} = $props{$key};
-        }
-        if ( $key eq 'status' ) {
-            $attr{$key} =~ s/^closed$/resolved/;
-        }
+        next unless ( $key =~ /^(summary|status|owner)/ );
+        $attr{$key} = $props{$key};
     }
     return \%attr;
 }
