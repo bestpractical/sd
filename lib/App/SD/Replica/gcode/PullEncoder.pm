@@ -77,7 +77,7 @@ sub find_matching_tickets {
         limit   => '99999',
         _can    => 'all',
     );
-    $search->search( _q => $query{query} || 'label:0.05 summary:not' );
+    $search->search( _q => $query{query} );
     my @base_results = @{ $search->results };
     my @results;
 
