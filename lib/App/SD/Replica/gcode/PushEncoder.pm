@@ -9,7 +9,6 @@ has sync_source => (
     isa => 'App::SD::Replica::gcode',
     is  => 'rw',
 );
-my $gcode;
 
 sub integrate_change {
     my $self = shift;
@@ -31,9 +30,13 @@ sub integrate_change {
         $changeset->original_source_uuid ) >= $changeset->original_sequence_no;
 
     my $before_integration = time();
-    $gcode ||= Net::Google::Code->new(
-        project  => $self->sync_source->project,
-    );
+    my ( $email, $password );
+    if ( !$self->sync_source->gcode->password ) {
+        ( $email, $password ) = $self->sync_source->prompt_for_login(
+            'gcode:' . $self->sync_source->project );
+        $self->sync_source->gcode->email($email);
+        $self->sync_source->gcode->password($password);
+    }
 
     eval {
         if (    $change->record_type eq 'ticket'
@@ -89,7 +92,7 @@ sub integrate_ticket_update {
     # Figure out the remote site's ticket ID for this change's record
     my $remote_ticket_id =
       $self->sync_source->remote_id_for_uuid( $change->record_uuid );
-    my $ticket = $gcode->issue();
+    my $ticket = $self->sync_source->gcode->issue();
     $ticket->load($remote_ticket_id);
     $ticket->update( %{ $self->_recode_props_for_integrate($change) }, );
     return $remote_ticket_id;
@@ -104,7 +107,7 @@ sub integrate_ticket_create {
     );
 
     # Build up a ticket object out of all the record's attributes
-    my $ticket = $gcode->issue;
+    my $ticket = $self->sync_source->gcode->issue;
     my $id =
       $ticket->create( %{ $self->_recode_props_for_integrate($change) } );
 
@@ -124,7 +127,7 @@ sub integrate_comment {
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
 
     my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
-    my $ticket = $gcode->issue( id => $ticket_id );
+    my $ticket = $self->sync_source->gcode->issue( id => $ticket_id );
 
     my %content = ( comment => $props{'content'}, );
 
@@ -142,7 +145,7 @@ sub integrate_attachment {
 
     my %props     = map { $_->name => $_->new_value } $change->prop_changes;
     my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
-    my $ticket    = $gcode->issue( id => $ticket_id, );
+    my $ticket    = $self->sync_source->gcode->issue( id => $ticket_id, );
 
     my $tempdir = File::Temp::tempdir( CLEANUP => 1 );
     my $file = file( $tempdir => ( $props{'name'} || 'unnamed' ) );
