@@ -9,13 +9,14 @@ use DateTime;
 
 has sync_source => (
     isa => 'App::SD::Replica::trac',
-    is  => 'rw');
+    is  => 'rw',
+);
 
 
 sub ticket_id {
     my $self = shift;
     my $ticket = shift;
-     return $ticket->id;
+    return $ticket->id;
 }
 
 sub ticket_last_modified {
@@ -166,6 +167,16 @@ sub transcode_create_txn {
     }
 
     $changeset->add_change( { change => $change } );
+
+    if ( my $att = $txn->attachment ) {
+        warn $att->filename;
+        $self->_recode_attachment_create(
+            ticket     => $ticket,
+            txn        => $txn,
+            changeset  => $changeset,
+            attachment => $att,
+        );
+    }
     return $changeset;
 }
 
@@ -250,41 +261,63 @@ sub transcode_one_txn {
         }
     }
 
-    return undef unless $changeset->has_changes;
+    if ( my $att = $txn->attachment ) {
+        $self->_recode_attachment_create(
+            ticket     => $ticket,
+            txn        => $txn,
+            changeset  => $changeset,
+            attachment => $att,
+        );
+    }
+
+    return unless $changeset->has_changes;
+
     return $changeset;
 }
 
 sub _recode_attachment_create {
-    my $self   = shift;
-    my %args   = validate( @_, { ticket => 1, txn => 1, changeset => 1, attachment => 1 } );
+    my $self = shift;
+    my %args =
+      validate( @_,
+        { ticket => 1, txn => 1, changeset => 1, attachment => 1 } );
     my $change = Prophet::Change->new(
-        {   record_type => 'attachment',
+        {
+            record_type => 'attachment',
             record_uuid => $self->sync_source->uuid_for_url(
-                $self->sync_source->remote_url . "/attachment/" . $args{'attachment'}->{'id'}
+                    $self->sync_source->remote_url
+                  . "/attachment/"
+                  . $args{'attachment'}->date->epoch
             ),
-            change_type => 'add_file'
+            change_type => 'add_file',
         }
     );
     $change->add_prop_change(
         name => 'content_type',
         old  => undef,
-        new  => $args{'attachment'}->{'ContentType'}
+        new  => $args{'attachment'}->content_type,
     );
-    $change->add_prop_change( name => 'created', old => undef, new => $args{'txn'}->{'Created'} );
+    $change->add_prop_change(
+        name => 'created',
+        old  => undef,
+        new  => $args{'attachment'}->date->ymd . ' '
+          . $args{'attachment'}->date->hms
+    );
     $change->add_prop_change(
         name => 'creator',
         old  => undef,
-        new  => $self->resolve_user_id_to( email_address => $args{'attachment'}->{'Creator'} )
+        new  => $self->resolve_user_id_to(
+            email_address => $args{'attachment'}->author
+        ),
     );
     $change->add_prop_change(
         name => 'content',
         old  => undef,
-        new  => $args{'attachment'}->{'Content'}
+        new  => $args{'attachment'}->content,
     );
     $change->add_prop_change(
         name => 'name',
         old  => undef,
-        new  => $args{'attachment'}->{'Filename'}
+        new  => $args{'attachment'}->filename,
     );
     $change->add_prop_change(
         name => 'ticket',
