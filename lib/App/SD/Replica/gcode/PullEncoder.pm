@@ -29,7 +29,7 @@ sub _translate_final_ticket_state {
 
     for my $label (@labels) {
         if ( $label =~ /(.*?)-(.*)/ ) {
-            $prop{$1} = $2;
+            $prop{lc $1} = $2;
         }
         else {
             push @tags, $label;

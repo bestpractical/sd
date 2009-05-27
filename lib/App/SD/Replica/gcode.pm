@@ -21,7 +21,7 @@ our %PROP_MAP = (
     closed   => 'completed',
     reported => 'created',
     labels   => 'tags',
-    priority => 'priority_integer',
+    priority => 'priority',
 );
 
 
@@ -30,7 +30,7 @@ has gcode => ( isa => 'Net::Google::Code', is => 'rw');
 has project => ( isa => 'Str', is => 'rw');
 
 sub remote_url { return "http://code.google.com/p/".shift->project}
-sub foreign_username { return shift->gcode->user(@_) }
+sub foreign_username { return shift->gcode->email(@_) }
 
 sub BUILD {
     my $self = shift;
