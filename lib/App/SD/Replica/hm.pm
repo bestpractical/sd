@@ -97,10 +97,12 @@ sub user_info {
 
 sub _user_info {
     my $self   = shift;
-    my %args   = @_;
-    my $status = $self->hm->act( 'SearchUser', %args, );
-    die $status->{'error'} unless $status->{'success'};
-    return $status->{'content'}{'search'}[0] || {};
+    my $key = shift;
+    my $value = shift;
+    return undef unless $value;
+    my $status = $self->hm->search('User', $key => $value);
+    die $status->{'error'} unless $status->[0]->{'id'};
+    return $status->[0];
 }
 memoize '_user_info';
 

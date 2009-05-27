@@ -17,7 +17,6 @@ sub integrate_ticket_create {
         = validate_pos( @_, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' } );
 
     # Build up a ticket object out of all the record's attributes
-
     my %args = (
         owner           => 'me',
         group           => 0,

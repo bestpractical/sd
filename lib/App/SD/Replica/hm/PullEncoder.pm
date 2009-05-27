@@ -101,7 +101,7 @@ sub find_matching_transactions {
         # Skip things we've pushed
         next if $self->sync_source->foreign_transaction_originated_locally( $txn->{'id'}, $args{ticket}->{id} );
 
-        $txn->{history_entries}
+    $txn->{history_entries}
             = $self->sync_source->hm->search( 'TaskHistory', transaction_id => $txn->{'id'} );
         $txn->{email_entries}
             = $self->sync_source->hm->search( 'TaskEmail', transaction_id => $txn->{'id'} );
@@ -120,15 +120,16 @@ sub add_prop_change {
     my $self = shift;
     my %args = validate( @_, { history_entry => 1, previous_state => 1, change => 1 } );
 
-    my $field = $args{'history_entry'}{'field'};
-    my $old   = $args{'history_entry'}{'old_value'};
-    my $new   = $args{'history_entry'}{'new_value'};
+
+    my $field = $args{'history_entry'}{'field'} ||'';
+    my $old   = $args{'history_entry'}{'old_value'} ||'';
+    my $new   = $args{'history_entry'}{'new_value'} ||'';
 
     if ( $args{'previous_state'}->{$field} eq $new ) {
         $args{'previous_state'}->{$field} = $old;
     } else {
         $args{'previous_state'}->{$field} = $old;
-        warn $args{'previous_state'}->{$field} . " != " . $new . "\n\n";
+        warn "$field: ". $args{'previous_state'}->{$field} . " != " . $new . "\n\n";
     }
 
     $args{change}->add_prop_change( name => $field, old => $old, new => $new );
@@ -191,11 +192,15 @@ sub translate_props {
             next if ( $prop->name eq '_delete' );
 
             if ( $prop->name =~ /^(?:reporter|owner|next_action_by)$/ ) {
-                $prop->old_value(
-                    $self->sync_source->user_info( id => $prop->old_value )->{'email'} );
-                $prop->new_value(
-                    $self->sync_source->user_info( id => $prop->new_value )->{'email'} );
+                $prop->old_value( $self->sync_source->user_info( id => $prop->old_value )->{'email'} ) if ($prop->old_value);
+                $prop->new_value( $self->sync_source->user_info( id => $prop->new_value )->{'email'} ) if ($prop->new_value);
             }
+
+            if ($prop->name =~ /^(?:due|completed_at|created_at)$/) {
+                $prop->old_value(App::SD::Util::string_to_datetime($prop->old_value)."");
+                $prop->new_value(App::SD::Util::string_to_datetime($prop->new_value)."");
+
+             }
 
             # XXX, TODO, FIXME: this doesn't work any more as id stored as SOURCE_UUID-id property
             if ( $prop->name eq 'id' ) {
