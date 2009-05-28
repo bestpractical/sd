@@ -3,6 +3,23 @@ use Any::Moose;
 use Params::Validate;
 
 extends 'Prophet::ForeignReplica';
+sub integrate_changeset {
+    my $self = shift;
+    my %args = validate(
+        @_,
+        {   changeset          => { isa      => 'Prophet::ChangeSet' },
+            resolver           => { optional => 1 },
+            resolver_class     => { optional => 1 },
+            resdb              => { optional => 1 },
+            conflict_callback  => { optional => 1 },
+            reporting_callback => { optional => 1 }
+        }
+    );
+
+    my $changeset = $args{'changeset'};
+    return if $self->last_changeset_from_source( $changeset->original_source_uuid) >= $changeset->original_sequence_no;
+    $self->SUPER::integrate_changeset(%args);
+}
 
 =head2 integrate_change $change $changeset
 
