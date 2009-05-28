@@ -17,7 +17,7 @@ sub integrate_changeset {
     );
 
     my $changeset = $args{'changeset'};
-    return if $self->last_changeset_from_source( $changeset->original_source_uuid) >= $changeset->original_sequence_no;
+    return if $self->app_handle->handle->last_changeset_from_source( $changeset->original_source_uuid) >= $changeset->original_sequence_no;
     $self->SUPER::integrate_changeset(%args);
 }
 
