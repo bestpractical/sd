@@ -26,7 +26,7 @@ sub integrate_ticket_create {
         %{ $self->_recode_props_for_create($change) }
     );
 
-    my $hm_user = $self->sync_source->user_info;
+    my $hm_user = $self->sync_source->user_info(email => $self->sync_source->foreign_username);
 
     my @requesters;
     if ( $args{'requestor_id'} ) {
