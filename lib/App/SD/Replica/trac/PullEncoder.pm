@@ -5,17 +5,29 @@ extends 'App::SD::ForeignReplica::PullEncoder';
 use Params::Validate qw(:all);
 use Memoize;
 use Time::Progress;
-use DateTime;
 
 has sync_source => (
     isa => 'App::SD::Replica::trac',
-    is  => 'rw');
+    is  => 'rw',
+);
 
 
-sub _translate_final_ticket_state {
+sub ticket_id {
+    my $self = shift;
+    my $ticket = shift;
+    return $ticket->id;
+}
+
+sub ticket_last_modified {
+    my $self = shift;
+    my $ticket = shift;
+    return $ticket->last_modified;
+}
+
+sub translate_ticket_state {
     my $self          = shift;
     my $ticket_object = shift;
-    
+    my $transactions = shift;    
     my $content = $ticket_object->description;
     my $ticket_data = {
 
@@ -43,7 +55,7 @@ sub _translate_final_ticket_state {
     delete $ticket_data->{$_}
         for grep !defined $ticket_data->{$_} || $ticket_data->{$_} eq '', keys %$ticket_data;
 
-    return $ticket_data;
+    return $ticket_data, {%$ticket_data};
 }
 
 =head2 find_matching_tickets QUERY
@@ -78,13 +90,12 @@ Returns a reference to an array of all transactions (as hashes) on ticket $id af
 sub find_matching_transactions { 
     my $self = shift;
     my %args = validate( @_, { ticket => 1, starting_transaction => 1 } );
-    my @raw_txns = $args{ticket}->comments;
+    my @raw_txns = @{$args{ticket}->history->entries};
 
     my @txns;
     # XXX TODO make this one loop.
-    for my $txn ( sort @raw_txns) {
+    for my $txn ( sort { $a->date cmp $b->date} @raw_txns) {
         my $txn_date = $txn->date->epoch;
-
         # Skip things we know we've already pulled
         next if $txn_date < ( $args{'starting_transaction'} ||0 );
         # Skip things we've pushed
@@ -155,6 +166,16 @@ sub transcode_create_txn {
     }
 
     $changeset->add_change( { change => $change } );
+
+    if ( my $att = $txn->attachment ) {
+        warn $att->filename;
+        $self->_recode_attachment_create(
+            ticket     => $ticket,
+            txn        => $txn,
+            changeset  => $changeset,
+            attachment => $att,
+        );
+    }
     return $changeset;
 }
 
@@ -239,41 +260,63 @@ sub transcode_one_txn {
         }
     }
 
-    return undef unless $changeset->has_changes;
+    if ( my $att = $txn->attachment ) {
+        $self->_recode_attachment_create(
+            ticket     => $ticket,
+            txn        => $txn,
+            changeset  => $changeset,
+            attachment => $att,
+        );
+    }
+
+    return unless $changeset->has_changes;
+
     return $changeset;
 }
 
 sub _recode_attachment_create {
-    my $self   = shift;
-    my %args   = validate( @_, { ticket => 1, txn => 1, changeset => 1, attachment => 1 } );
+    my $self = shift;
+    my %args =
+      validate( @_,
+        { ticket => 1, txn => 1, changeset => 1, attachment => 1 } );
     my $change = Prophet::Change->new(
-        {   record_type => 'attachment',
+        {
+            record_type => 'attachment',
             record_uuid => $self->sync_source->uuid_for_url(
-                $self->sync_source->remote_url . "/attachment/" . $args{'attachment'}->{'id'}
+                    $self->sync_source->remote_url
+                  . "/attachment/"
+                  . $args{'attachment'}->date->epoch
             ),
-            change_type => 'add_file'
+            change_type => 'add_file',
         }
     );
     $change->add_prop_change(
         name => 'content_type',
         old  => undef,
-        new  => $args{'attachment'}->{'ContentType'}
+        new  => $args{'attachment'}->content_type,
     );
-    $change->add_prop_change( name => 'created', old => undef, new => $args{'txn'}->{'Created'} );
+    $change->add_prop_change(
+        name => 'created',
+        old  => undef,
+        new  => $args{'attachment'}->date->ymd . ' '
+          . $args{'attachment'}->date->hms
+    );
     $change->add_prop_change(
         name => 'creator',
         old  => undef,
-        new  => $self->resolve_user_id_to( email_address => $args{'attachment'}->{'Creator'} )
+        new  => $self->resolve_user_id_to(
+            email_address => $args{'attachment'}->author
+        ),
     );
     $change->add_prop_change(
         name => 'content',
         old  => undef,
-        new  => $args{'attachment'}->{'Content'}
+        new  => $args{'attachment'}->content,
     );
     $change->add_prop_change(
         name => 'name',
         old  => undef,
-        new  => $args{'attachment'}->{'Filename'}
+        new  => $args{'attachment'}->filename,
     );
     $change->add_prop_change(
         name => 'ticket',

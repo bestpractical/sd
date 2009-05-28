@@ -44,7 +44,6 @@ diag($sd_hm_url);
     flush_sd();
     my ($luid, $uuid) = create_ticket_ok(qw(--summary YATTA --status new --reporter test@localhost));
     my ($ret, $out, $err) = run_script( 'sd', ['push', '--to', $sd_hm_url] );
-
     my $task = load_new_hm_task();
     is $task->requestor->email, 'onlooker@example.com', 'correct email';
 
@@ -60,7 +59,7 @@ diag("non pro have no right to change requestor");
     my ($luid, $uuid) = create_ticket_ok(qw(--summary YATTA --status new --reporter onlooker@example.com));
     update_ticket_ok($uuid, qw(--reporter test@localhost));
     my ($ret, $out, $err) = run_script( 'sd', ['push', '--to', $sd_hm_url] );
-
+    diag($out,$err);
     my $task = load_new_hm_task();
     is $task->requestor->email, 'onlooker@example.com', 'correct email';
 

@@ -10,15 +10,27 @@ use Memoize;
 use constant scheme => 'gcode';
 use constant pull_encoder => 'App::SD::Replica::gcode::PullEncoder';
 use constant push_encoder => 'App::SD::Replica::gcode::PushEncoder';
-
-
 use Prophet::ChangeSet;
+
+our %PROP_MAP = (
+    summary  => 'summary',
+    status   => 'status',
+    owner    => 'owner',
+    reporter => 'reporter',
+    cc       => 'cc',
+    closed   => 'completed',
+    reported => 'created',
+    labels   => 'tags',
+    priority => 'priority',
+);
+
+
 has query => ( isa => 'Str', is => 'rw');
 has gcode => ( isa => 'Net::Google::Code', is => 'rw');
 has project => ( isa => 'Str', is => 'rw');
 
 sub remote_url { return "http://code.google.com/p/".shift->project}
-sub foreign_username { return shift->gcode->user(@_) }
+sub foreign_username { return shift->gcode->email(@_) }
 
 sub BUILD {
     my $self = shift;
@@ -42,8 +54,14 @@ sub get_txn_list_by_date {
     my $ticket_obj = Net::Google::Code::Issue->new( project => $self->project);
     $ticket_obj->load($ticket);
         
-    my @txns   = map { { id => $_->date->epoch, creator => $_->author, created => $_->date->epoch } }
-        sort {$b->date <=> $a->date }  @{$ticket_obj->comments};
+    my @txns = map {
+        {
+            id      => $_->sequence,
+            creator => $_->author,
+            created => $_->date->epoch,
+        }
+      }
+      sort { $b->date <=> $a->date } @{ $ticket_obj->comments };
     return @txns;
 }
 

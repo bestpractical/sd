@@ -16,12 +16,12 @@ sub integrate_change {
     # the last changeset our sync source for the original_sequence_no, we can skip it.
     # XXX TODO - this logic should be at the changeset level, not the cahnge level, as it applies to all
     # changes in the changeset
-    #
-    return
-        if $self->sync_source->app_handle->handle->last_changeset_from_source(
-                $changeset->original_source_uuid
-        ) >= $changeset->original_sequence_no;
-
+    
+#    return
+#        if $self->sync_source->app_handle->handle->last_changeset_from_source(
+#                $changeset->original_source_uuid
+#        ) >= $changeset->original_sequence_no;
+#
     my $before_integration = time();
 
     eval {

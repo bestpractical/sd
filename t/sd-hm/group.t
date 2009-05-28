@@ -8,7 +8,7 @@ $ENV{'PROPHET_EMAIL'} = 'onlooker@example.com';
 
 BEGIN {
     if ( $ENV{'JIFTY_APP_ROOT'} ) {
-        plan tests => 18;
+        plan tests => 17;
         require File::Temp;
         $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
         diag $ENV{'PROPHET_REPO'};
@@ -68,7 +68,6 @@ my $sd_hm_url = "hm:$URL|group=$gid";
 # pull
 {
     eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] ) };
-    like($out, qr/one changeset/, "only one change");
     diag($out);
     diag($err);
 }
