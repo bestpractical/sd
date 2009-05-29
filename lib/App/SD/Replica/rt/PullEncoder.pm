@@ -102,33 +102,40 @@ sub find_matching_transactions {
     my @txns;
 
     my $rt_handle = $self->sync_source->rt;
-    
-    my $ticket_id = $self->ticket_id($args{ticket});
 
-     my $latest = $self->sync_source->app_handle->handle->last_changeset_from_source($self->sync_source->uuid_for_remote_id( $ticket_id )) || 0;
-    for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $ticket_id)) {
+    my $ticket_id = $self->ticket_id( $args{ticket} );
+
+    my $latest = $self->sync_source->app_handle->handle->last_changeset_from_source(
+        $self->sync_source->uuid_for_remote_id($ticket_id) ) || 0;
+
+    for my $txn ( sort $rt_handle->get_transaction_ids( parent_id => $ticket_id ) ) {
+
         # Skip things calling code told us to skip
-        next if $txn < $args{'starting_transaction'}; 
-        # skip things we had on our last pull
-        next if $txn <=  $latest;
-        # Skip things we've pushed
-        next if $self->sync_source->foreign_transaction_originated_locally($txn, $ticket_id);
+        next if $txn < $args{'starting_transaction'};
 
-        my $txn_hash = $rt_handle->get_transaction( parent_id => $ticket_id, id        => $txn, type      => 'ticket');
+        # skip things we had on our last pull
+        next if $txn <= $latest;
+
+        # Skip things we've pushed
+        next if $self->sync_source->foreign_transaction_originated_locally( $txn, $ticket_id );
+        my $txn_hash = $rt_handle->get_transaction( parent_id => $ticket_id, id => $txn, type => 'ticket' );
         if ( my $attachments = delete $txn_hash->{'Attachments'} ) {
             for my $attach ( split( /\n/, $attachments ) ) {
                 next unless ( $attach =~ /^(\d+):/ );
                 my $id = $1;
-                my $a  = $rt_handle->get_attachment( parent_id => $ticket_id, id        => $id);
+                my $a = $rt_handle->get_attachment( parent_id => $ticket_id, id => $id );
 
                 push( @{ $txn_hash->{_attachments} }, $a ) if ( $a->{Filename} );
 
             }
 
         }
-        push @txns, { timestamp => App::SD::Util::string_to_datetime( $txn_hash->{Created} ),
-                      serial => $txn_hash->{id},
-                      object => $txn_hash};
+        push @txns,
+            {
+            timestamp => App::SD::Util::string_to_datetime( $txn_hash->{Created} ),
+            serial    => $txn_hash->{id},
+            object    => $txn_hash
+            };
     }
     return \@txns;
 }
