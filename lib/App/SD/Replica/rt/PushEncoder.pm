@@ -17,7 +17,6 @@ sub integrate_ticket_update {
         { isa => 'Prophet::Change' },
         { isa => 'Prophet::ChangeSet' }
     );
-
     # Figure out the remote site's ticket ID for this change's record
     my $remote_ticket_id = $self->sync_source->remote_id_for_uuid( $change->record_uuid );
     my $ticket = RT::Client::REST::Ticket->new(
@@ -51,11 +50,11 @@ sub integrate_comment {
     my $self = shift;
     my ($change, $changeset) = validate_pos( @_, { isa => 'Prophet::Change' }, {isa => 'Prophet::ChangeSet'} );
 
+    my %props = map { $_->name => $_->new_value } $change->prop_changes;
+    my $ticket_id     = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
     # Figure out the remote site's ticket ID for this change's record
 
-    my %props = map { $_->name => $_->new_value } $change->prop_changes;
 
-    my $ticket_id     = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
     my $ticket = RT::Client::REST::Ticket->new( rt => $self->sync_source->rt, id => $ticket_id);
 
     my %content = ( message => $props{'content'},   
@@ -72,7 +71,6 @@ sub integrate_comment {
 sub integrate_attachment {
     my ($self, $change, $changeset ) = validate_pos( @_, { isa => 'App::SD::Replica::rt::PushEncoder'}, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' });
 
-
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
     my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'});
     my $ticket = RT::Client::REST::Ticket->new( rt => $self->sync_source->rt, id => $ticket_id );
@@ -86,7 +84,6 @@ sub integrate_attachment {
     $ticket->correspond(%content);
     return $ticket_id;
 }
-
 
 sub _recode_props_for_integrate {
     my $self = shift;
