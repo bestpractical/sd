@@ -168,7 +168,6 @@ sub transcode_create_txn {
     $changeset->add_change( { change => $change } );
 
     if ( my $att = $txn->attachment ) {
-        warn $att->filename;
         $self->_recode_attachment_create(
             ticket     => $ticket,
             txn        => $txn,
