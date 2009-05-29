@@ -1,6 +1,5 @@
 #!/usr/bin/env perl -w
 use strict;
-
 use Prophet::Test;
 use App::SD::Test;
 
@@ -16,30 +15,40 @@ require 't/sd-redmine/net_redmine_test.pl';
 
 my $r = new_redmine();
 
-plan tests => 1;
+use Test::Cukes;
 
-my @tickets = new_tickets($r, 5);
+feature(<<FEATURES);
+Feature: clone tickets from redmine server
+  In order to manage redmine ticketes in local sd
+  sd should be able clone redmine tickets
 
-note "created 5 tickets: " . join(",", map { $_->id } @tickets);
-note "sd clone them, verify the ticket count.";
+  Scenario: basic cloning
+    Given I have at least five tickets on my redmine server.
+    When I clone the redmine project with sd
+    Then I should see at at least five tickets.
+FEATURES
 
-my $sd_redmine_url = "redmine:" . $r->connection->url;
-my $user = $r->connection->user;
-my $pass = $r->connection->password;
-$sd_redmine_url =~ s|http://|http://${user}:${pass}@|;
+Given qr/I have at least five tickets on my redmine server./, sub {
+    my @tickets = new_tickets($r, 5);
 
-diag "sd clone --from ${sd_redmine_url}";
+    ok(@tickets == 5);
+};
 
-my ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_redmine_url ] );
-is(count_tickets_in_sd(),5, "the total cloned tickets is 5.");
+When qr/I clone the redmine project with sd/, sub {
+    my $sd_redmine_url = "redmine:" . $r->connection->url;
+    my $user = $r->connection->user;
+    my $pass = $r->connection->password;
+    $sd_redmine_url =~ s|http://|http://${user}:${pass}@|;
+    my ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_redmine_url ] );
 
-sub count_tickets_in_sd {
-    my $self = shift;
+    ok($ret == 0);
+};
 
-    my ( $ret, $out, $err ) = run_script(
-        'sd' => [ 'ticket', 'list', '--regex', '.' ]
-    );
+Then qr/I should see at at least five tickets./, sub {
+    my ( $ret, $out, $err ) = run_script('sd' => [ 'ticket', 'list', '--regex', '.' ]);
     my @lines = split(/\n/,$out);
-    return scalar @lines;
-}
+    ok 0+@lines >= 5;
+};
 
+plan tests => 3;
+runtests;
