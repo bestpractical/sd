@@ -117,7 +117,7 @@ is( $new_ticket->status, 'new', "The ticket is new before we push to trac" );
 # Push the changes to our ticket to trac
 #
 
-( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_trac_url ] );
+( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_trac_url, '--prefer','source' ] );
 diag($out);
 diag($err);
 
