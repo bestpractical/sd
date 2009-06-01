@@ -88,6 +88,20 @@ sub remote_uri_path_for_id {
     return "/ticket/".$id;
 }
 
+sub database_settings {
+    my $self = shift;
+    my $issue = $self->gcode->issue;
+    $issue->load_predefined;
+    my $status = $issue->predefined_status;
+    return {
+        default_status  => 'New',
+        active_statuses => $status->{open},
+        statuses        => [ @{ $status->{open} }, @{ $status->{closed} } ],
+        project_name    => $self->project,
+    };
+
+}
+
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 
