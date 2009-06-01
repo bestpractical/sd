@@ -63,7 +63,7 @@ sub get_txn_list_by_date {
         return { id => $_->id, creator => $_->creator, created => $txn_created }
         }
 
-        sort { $b->{'Created'} <=> $a->{'Created'} }
+        sort { $b->id <=> $a->id }
         RT::Client::REST::Ticket->new( rt => $self->rt, id => $ticket )->transactions->get_iterator->();
     return @txns;
 }

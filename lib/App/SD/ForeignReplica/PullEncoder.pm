@@ -34,9 +34,15 @@ sub run {
     }
 
     my $cs_counter = 0;
-    for (@changesets) {
+    for my $changeset (@changesets) {
         $self->sync_source->log( "Applying changeset " . ++$cs_counter . " of " . scalar @changesets );
-        $args{callback}->($_);
+        $args{callback}->($changeset);
+
+        # We're treating each individual ticket in the foreign system as its own 'replica'
+        # because of that, we need to hint to the push side of the system what the most recent
+        # txn on each ticket it has.
+        $self->sync_source->record_last_changeset_from_replica(
+            $changeset->original_source_uuid => $changeset->original_sequence_no );
     }
 
     $self->sync_source->record_upstream_last_modified_date($last_modified)
@@ -54,7 +60,6 @@ sub transcode_ticket {
 
     if ( my $ticket_last_modified = $self->ticket_last_modified($ticket) ) {
 
-        warn "My last modified = " .$ticket_last_modified;
         $last_modified = $ticket_last_modified if ( !$last_modified || $ticket_last_modified > $last_modified );
     }
 
@@ -87,7 +92,6 @@ sub transcode_history {
 
     for my $txn ( sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions ) {
         $last_modified = $txn->{timestamp} if ( !$last_modified || ( $txn->{timestamp} > $last_modified ) );
-
         $self->sync_source->log( "$ticket_id Transcoding transaction " . ++$txn_counter . " of " . scalar @$transactions );
 
         my $changeset = $self->transcode_one_txn( $txn, $initial_state, $final_state );
