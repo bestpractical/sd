@@ -101,9 +101,11 @@ sub database_settings {
         @resolutions = qw/fixed invalid wontfix duplicate
           worksforme/;
     }
+
+    my @active_statuses = qw/new accepted assigned reopened/;
     return {
-        active_statuses => [qw/new accepted assigned reopened/],
-        statuses => [ qw/new accepted assigned reopened/, @resolutions, ],
+        active_statuses => [@active_statuses],
+        statuses => [ @active_statuses, 'closed', @resolutions ],
     };
 }
 
