@@ -14,7 +14,7 @@ unless (`which trac-admin`) { plan skip_all => 'You need trac installed to run t
 unless ( eval { require Net::Trac } ) {
     plan skip_all => 'You need Net::Trac installed to run the tests';
 }
-plan tests => 39;
+plan tests => 43;
 
 use_ok('Net::Trac::Connection');
 use_ok('Net::Trac::Ticket');
@@ -59,16 +59,22 @@ can_ok( $ticket, 'load' );
 ok( $ticket->load(1) );
 like( $ticket->state->{'summary'}, qr/pony/ );
 like( $ticket->summary, qr/moose/, "The summary looks like a moose" );
-ok( $ticket->update( summary => 'The product does not contain a pony' ), "updated!" );
+ok( $ticket->update( summary => 'The product does not contain a pony' ),
+    "updated!" );
 unlike( $ticket->summary, qr/moose/, "The summary does not look like a moose" );
+
+my ($fh, $filename) = File::Temp::tempfile(SUFFIX => '.txt');
+print $fh "TIMTOWTDI\n";
+close $fh;
+sleep 2; # to make trac happy
+ok($ticket->attach( file => $filename ), "Attaching file.");
 
 my $history = $ticket->history;
 ok( $history, "The ticket has some history" );
 my @entries = @{ $history->entries };
-is( scalar @entries, 2, "There are 2 txns");
+is( scalar @entries, 3, "There are 3 txns");
 my $first   = shift @entries;
 is( $first->category, 'Ticket' );
-
 
 # 
 # Clone from trac
@@ -88,7 +94,6 @@ my $pony_id;
 # Check our clone from trac
 #
 
-
 run_output_matches(
     'sd',
     [ 'ticket', 'list', '--regex', '.' ],
@@ -97,6 +102,20 @@ run_output_matches(
 
 ok( $pony_id, "I got the ID of a pony - It's $pony_id" );
 
+my ( $att_id, $att_name );
+run_output_matches(
+    'sd',
+    [ 'attachment', 'list', ],
+    [qr!(\d+)(?{ $att_id = $1 }) (\S+)(?{$att_name=$2}) text/plain!]
+);
+
+like( $filename, qr/$att_name/, 'filename of attachment' );
+
+run_output_matches(
+    'sd',
+    [ 'attachment', 'content', $att_id ],
+    [qr/TIMTOWTDI/]
+);
 
 # 
 # Modify the ticket we pulled from trac
