@@ -45,6 +45,7 @@ sub integrate_change {
     # don't push internal records
     return if $change->record_type =~ /^__/;
 
+
     Prophet::App->require( $self->push_encoder());
     my $recoder = $self->push_encoder->new( { sync_source => $self } );
     $recoder->integrate_change($change,$changeset);

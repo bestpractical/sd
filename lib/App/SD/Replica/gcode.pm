@@ -22,6 +22,7 @@ our %PROP_MAP = (
     reported => 'created',
     labels   => 'tags',
     priority => 'priority',
+    mergedinto => 'merged_into'
 );
 
 
@@ -86,6 +87,20 @@ sub remote_uri_path_for_id {
     my $self = shift;
     my $id = shift;
     return "/ticket/".$id;
+}
+
+sub database_settings {
+    my $self = shift;
+    my $issue = $self->gcode->issue;
+    $issue->load_predefined;
+    my $status = $issue->predefined_status;
+    return {
+        default_status  => 'new',
+        active_statuses => [map {lc } @{$status->{open}}],
+        statuses        => [ map { lc } @{ $status->{open} }, @{$status->{closed} } ],
+        project_name    => $self->project,
+    };
+
 }
 
 __PACKAGE__->meta->make_immutable;
