@@ -37,7 +37,7 @@ sub translate_ticket_state {
         type => ($ticket_object->type || undef),
         created     => ( $ticket_object->created->ymd . " " . $ticket_object->created->hms ),
         reporter    => ( $ticket_object->reporter || undef ),
-        status      => $self->translate_status( $ticket_object->status ),
+        status      => ( $ticket_object->status  || undef ),
         summary     => ( $ticket_object->summary || undef ),
         description => ( $content||undef),
         tags        => ( $ticket_object->keywords || undef ),
@@ -325,14 +325,6 @@ sub _recode_attachment_create {
         )
     );
     $args{'changeset'}->add_change( { change => $change } );
-}
-
-sub translate_status {
-    my $self   = shift;
-    my $status = shift;
-
-    $status =~ s/^resolved$/closed/;
-    return $status;
 }
 
 my %PROP_MAP;
