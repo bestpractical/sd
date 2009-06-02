@@ -95,14 +95,21 @@ sub _recode_props_for_integrate {
     my %attr;
 
     for my $key ( keys %props ) {
-        next unless ( $key =~ /^(summary|queue|status|owner|custom)/ );
-        if ( $key =~ /^custom-(.*)/ ) {
-            $attr{cf}->{$1} = $props{$key};
-        } else {
-            $attr{$key} = $props{$key};
-        }
+        next unless ( $key =~ /^(summary|status|owner)/ );
         if ( $key eq 'status' ) {
-            $attr{$key} =~ s/^closed$/resolved/;
+            my $active_statuses =
+                $self->sync_source->database_settings->{active_statuses};
+            if ( grep { $props{$key} eq $_ } @$active_statuses, 'closed' ) {
+                $attr{$key} = $props{$key};
+            }
+            else {
+                $attr{$key} = 'closed';
+                $attr{resolution} = $props{$key};
+            }
+
+        }
+        else {
+            $attr{$key} = $props{$key};
         }
     }
     return \%attr;
