@@ -22,7 +22,7 @@ our %PROP_MAP = (
     reported   => 'created',
     labels     => 'tags',
     priority   => 'priority',
-    mergedinto => 'mergedinto',
+    mergedinto => 'merged_into',
 );
 
 
@@ -95,9 +95,9 @@ sub database_settings {
     $issue->load_predefined;
     my $status = $issue->predefined_status;
     return {
-        active_statuses => [ map { lc } @{$status->{open}} ],
-        statuses        => [ map { lc } @{ $status->{open} }, @{ $status->{closed} } ],
-        project_name    => $self->project,
+        active_statuses => [ map { lc } @{ $status->{open} } ],
+        statuses => [ map { lc } @{ $status->{open} }, @{ $status->{closed} } ],
+        project_name => $self->project,
     };
 
 }

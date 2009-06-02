@@ -8,7 +8,7 @@ use Memoize;
 use UNIVERSAL::require;
 use URI;
 use Memoize;
-use Net::Github;
+use Net::GitHub;
 
 use Prophet::ChangeSet;
 
