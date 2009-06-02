@@ -171,6 +171,10 @@ sub _recode_props_for_integrate {
         elsif ( $key eq 'status' ) {
             $attr{$key} = ucfirst $props{$key};
         }
+        elsif ( $key eq 'mergedinto' ) {
+        # yeah, the comment form use 'merge_into' name
+            $attr{merge_into} = $props{$key};
+        }
         elsif ( $key eq 'tags' ) {
             $attr{labels} ||= [];
             push @{$attr{labels}}, split /\s*,\s*/, $props{$key};
