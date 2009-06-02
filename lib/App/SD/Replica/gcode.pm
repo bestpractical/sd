@@ -95,9 +95,8 @@ sub database_settings {
     $issue->load_predefined;
     my $status = $issue->predefined_status;
     return {
-        default_status  => 'New',
-        active_statuses => $status->{open},
-        statuses        => [ @{ $status->{open} }, @{ $status->{closed} } ],
+        active_statuses => [ map { lc } @{$status->{open}} ],
+        statuses        => [ map { lc } @{ $status->{open} }, @{ $status->{closed} } ],
         project_name    => $self->project,
     };
 

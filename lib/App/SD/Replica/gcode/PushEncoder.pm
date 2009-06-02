@@ -165,8 +165,11 @@ sub _recode_props_for_integrate {
     my %attr;
 
     for my $key ( keys %props ) {
-        if ( $key =~ /^(summary|status|owner|cc)/ ) {
+        if ( $key =~ /^(summary|owner|cc)/ ) {
             $attr{$key} = $props{$key};
+        }
+        elsif ( $key eq 'status' ) {
+            $attr{$key} = ucfirst $props{$key};
         }
         elsif ( $key eq 'tags' ) {
             $attr{labels} ||= [];
