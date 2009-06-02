@@ -127,7 +127,7 @@ diag($err);
 is(count_tickets_in_trac(),1);
 my $closed_ticket = Net::Trac::Ticket->new( connection => $trac );
 ok( $closed_ticket->load(1) );
-is( $closed_ticket->status, 'resolved', "The ticket is closed after we push to trac" );
+is( $closed_ticket->status, 'closed', "The ticket is closed after we push to trac" );
 
 # 
 # Push to trac a second time -- this should cause no updates
