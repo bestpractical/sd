@@ -41,7 +41,7 @@ sub BUILD {
         Net::Trac::Connection->new(
             url      => $self->remote_url,
             user     => $username,
-            password => $password
+            password => $password,
         )
     );
     $self->trac->ensure_logged_in;
@@ -85,12 +85,25 @@ sub remote_uri_path_for_id {
 
 sub database_settings {
     my $self = shift;
+
+    my @resolutions;
+    use Net::Trac::TicketSearch;
+    my $search = Net::Trac::TicketSearch->new( connection => $self->trac );
+    # find an active ticket to get resolution list
+    $search->limit(1);
+    $search->query( status => [ qw/accepted assigned reopened new/ ] );
+    my $result = $search->results->[0];
+    if ( $result ) {
+        $result->_fetch_update_ticket_metadata;
+        @resolutions = @{$result->valid_resolutions};
+    }
+    else {
+        @resolutions = qw/fixed invalid wontfix duplicate
+          worksforme/;
+    }
     return {
-        active_statuses => [qw/new accepted/],
-        statuses        => [
-            qw/new accepted fixed invalid wontfix duplicate
-              worksforme/
-        ],
+        active_statuses => [qw/new accepted assigned reopened/],
+        statuses => [ qw/new accepted assigned reopened/, @resolutions, ],
     };
 }
 
