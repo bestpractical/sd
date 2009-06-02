@@ -13,15 +13,16 @@ use constant push_encoder => 'App::SD::Replica::gcode::PushEncoder';
 use Prophet::ChangeSet;
 
 our %PROP_MAP = (
-    summary  => 'summary',
-    status   => 'status',
-    owner    => 'owner',
-    reporter => 'reporter',
-    cc       => 'cc',
-    closed   => 'completed',
-    reported => 'created',
-    labels   => 'tags',
-    priority => 'priority',
+    summary    => 'summary',
+    status     => 'status',
+    owner      => 'owner',
+    reporter   => 'reporter',
+    cc         => 'cc',
+    closed     => 'completed',
+    reported   => 'created',
+    labels     => 'tags',
+    priority   => 'priority',
+    mergedinto => 'mergedinto',
 );
 
 
