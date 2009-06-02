@@ -14,7 +14,7 @@ unless (`which trac-admin`) { plan skip_all => 'You need trac installed to run t
 unless ( eval { require Net::Trac } ) {
     plan skip_all => 'You need Net::Trac installed to run the tests';
 }
-plan tests => 43;
+plan tests => 46;
 
 use_ok('Net::Trac::Connection');
 use_ok('Net::Trac::Ticket');
@@ -59,6 +59,8 @@ can_ok( $ticket, 'load' );
 ok( $ticket->load(1) );
 like( $ticket->state->{'summary'}, qr/pony/ );
 like( $ticket->summary, qr/moose/, "The summary looks like a moose" );
+
+sleep 2; # to make trac happy
 ok( $ticket->update( summary => 'The product does not contain a pony' ),
     "updated!" );
 unlike( $ticket->summary, qr/moose/, "The summary does not look like a moose" );
@@ -116,6 +118,20 @@ run_output_matches(
     [ 'attachment', 'content', $att_id ],
     [qr/TIMTOWTDI/]
 );
+
+run_ok( 'sd', [ 'settings', '-s' ] );
+my $settings = last_script_stdout();
+like(
+    $settings,
+    qr/active_statuses: \["new","accepted","assigned","reopened"\]/,
+    'active statuses setting'
+);
+
+like( $settings,
+qr/statuses: \["new","accepted","assigned","reopened","closed","fixed","invalid","wontfix","duplicate","worksforme","test_resolution"\]/,
+'statuses setting'
+);
+
 
 # 
 # Modify the ticket we pulled from trac
