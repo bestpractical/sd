@@ -74,10 +74,14 @@ sub find_matching_tickets {
     require Net::Google::Code::Issue::Search;
     my $search = Net::Google::Code::Issue::Search->new(
         project => $self->sync_source->project,
-        limit   => '99999',
-        _can    => 'all',
     );
-    $search->search( _q => $query{query} );
+
+    $search->search(
+        can            => 'all',
+        q              => $query{query},
+        limit          => '99999',
+    );
+        
     my @base_results = @{ $search->results };
     my @results;
 
