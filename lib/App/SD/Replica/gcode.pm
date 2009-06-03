@@ -23,6 +23,7 @@ our %PROP_MAP = (
     labels     => 'tags',
     priority   => 'priority',
     mergedinto => 'merged_into',
+    blockedon  => 'blocked_on',
 );
 
 
