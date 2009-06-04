@@ -84,6 +84,18 @@ sub find_matching_tickets {
     }
 }
 
+sub _only_pull_tickets_modified_after {
+    my $self = shift;
+
+    my $last_pull = $self->sync_source->upstream_last_modified_date();
+    return unless $last_pull;
+    my $before = App::SD::Util::string_to_datetime($last_pull);
+    die "Failed to parse '" . $self->sync_source->upstream_last_modified_date() . "' as a timestamp"
+        unless ($before);
+
+    return $before;
+}
+
 sub translate_ticket_state {
     my $self         = shift;
     my $ticket       = shift;
