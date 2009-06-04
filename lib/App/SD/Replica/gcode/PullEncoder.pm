@@ -71,7 +71,7 @@ sub find_matching_tickets {
     my %query                  = (@_);
     my $last_changeset_seen_dt = $self->_only_pull_tickets_modified_after()
       || DateTime->from_epoch( epoch => 0 );
-    $self->sync_source->log("Searching for tickets");
+    $self->sync_source->log("Searching for tickets. This can take a very long time on initial sync or if you haven't synced in a long time.");
     require Net::Google::Code::Issue::Search;
     my $search = Net::Google::Code::Issue::Search->new(
         project => $self->sync_source->project,
@@ -91,9 +91,7 @@ sub _only_pull_tickets_modified_after {
     my $last_pull = $self->sync_source->upstream_last_modified_date();
     return unless $last_pull;
     my $before = App::SD::Util::string_to_datetime($last_pull);
-    die "Failed to parse '" . $self->sync_source->upstream_last_modified_date() . "' as a timestamp"
-        unless ($before);
-
+    $self->log_debug( "Failed to parse '" . $self->sync_source->upstream_last_modified_date() . "' as a timestamp. That means we have to sync ALL history") unless ($before);
     return $before;
 }
 
@@ -192,7 +190,7 @@ sub find_matching_transactions {
             object    => $txn,
           };
     }
-    $self->sync_source->log('Done looking at pulled txns');
+    $self->sync_source->log_debug('Done looking at pulled txns');
 
     return \@txns;
 }
@@ -209,8 +207,6 @@ sub transcode_create_txn {
       $self->resolve_user_id_to( email_address => $create_data->{reporter} );
     my $created = $final_data->{created};
 
-    warn "recording create of "
-      . $self->sync_source->uuid_for_remote_id($ticket_id);
     my $changeset = Prophet::ChangeSet->new(
         {
             original_source_uuid => $ticket_uuid,
@@ -269,7 +265,6 @@ sub transcode_one_txn {
     my $ticket_id   = $newer_ticket_state->{ $self->sync_source->uuid . '-id' };
     my $ticket_uuid =
       $self->sync_source->uuid_for_remote_id( $ticket_id );
-    warn "Recording an update to " . $ticket_uuid;
     my $changeset = Prophet::ChangeSet->new(
         {
             original_source_uuid => $ticket_uuid,
