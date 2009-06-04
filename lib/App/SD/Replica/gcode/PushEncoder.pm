@@ -165,8 +165,15 @@ sub _recode_props_for_integrate {
     my %attr;
 
     for my $key ( keys %props ) {
-        if ( $key =~ /^(summary|status|owner|cc)/ ) {
+        if ( $key =~ /^(summary|owner|cc|blocked_on)/ ) {
             $attr{$key} = $props{$key};
+        }
+        elsif ( $key eq 'status' ) {
+            $attr{$key} = ucfirst $props{$key};
+        }
+        elsif ( $key eq 'merged_into' ) {
+        # yeah, the comment form use 'merge_into' name
+            $attr{merge_into} = $props{$key};
         }
         elsif ( $key eq 'tags' ) {
             $attr{labels} ||= [];

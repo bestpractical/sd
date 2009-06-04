@@ -5,7 +5,7 @@ use Params::Validate qw/validate/;
 
 sub run {
     my $self = shift;
-    my %args = validate( @_, { after => 1, callback => 1, } );
+    my %args = validate( @_, { after => 1});
 
     $self->sync_source->log('Finding matching tickets');
     my $tickets = $self->find_matching_tickets( query => $self->sync_source->query );
@@ -16,10 +16,9 @@ sub run {
     }
 
     my $counter = 0;
-    $self->sync_source->log("Discovering ticket history");
+    $self->sync_source->log_debug("Discovering ticket history");
 
     my ( $last_modified, $last_txn, @changesets );
-    my $previously_modified = App::SD::Util::string_to_datetime( $self->sync_source->upstream_last_modified_date );
 
     my $progress = Time::Progress->new();
     $progress->attr( max => $#$tickets );
@@ -27,27 +26,12 @@ sub run {
     for my $ticket (@$tickets) {
         $counter++;
         my $changesets;
-        print $progress->report( "%30b %p Est: %E\r", $counter );
-        $self->sync_source->log( "Fetching $counter of " . scalar @$tickets  . " tickets");
+        print $progress->report( "Fetching ticket history %30b %p Est: %E\r", $counter );
+        $self->sync_source->log_debug( "Fetching $counter of " . scalar @$tickets  . " tickets");
         ( $last_modified, $changesets ) = $self->transcode_ticket( $ticket, $last_modified );
         unshift @changesets, @$changesets;
     }
-
-    my $cs_counter = 0;
-    for my $changeset (@changesets) {
-        $self->sync_source->log( "Applying changeset " . ++$cs_counter . " of " . scalar @changesets );
-        $args{callback}->($changeset);
-
-        # We're treating each individual ticket in the foreign system as its own 'replica'
-        # because of that, we need to hint to the push side of the system what the most recent
-        # txn on each ticket it has.
-        $self->sync_source->record_last_changeset_from_replica(
-            $changeset->original_source_uuid => $changeset->original_sequence_no );
-    }
-
-    $self->sync_source->record_upstream_last_modified_date($last_modified)
-        if ( ( $last_modified ? $last_modified->epoch : 0 ) > ( $previously_modified ? $previously_modified->epoch : 0 ) );
-
+    return [ sort { App::SD::Util::string_to_datetime($a->created) <=> App::SD::Util::string_to_datetime( $b->created) } @changesets];
 }
 
 sub ticket_last_modified { undef}
@@ -92,7 +76,7 @@ sub transcode_history {
 
     for my $txn ( sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions ) {
         $last_modified = $txn->{timestamp} if ( !$last_modified || ( $txn->{timestamp} > $last_modified ) );
-        $self->sync_source->log( "$ticket_id Transcoding transaction " . ++$txn_counter . " of " . scalar @$transactions );
+        $self->sync_source->log_debug( "$ticket_id Transcoding transaction " . ++$txn_counter . " of " . scalar @$transactions );
 
         my $changeset = $self->transcode_one_txn( $txn, $initial_state, $final_state );
         next unless $changeset && $changeset->has_changes;

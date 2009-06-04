@@ -81,6 +81,9 @@ sub init {
     $url =~ s/8000/$port/;
     $self->url($url);
 
+    # add a test_resolution value
+    system("trac-admin $dir/trac resolution add test_resolution");
+
     $self->_grant_hiro();
 
 }

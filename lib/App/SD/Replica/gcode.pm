@@ -13,16 +13,17 @@ use constant push_encoder => 'App::SD::Replica::gcode::PushEncoder';
 use Prophet::ChangeSet;
 
 our %PROP_MAP = (
-    summary  => 'summary',
-    status   => 'status',
-    owner    => 'owner',
-    reporter => 'reporter',
-    cc       => 'cc',
-    closed   => 'completed',
-    reported => 'created',
-    labels   => 'tags',
-    priority => 'priority',
-    mergedinto => 'merged_into'
+    summary    => 'summary',
+    status     => 'status',
+    owner      => 'owner',
+    reporter   => 'reporter',
+    cc         => 'cc',
+    closed     => 'completed',
+    reported   => 'created',
+    labels     => 'tags',
+    priority   => 'priority',
+    mergedinto => 'merged_into',
+    blockedon  => 'blocked_on',
 );
 
 
@@ -95,10 +96,9 @@ sub database_settings {
     $issue->load_predefined;
     my $status = $issue->predefined_status;
     return {
-        default_status  => 'new',
-        active_statuses => [map {lc } @{$status->{open}}],
-        statuses        => [ map { lc } @{ $status->{open} }, @{$status->{closed} } ],
-        project_name    => $self->project,
+        active_statuses => [ map { lc } @{ $status->{open} } ],
+        statuses => [ map { lc } @{ $status->{open} }, @{ $status->{closed} } ],
+        project_name => $self->project,
     };
 
 }

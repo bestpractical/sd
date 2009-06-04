@@ -14,7 +14,7 @@ unless (`which trac-admin`) { plan skip_all => 'You need trac installed to run t
 unless ( eval { require Net::Trac } ) {
     plan skip_all => 'You need Net::Trac installed to run the tests';
 }
-plan tests => 39;
+plan tests => 46;
 
 use_ok('Net::Trac::Connection');
 use_ok('Net::Trac::Ticket');
@@ -59,16 +59,24 @@ can_ok( $ticket, 'load' );
 ok( $ticket->load(1) );
 like( $ticket->state->{'summary'}, qr/pony/ );
 like( $ticket->summary, qr/moose/, "The summary looks like a moose" );
-ok( $ticket->update( summary => 'The product does not contain a pony' ), "updated!" );
+
+sleep 2; # to make trac happy
+ok( $ticket->update( summary => 'The product does not contain a pony' ),
+    "updated!" );
 unlike( $ticket->summary, qr/moose/, "The summary does not look like a moose" );
+
+my ($fh, $filename) = File::Temp::tempfile(SUFFIX => '.txt');
+print $fh "TIMTOWTDI\n";
+close $fh;
+sleep 2; # to make trac happy
+ok($ticket->attach( file => $filename ), "Attaching file.");
 
 my $history = $ticket->history;
 ok( $history, "The ticket has some history" );
 my @entries = @{ $history->entries };
-is( scalar @entries, 2, "There are 2 txns");
+is( scalar @entries, 3, "There are 3 txns");
 my $first   = shift @entries;
 is( $first->category, 'Ticket' );
-
 
 # 
 # Clone from trac
@@ -88,7 +96,6 @@ my $pony_id;
 # Check our clone from trac
 #
 
-
 run_output_matches(
     'sd',
     [ 'ticket', 'list', '--regex', '.' ],
@@ -96,6 +103,34 @@ run_output_matches(
 );
 
 ok( $pony_id, "I got the ID of a pony - It's $pony_id" );
+
+my ( $att_id, $att_name );
+run_output_matches(
+    'sd',
+    [ 'attachment', 'list', ],
+    [qr!(\d+)(?{ $att_id = $1 }) (\S+)(?{$att_name=$2}) text/plain!]
+);
+
+like( $filename, qr/$att_name/, 'filename of attachment' );
+
+run_output_matches(
+    'sd',
+    [ 'attachment', 'content', $att_id ],
+    [qr/TIMTOWTDI/]
+);
+
+run_ok( 'sd', [ 'settings', '-s' ] );
+my $settings = last_script_stdout();
+like(
+    $settings,
+    qr/active_statuses: \["new","accepted","assigned","reopened"\]/,
+    'active statuses setting'
+);
+
+like( $settings,
+qr/statuses: \["new","accepted","assigned","reopened","closed","fixed","invalid","wontfix","duplicate","worksforme","test_resolution"\]/,
+'statuses setting'
+);
 
 
 # 
@@ -127,7 +162,7 @@ diag($err);
 is(count_tickets_in_trac(),1);
 my $closed_ticket = Net::Trac::Ticket->new( connection => $trac );
 ok( $closed_ticket->load(1) );
-is( $closed_ticket->status, 'resolved', "The ticket is closed after we push to trac" );
+is( $closed_ticket->status, 'closed', "The ticket is closed after we push to trac" );
 
 # 
 # Push to trac a second time -- this should cause no updates

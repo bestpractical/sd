@@ -1,8 +1,9 @@
 package App::SD::Util;
 use DateTime;
+use Params::Validate qw/:all/;
 
 sub string_to_datetime {
-    my $date= shift;
+    my ($date)= validate_pos(@_, { type => SCALAR | UNDEF} );
     if ($date =~ /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{1,2}):(\d{2}):(\d{2})Z?$/ ){
         my ($year,$month,$day, $hour,$min,$sec) = ($1,$2,$3,$4,$5,$6);
         my $dt = DateTime->new( year => $year,
