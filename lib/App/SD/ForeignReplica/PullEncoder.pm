@@ -5,7 +5,7 @@ use Params::Validate qw/validate/;
 
 sub run {
     my $self = shift;
-    my %args = validate( @_, { after => 1, callback => 1, } );
+    my %args = validate( @_, { after => 1});
 
     $self->sync_source->log('Finding matching tickets');
     my $tickets = $self->find_matching_tickets( query => $self->sync_source->query );
@@ -19,7 +19,6 @@ sub run {
     $self->sync_source->log_debug("Discovering ticket history");
 
     my ( $last_modified, $last_txn, @changesets );
-    my $previously_modified = App::SD::Util::string_to_datetime( $self->sync_source->upstream_last_modified_date );
 
     my $progress = Time::Progress->new();
     $progress->attr( max => $#$tickets );
@@ -32,21 +31,7 @@ sub run {
         ( $last_modified, $changesets ) = $self->transcode_ticket( $ticket, $last_modified );
         unshift @changesets, @$changesets;
     }
-
-    my $cs_counter = 0;
-    for my $changeset (@changesets) {
-        $args{callback}->($changeset);
-
-        # We're treating each individual ticket in the foreign system as its own 'replica'
-        # because of that, we need to hint to the push side of the system what the most recent
-        # txn on each ticket it has.
-        $self->sync_source->record_last_changeset_from_replica(
-            $changeset->original_source_uuid => $changeset->original_sequence_no );
-    }
-
-    $self->sync_source->record_upstream_last_modified_date($last_modified)
-        if ( ( $last_modified ? $last_modified->epoch : 0 ) > ( $previously_modified ? $previously_modified->epoch : 0 ) );
-
+    return (\@changesets, $last_modified);
 }
 
 sub ticket_last_modified { undef}

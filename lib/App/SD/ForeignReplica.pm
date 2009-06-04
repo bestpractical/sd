@@ -157,9 +157,21 @@ sub traverse_changesets {
 
     Prophet::App->require( $self->pull_encoder());
     my $recoder = $self->pull_encoder->new( { sync_source => $self } );
-    $recoder->run(after => $args{'after'}, callback => $args{'callback'});
+    my ($changesets, $last_modified) = $recoder->run(after => $args{'after'});
+    for my $changeset (@$changesets) {
+        $args{callback}->(changeset=> $changeset);
+
+        # We're treating each individual ticket in the foreign system as its own 'replica'
+        # because of that, we need to hint to the push side of the system what the most recent
+        # txn on each ticket it has.
+        $self->record_last_changeset_from_replica( $changeset->original_source_uuid => $changeset->original_sequence_no );
+    }
+
+    my $previously_modified = App::SD::Util::string_to_datetime( $self->upstream_last_modified_date );
+    $self->record_upstream_last_modified_date($last_modified) if ( ( $last_modified ? $last_modified->epoch : 0 ) > ( $previously_modified ? $previously_modified->epoch : 0 ) );
 
 }
+
 
 sub remote_uri_path_for_id {
     die "your subclass needds to implement this to be able to ".
