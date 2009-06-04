@@ -83,6 +83,16 @@ sub remote_uri_path_for_id {
     return "/ticket/".$id;
 }
 
+sub database_settings {
+    my $self = shift;
+    return {
+        active_statuses => [qw/new accepted/],
+        statuses        => [
+            qw/new accepted fixed invalid wontfix duplicate
+              worksforme/
+        ],
+    };
+}
 
 
 __PACKAGE__->meta->make_immutable;
