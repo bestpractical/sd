@@ -76,23 +76,12 @@ sub find_matching_tickets {
         project => $self->sync_source->project,
     );
 
-    $search->search(
-        can            => 'all',
-        q              => $query{query},
-        limit          => '99999',
-    );
-        
-    my @base_results = @{ $search->results };
-    my @results;
-
-    foreach my $item (@base_results) {
-        if ( !$last_changeset_seen_dt
-            || ( $item->updated >= $last_changeset_seen_dt ) )
-        {
-            push @results, $item;
-        }
+    if ( $search->updated_after($last_changeset_seen_dt) ) {
+        return $search->results;
     }
-    return \@results;
+    else {
+        return [];
+    }
 }
 
 sub translate_ticket_state {
