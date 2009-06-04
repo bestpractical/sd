@@ -69,14 +69,15 @@ Returns a array of all tickets found matching your QUERY hash.
 sub find_matching_tickets {
     my $self                   = shift;
     my %query                  = (@_);
-    my $last_changeset_seen_dt = $self->_only_pull_tickets_modified_after();
+    my $last_changeset_seen_dt = $self->_only_pull_tickets_modified_after()
+      || DateTime->from_epoch( epoch => 0 );
     $self->sync_source->log("Searching for tickets");
     require Net::Google::Code::Issue::Search;
     my $search = Net::Google::Code::Issue::Search->new(
         project => $self->sync_source->project,
     );
 
-    if ( $search->updated_after($last_changeset_seen_dt) ) {
+    if ( $search->updated_after( $last_changeset_seen_dt ) ) {
         return $search->results;
     }
     else {
