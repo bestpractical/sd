@@ -1,7 +1,8 @@
 #!/bin/sh
+
 replica=`git config --get sd.local-replica`
-if [ "fnord$replica" = "fnord" ]; then
-    # TODO: respect GIT_DIR
+if [ -z $replica ]; then
+    if [ -z $GIT_DIR ] ; then # respect GIT_DIR
     gitdir=`pwd`
     while ! [ -e "$gitdir/.git" ]; do
         if [ "$gitdir" = "/" ]; then
@@ -11,6 +12,9 @@ if [ "fnord$replica" = "fnord" ]; then
         fi
         gitdir=`dirname $gitdir`
     done
+    else
+        gitdir=$GIT_DIR
+    fi
     replica=$gitdir/.git/sd
     echo "You don't appear to have an sd.local-replica defined in your .git/config"
     echo "Setting it to '$replica':"
