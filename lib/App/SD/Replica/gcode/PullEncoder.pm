@@ -69,30 +69,32 @@ Returns a array of all tickets found matching your QUERY hash.
 sub find_matching_tickets {
     my $self                   = shift;
     my %query                  = (@_);
-    my $last_changeset_seen_dt = $self->_only_pull_tickets_modified_after();
+    my $last_changeset_seen_dt = $self->_only_pull_tickets_modified_after()
+      || DateTime->from_epoch( epoch => 0 );
     $self->sync_source->log("Searching for tickets");
     require Net::Google::Code::Issue::Search;
     my $search = Net::Google::Code::Issue::Search->new(
         project => $self->sync_source->project,
     );
 
-    $search->search(
-        can            => 'all',
-        q              => $query{query},
-        limit          => '99999',
-    );
-        
-    my @base_results = @{ $search->results };
-    my @results;
-
-    foreach my $item (@base_results) {
-        if ( !$last_changeset_seen_dt
-            || ( $item->updated >= $last_changeset_seen_dt ) )
-        {
-            push @results, $item;
-        }
+    if ( $search->updated_after( $last_changeset_seen_dt ) ) {
+        return $search->results;
     }
-    return \@results;
+    else {
+        return [];
+    }
+}
+
+sub _only_pull_tickets_modified_after {
+    my $self = shift;
+
+    my $last_pull = $self->sync_source->upstream_last_modified_date();
+    return unless $last_pull;
+    my $before = App::SD::Util::string_to_datetime($last_pull);
+    die "Failed to parse '" . $self->sync_source->upstream_last_modified_date() . "' as a timestamp"
+        unless ($before);
+
+    return $before;
 }
 
 sub translate_ticket_state {
