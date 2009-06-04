@@ -2,7 +2,7 @@
 
 replica=`git config --get sd.local-replica`
 if [ -z $replica ]; then
-    if [ -z $GIT_DIR ] ; then # respect GIT_DIR
+    if [ -z $GIT_DIR ] ; then # GIT_DIR Not defined
     gitdir=`pwd`
     while ! [ -e "$gitdir/.git" ]; do
         if [ "$gitdir" = "/" ]; then
