@@ -169,7 +169,7 @@ sub traverse_changesets {
               # because of that, we need to hint to the push side of the system what the most recent
               # txn on each ticket it has.
                 my $previously_modified
-                    = App::SD::Util::string_to_datetime( $self->upstream_last_modified_date );
+                    = App::SD::Util::string_to_datetime( $self->upstream_last_modified_date || '');
                 my $created_datetime = App::SD::Util::string_to_datetime( $changeset->created );
                 $self->record_upstream_last_modified_date( $changeset->created )
                     if ( ( $created_datetime ? $created_datetime->epoch : 0 )
