@@ -56,7 +56,7 @@ my ( $ret, $out, $err );
 
 my $sd_hm_url = "hm:$URL|tag=mytag";
 eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] ) };
-
+diag($err) if ($err);
 my ($flyman_uuid, $flyman_id );
 {
     run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man (.*)/] );
