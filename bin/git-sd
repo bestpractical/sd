@@ -3,18 +3,19 @@
 replica=`git config --get sd.local-replica`
 if [ -z $replica ]; then
     if [ -z $GIT_DIR ] ; then # GIT_DIR Not defined
-    gitdir=`pwd`
-    while ! [ -e "$gitdir/.git" ]; do
-        if [ "$gitdir" = "/" ]; then
-            echo "Can't find a .git directory anywhere in your current directory"
-            echo "or any higher directories."
-            exit 1;
-        fi
-        gitdir=`dirname $gitdir`
-    done
+        gitdir=`pwd`
+        while ! [ -e "$gitdir/.git" ]; do
+            if [ "$gitdir" = "/" ]; then
+                echo "Can't find a .git directory anywhere in your current directory"
+                echo "or any higher directories."
+                exit 1;
+            fi
+            gitdir=`dirname $gitdir`
+        done
     else
         gitdir=$GIT_DIR
     fi
+
     replica=$gitdir/.git/sd
     echo "You don't appear to have an sd.local-replica defined in your .git/config"
     echo "Setting it to '$replica':"
@@ -22,4 +23,5 @@ if [ -z $replica ]; then
     echo "  git config --add sd.local-replica $replica"
     git config --add sd.local-replica $replica
 fi
+
 SD_REPO=$replica exec sd $@
