@@ -69,26 +69,30 @@ Returns a array of all tickets found matching your QUERY hash.
 sub find_matching_tickets {
     my $self                   = shift;
     my %query                  = (@_);
-    my $last_changeset_seen_dt = $self->_only_pull_tickets_modified_after();
-    $self->sync_source->log("Searching for tickets");
+    my $last_changeset_seen_dt = $self->_only_pull_tickets_modified_after()
+      || DateTime->from_epoch( epoch => 0 );
+    $self->sync_source->log("Searching for tickets. This can take a very long time on initial sync or if you haven't synced in a long time.");
     require Net::Google::Code::Issue::Search;
     my $search = Net::Google::Code::Issue::Search->new(
         project => $self->sync_source->project,
-        limit   => '99999',
-        _can    => 'all',
     );
-    $search->search( _q => $query{query} );
-    my @base_results = @{ $search->results };
-    my @results;
 
-    foreach my $item (@base_results) {
-        if ( !$last_changeset_seen_dt
-            || ( $item->updated >= $last_changeset_seen_dt ) )
-        {
-            push @results, $item;
-        }
+    if ( $search->updated_after( $last_changeset_seen_dt ) ) {
+        return $search->results;
     }
-    return \@results;
+    else {
+        return [];
+    }
+}
+
+sub _only_pull_tickets_modified_after {
+    my $self = shift;
+
+    my $last_pull = $self->sync_source->upstream_last_modified_date();
+    return unless $last_pull;
+    my $before = App::SD::Util::string_to_datetime($last_pull);
+    $self->log_debug( "Failed to parse '" . $self->sync_source->upstream_last_modified_date() . "' as a timestamp. That means we have to sync ALL history") unless ($before);
+    return $before;
 }
 
 sub translate_ticket_state {
@@ -186,7 +190,7 @@ sub find_matching_transactions {
             object    => $txn,
           };
     }
-    $self->sync_source->log('Done looking at pulled txns');
+    $self->sync_source->log_debug('Done looking at pulled txns');
 
     return \@txns;
 }
@@ -203,8 +207,6 @@ sub transcode_create_txn {
       $self->resolve_user_id_to( email_address => $create_data->{reporter} );
     my $created = $final_data->{created};
 
-    warn "recording create of "
-      . $self->sync_source->uuid_for_remote_id($ticket_id);
     my $changeset = Prophet::ChangeSet->new(
         {
             original_source_uuid => $ticket_uuid,
@@ -263,7 +265,6 @@ sub transcode_one_txn {
     my $ticket_id   = $newer_ticket_state->{ $self->sync_source->uuid . '-id' };
     my $ticket_uuid =
       $self->sync_source->uuid_for_remote_id( $ticket_id );
-    warn "Recording an update to " . $ticket_uuid;
     my $changeset = Prophet::ChangeSet->new(
         {
             original_source_uuid => $ticket_uuid,

@@ -165,7 +165,7 @@ sub _recode_props_for_integrate {
     my %attr;
 
     for my $key ( keys %props ) {
-        if ( $key =~ /^(summary|owner|cc)/ ) {
+        if ( $key =~ /^(summary|owner|cc|blocked_on)/ ) {
             $attr{$key} = $props{$key};
         }
         elsif ( $key eq 'status' ) {
