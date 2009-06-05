@@ -5,9 +5,12 @@ extends 'App::SD::ForeignReplica';
 use constant scheme => 'redmine';
 use constant pull_encoder => 'App::SD::Replica::redmine::PullEncoder';
 use constant push_encoder => 'App::SD::Replica::redmine::PushEncoder';
+use Prophet::ChangeSet;
+
+has remote_url => ( isa => 'Str', is => 'rw');
+has query => ( isa => 'Str', is => 'rw');
 
 has redmine => (isa => 'Net::Redmine', is => 'rw');
-has remote_url => ( isa => 'Str', is => 'rw');
 
 use URI;
 use Net::Redmine;
@@ -29,7 +32,7 @@ sub BUILD {
 
     ($username, $password) = $self->prompt_for_login( $uri, $username )
         unless $password;
-    
+
     $self->redmine(
         Net::Redmine->new(
             url => $self->remote_url,
@@ -43,6 +46,12 @@ sub uuid {
     my $self = shift;
     Carp::cluck "- can't make a uuid for this" unless ($self->remote_url);
     return $self->uuid_for_url($self->remote_url);
+}
+
+sub remote_uri_path_for_id {
+    my $self = shift;
+    my $id = shift;
+    return "/issues/show/".$id;
 }
 
 1;

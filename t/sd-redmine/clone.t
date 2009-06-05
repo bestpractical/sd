@@ -13,9 +13,12 @@ unless ( eval { require Net::Redmine } ) {
 
 require 't/sd-redmine/net_redmine_test.pl';
 
+$ENV{TEST_VERBOSE}=1;
+
 my $r = new_redmine();
 
 use Test::Cukes;
+use Carp::Assert;
 
 feature(<<FEATURES);
 Feature: clone tickets from redmine server
@@ -25,13 +28,17 @@ Feature: clone tickets from redmine server
   Scenario: basic cloning
     Given I have at least five tickets on my redmine server.
     When I clone the redmine project with sd
-    Then I should see at at least five tickets.
+    Then I should see at least five tickets.
 FEATURES
 
 Given qr/I have at least five tickets on my redmine server./, sub {
-    my @tickets = new_tickets($r, 5);
+    my @tickets = $r->search_ticket()->results;
+    if (@tickets < 5) {
+        new_tickets($r, 5);
+        @tickets = $r->search_ticket()->results;
+    }
 
-    ok(@tickets == 5);
+    assert(@tickets >= 5);
 };
 
 When qr/I clone the redmine project with sd/, sub {
@@ -41,14 +48,17 @@ When qr/I clone the redmine project with sd/, sub {
     $sd_redmine_url =~ s|http://|http://${user}:${pass}@|;
     my ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_redmine_url ] );
 
-    ok($ret == 0);
+    diag($out);
+    diag($err);
+
+    # should($ret, 0);
 };
 
-Then qr/I should see at at least five tickets./, sub {
+Then qr/I should see at least five tickets./, sub {
     my ( $ret, $out, $err ) = run_script('sd' => [ 'ticket', 'list', '--regex', '.' ]);
     my @lines = split(/\n/,$out);
-    ok 0+@lines >= 5;
+
+    assert(0+@lines >= 5);
 };
 
-plan tests => 3;
 runtests;
