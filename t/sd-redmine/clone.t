@@ -46,17 +46,19 @@ When qr/I clone the redmine project with sd/, sub {
     my $user = $r->connection->user;
     my $pass = $r->connection->password;
     $sd_redmine_url =~ s|http://|http://${user}:${pass}@|;
-    my ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_redmine_url ] );
+    my ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--verbose', '--from', $sd_redmine_url ] );
 
     diag($out);
     diag($err);
-
-    # should($ret, 0);
+    should($ret, 0);
 };
 
 Then qr/I should see at least five tickets./, sub {
     my ( $ret, $out, $err ) = run_script('sd' => [ 'ticket', 'list', '--regex', '.' ]);
     my @lines = split(/\n/,$out);
+
+    diag($out);
+    diag($err);
 
     assert(0+@lines >= 5);
 };
