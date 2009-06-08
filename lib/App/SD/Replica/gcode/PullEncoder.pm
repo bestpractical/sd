@@ -54,7 +54,7 @@ sub _translate_final_ticket_state {
 
     # delete undefined and empty fields
     delete $ticket_data->{$_}
-      for grep { !defined $ticket_data->{$_} || $ticket_data->{$_} eq '' }
+      for grep { !defined $ticket_data->{$_} || $ticket_data->{$_} eq '' || $ticket_data->{$_} eq '----' }
       keys %$ticket_data;
 
     return $ticket_data;
@@ -116,6 +116,7 @@ sub translate_ticket_state {
         for my $prop (qw(owner status cc summary)) {
             next unless exists $updates->{$prop};
             my $value = delete $updates->{$prop};
+            $value = '' if ($value eq '----');
             if ( my $sub = $self->can( 'translate_prop_' . $prop ) ) {
                 $value = $sub->( $self, $value );
             }

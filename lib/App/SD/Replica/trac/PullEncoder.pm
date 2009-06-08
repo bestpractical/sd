@@ -106,7 +106,7 @@ sub find_matching_transactions {
                       serial => $txn->date->epoch,
                       object => $txn};
     }
-    $self->sync_source->log('Done looking at pulled txns');
+    $self->sync_source->log_debug('Done looking at pulled txns');
     return \@txns;
 }
 
