@@ -11,6 +11,16 @@ rewrite qr/^\?(.*)/ => sub { "help ".($1||'') };
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
 rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 
+on qr'^(?!help)' => sub {
+    my $self = shift;
+    my $cmd = $_; 
+    if ($self->context->has_arg('help')) {
+        run("help $cmd", $self, @_);
+    } else { 
+        next_rule;
+        }
+
+};
 
 under help => sub {
     on [ [ 'intro', 'init', 'clone' ] ]   => run_command('Help::Intro');
