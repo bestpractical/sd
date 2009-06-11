@@ -241,8 +241,8 @@ sub transcode_one_txn {
 
     my $comment = Prophet::Change->new(
         {   record_type => 'comment',
-            record_uuid => Data::UUID->new->create_str()
-            ,    # comments are never edited, we can have a random uuid
+            record_uuid => $self->sync_source->app_handle->uuid_generator->create_str(),
+             # comments are never edited, we can have a random uuid
             change_type => 'add_file'
         }
     );

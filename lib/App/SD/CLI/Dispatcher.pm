@@ -76,6 +76,7 @@ on qr/^(\w+)\s+tickets?(.*)$/ => sub {
     my $self = shift;
     my $primary = $1;
     my $secondary = $2;
+    next_rule if $primary eq 'help';
     my $cmd = join( ' ', grep { $_ ne '' } 'ticket',$primary, $secondary);
     my @orig_argv = @{$self->cli->context->raw_args};
     my ($subcommand, undef) = (shift @orig_argv, shift @orig_argv);
