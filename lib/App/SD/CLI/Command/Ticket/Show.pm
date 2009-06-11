@@ -12,7 +12,7 @@ sub ARG_TRANSLATIONS {
         b => 'batch';
 }
 
-sub by_creation_date { $a->prop('created') cmp $b->prop('created') };
+sub by_creation_date { $a->prop('created') cmp $b->prop('created') }
 
 override run => sub {
     my $self = shift;
@@ -23,21 +23,20 @@ override run => sub {
     # prophet uses --verbose to decide whether to show all declared props
     # or not (rather than just the ones returned by props_to_show),
     # but --all-props is more consistent with sd's behaviour in update/create
-    if ($self->has_arg('all-props')) {
-        $self->set_arg('verbose' => 1);
+    if ( $self->has_arg('all-props') ) {
+        $self->set_arg( 'verbose' => 1 );
     }
 
     print "\n= METADATA\n\n";
     super();
 
-    my @attachments = sort by_creation_date @{$record->attachments};
+    my @attachments = sort by_creation_date @{ $record->attachments };
     if (@attachments) {
         print "\n= ATTACHMENTS\n\n";
-        $self->show_attachment($_)
-            for @attachments;
+        $self->show_attachment($_) for @attachments;
     }
 
-    my @comments = sort by_creation_date @{$record->comments};
+    my @comments = sort by_creation_date @{ $record->comments };
     if (@comments) {
         print "\n= COMMENTS\n\n";
         for my $comment (@comments) {
@@ -50,62 +49,62 @@ override run => sub {
     # allow user to not display history by specifying the --skip-history
     # arg or setting disable_ticket_show_history_by_default config item to a
     # true value (can be overridden with --with-history)
-    if (!$self->has_arg('skip-history') && (!$self->app_handle->config->get(
-                'disable_ticket_show_history_by_default') ||
-            $self->has_arg('with-history'))) {
+    if (!$self->has_arg('skip-history')
+        && (  !$self->app_handle->config->get('disable_ticket_show_history_by_default')
+            || $self->has_arg('with-history') )
+        )
+    {
         print "\n= HISTORY\n\n";
-        foreach my $changeset ($record->changesets) {
-            $self->show_history_entry($record, $changeset);
+        foreach my $changeset ( $record->changesets ) {
+            $self->show_history_entry( $record, $changeset );
         }
     }
 };
 
 sub show_history_entry {
-    my $self = shift;
-    my $ticket = shift;
+    my $self      = shift;
+    my $ticket    = shift;
     my $changeset = shift;
-    my $out ='';
-        $out .= $changeset->as_string(change_filter => sub {
-            $ticket->uuid eq $self->uuid
-        });
+    my $out       = '';
+    $out .= $changeset->as_string(
+        change_filter => sub {
+            $ticket->uuid eq $self->uuid;
+        }
+    );
     print $out;
 }
 
-
-
-
 sub show_attachment {
-    my $self = shift;
-   my $attachment = shift; 
-        print $attachment->format_summary . "\n"
+    my $self       = shift;
+    my $attachment = shift;
+    print $attachment->format_summary . "\n";
 }
 
-
 sub show_comment {
-    my $self = shift;
+    my $self    = shift;
     my $comment = shift;
 
-            my $creator = $comment->prop('creator');
-            my $created = $comment->prop('created');
-            my $content_type = $comment->prop('content_type') ||'text/plain';
+    my $creator      = $comment->prop('creator');
+    my $created      = $comment->prop('created');
+    my $content_type = $comment->prop('content_type') || 'text/plain';
 
-            my $content = $comment->prop('content') || '';
-            if ($content_type =~ m{text/html}i ){
+    my $content = $comment->prop('content') || '';
+    if ( $content_type =~ m{text/html}i ) {
 
-                $content =~ s|<p.*?>|\n|gismx;
-                $content =~ s|</?pre.*?>|\n|gismx;
-                $content =~ s|</?b\s*>|*|gismx;
-                $content =~ s|</?i\s*>|_|gismx;
-                $content =~ s|<a(?:.*?)href="(.*?)".*?>(.*?)</a.*?>|$2 [link: $1 ]|gismx;
-                $content =~ s|<.*?>||gismx;
-                $content =~ s|\n\n|\n|gismx;
-            }
+        $content =~ s|<p.*?>|\n|gismx;
+        $content =~ s|</?pre.*?>|\n|gismx;
+        $content =~ s|</?b\s*>|*|gismx;
+        $content =~ s|</?i\s*>|_|gismx;
+        $content =~ s|<a(?:.*?)href="(.*?)".*?>(.*?)</a.*?>|$2 [link: $1 ]|gismx;
+        $content =~ s|<.*?>||gismx;
+        $content =~ s|\n\n|\n|gismx;
+    }
 
-            print "$creator: " if $creator;
-            print "$created\n";
-            print $content;
-            print "\n\n";
-        }
+    print "$creator: " if $creator;
+    print "$created\n";
+    print $content;
+    print "\n\n";
+}
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 
