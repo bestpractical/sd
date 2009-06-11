@@ -12,7 +12,13 @@ sub ARG_TRANSLATIONS {
         b => 'batch';
 }
 
-sub by_creation_date { $a->prop('created') cmp $b->prop('created') }
+sub by_creation_date { 
+    ($a->can('created') ? $a->created : $a->prop('created') )
+    cmp 
+    ($b->can('created') ? $b->created : $b->prop('created') )
+
+
+}
 
 override run => sub {
     my $self = shift;
@@ -30,20 +36,13 @@ override run => sub {
     print "\n= METADATA\n\n";
     super();
 
+    my @history = sort by_creation_date ( @{ $record->comments }, $record->changesets );
+
     my @attachments = sort by_creation_date @{ $record->attachments };
     if (@attachments) {
+        warn ref($_);
         print "\n= ATTACHMENTS\n\n";
         $self->show_attachment($_) for @attachments;
-    }
-
-    my @comments = sort by_creation_date @{ $record->comments };
-    if (@comments) {
-        print "\n= COMMENTS\n\n";
-        for my $comment (@comments) {
-
-            $self->show_comment($comment);
-
-        }
     }
 
     # allow user to not display history by specifying the --skip-history
@@ -55,23 +54,38 @@ override run => sub {
         )
     {
         print "\n= HISTORY\n\n";
-        foreach my $changeset ( $record->changesets ) {
-            $self->show_history_entry( $record, $changeset );
+        foreach my $item (@history) {
+            if ( $item->isa('Prophet::ChangeSet') ) {
+                $self->show_history_entry( $record, $item );
+            } elsif ( $item->isa('App::SD::Model::Comment') ) {
+                $self->show_comment($item);
+            }
         }
     }
-};
+    };
+
 
 sub show_history_entry {
     my $self      = shift;
     my $ticket    = shift;
     my $changeset = shift;
-    my $out       = '';
-    $out .= $changeset->as_string(
-        change_filter => sub {
-            $ticket->uuid eq $self->uuid;
-        }
-    );
-    print $out;
+    my $body = '';
+    
+    for my $change ( $changeset->changes ) {
+        next if $change->record_uuid ne $ticket->uuid;
+        $body .= $change->as_string() ||next;
+        $body .= "\n";
+    }
+
+    return '' if !$body;
+
+    $self->history_entry_header(
+         $changeset->creator,
+        $changeset->created,
+        $changeset->original_sequence_no,
+        $changeset->original_source_uuid);
+
+    print $body;
 }
 
 sub show_attachment {
@@ -88,6 +102,9 @@ sub show_comment {
     my $created      = $comment->prop('created');
     my $content_type = $comment->prop('content_type') || 'text/plain';
 
+
+    my ($creation) = $comment->changesets(limit => 1);
+
     my $content = $comment->prop('content') || '';
     if ( $content_type =~ m{text/html}i ) {
 
@@ -100,11 +117,22 @@ sub show_comment {
         $content =~ s|\n\n|\n|gismx;
     }
 
-    print "$creator: " if $creator;
-    print "$created\n";
+    $self->history_entry_header($creator, $created,$creation->original_sequence_no, $creation->original_source_uuid);
     print $content;
     print "\n\n";
 }
+
+
+sub history_entry_header {
+    my $self = shift;
+    my ($creator, $created, $sequence, $source) = (@_);
+     printf "%s at %s\t\(%d@%s)\n\n",
+        ( $creator || '(unknown)' ),
+        $created,
+        $sequence,
+        $source;
+    }
+
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 
