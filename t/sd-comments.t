@@ -79,7 +79,7 @@ run_output_matches(
     [ qw/ticket comment list --uuid/, $yatta_uuid ],
     [qr/$comment_uuid/],
     [],
-    "Found the comment when we tried to search for all comments on a ticket by the ticket's uuid"
+    "Found the comment $comment_uuid when we tried to search for all comments on a ticket by the ticket's uuid, $yatta_uuid"
 );
 
 run_output_matches(
