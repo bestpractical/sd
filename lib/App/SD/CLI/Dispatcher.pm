@@ -94,7 +94,7 @@ under ticket => sub {
     on details  => run_command('Ticket::Details');
 
     under [ [ 'give', 'assign' ] ] => sub {
-        on [qr/^(?:\d+|[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})$/, qr/^\S+$/] => sub {
+        on [qr/^(?:\d+|[0-9a-zA-Z\-\_]{22,24}|[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})$/, qr/^\S+$/] => sub {
             my $self = shift;
             my ($id, $owner) = ($1, $2);
 
