@@ -4,8 +4,13 @@ extends 'Prophet::CLI::Command::Show';
 with 'App::SD::CLI::Command';
 with 'App::SD::CLI::Model::Ticket';
 
-sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  a => 'all-props', s => 'skip-history',
-                                        h => 'with-history', b => 'batch' };
+sub ARG_TRANSLATIONS {
+    shift->SUPER::ARG_TRANSLATIONS(),
+        a => 'all-props',
+        s => 'skip-history',
+        h => 'with-history',
+        b => 'batch';
+}
 
 sub by_creation_date { $a->prop('created') cmp $b->prop('created') };
 
@@ -28,7 +33,7 @@ override run => sub {
     my @attachments = sort by_creation_date @{$record->attachments};
     if (@attachments) {
         print "\n= ATTACHMENTS\n\n";
-        print $_->format_summary . "\n"
+        $self->show_attachment($_)
             for @attachments;
     }
 
@@ -36,6 +41,50 @@ override run => sub {
     if (@comments) {
         print "\n= COMMENTS\n\n";
         for my $comment (@comments) {
+
+            $self->show_comment($comment);
+
+        }
+    }
+
+    # allow user to not display history by specifying the --skip-history
+    # arg or setting disable_ticket_show_history_by_default config item to a
+    # true value (can be overridden with --with-history)
+    if (!$self->has_arg('skip-history') && (!$self->app_handle->config->get(
+                'disable_ticket_show_history_by_default') ||
+            $self->has_arg('with-history'))) {
+        print "\n= HISTORY\n\n";
+        foreach my $changeset ($record->changesets) {
+            $self->show_history_entry($record, $changeset);
+        }
+    }
+};
+
+sub show_history_entry {
+    my $self = shift;
+    my $ticket = shift;
+    my $changeset = shift;
+    my $out ='';
+        $out .= $changeset->as_string(change_filter => sub {
+            $ticket->uuid eq $self->uuid
+        });
+    print $out;
+}
+
+
+
+
+sub show_attachment {
+    my $self = shift;
+   my $attachment = shift; 
+        print $attachment->format_summary . "\n"
+}
+
+
+sub show_comment {
+    my $self = shift;
+    my $comment = shift;
+
             my $creator = $comment->prop('creator');
             my $created = $comment->prop('created');
             my $content_type = $comment->prop('content_type') ||'text/plain';
@@ -57,19 +106,6 @@ override run => sub {
             print $content;
             print "\n\n";
         }
-    }
-
-    # allow user to not display history by specifying the --skip-history
-    # arg or setting disable_ticket_show_history_by_default config item to a
-    # true value (can be overridden with --with-history)
-    if (!$self->has_arg('skip-history') && (!$self->app_handle->config->get(
-                'disable_ticket_show_history_by_default') ||
-            $self->has_arg('with-history'))) {
-        print "\n= HISTORY\n\n";
-        print $record->history_as_string;
-    }
-};
-
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 
