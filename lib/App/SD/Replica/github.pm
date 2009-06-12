@@ -22,7 +22,7 @@ has owner      => ( isa => 'Str',             is => 'rw' );
 has repo       => ( isa => 'Str',             is => 'rw' );
 has query      => ( isa => 'Str',             is => 'rw' );
 
-our %PROP_MAP = ( state => 'status', );
+our %PROP_MAP = ( state => 'status', title => 'summary' );
 
 sub BUILD {
     my $self = shift;

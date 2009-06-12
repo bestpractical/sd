@@ -133,7 +133,10 @@ sub _recode_props_for_integrate {
     my %attr;
 
     for my $key ( keys %props ) {
-        if ( $key =~ /^(title|body)/ ) {
+        if ( $key eq 'summary' ) {
+            $attr{title} = $props{$key};
+        }
+        elsif ( $key eq 'body' ) {
             $attr{$key} = $props{$key};
         }
         elsif ( $key eq 'status' ) {
