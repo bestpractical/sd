@@ -1,6 +1,6 @@
 package App::SD::ForeignReplica;
 use Any::Moose;
-use Params::Validate;
+use Params::Validate qw/:all/;
 
 extends 'Prophet::ForeignReplica';
 sub integrate_changeset {
@@ -51,7 +51,21 @@ sub integrate_change {
     $recoder->integrate_change($change,$changeset);
 }
 
-# XXX TODO docs
+=head2 record_pushed_transactions
+
+Walk the set of transactions on the ticket whose id you've passed in, looking for updates by the 'current user' which happened after start_time and before now. Then mark those transactions as ones that originated in SD, so we don't accidentally push them later.
+
+=over
+
+=item ticket
+
+=item changeset
+
+=item start_time
+
+=back
+
+=cut
 
 sub record_pushed_transactions {
     my $self = shift;
@@ -152,6 +166,8 @@ sub traverse_changesets {
     my %args = validate( @_,
         {   after    => 1,
             callback => 1,
+            before_load_changeset_callback => { type => CODEREF, optional => 1},
+            reporting_callback => { type => CODEREF, optional => 1 },
         }
     );
 
@@ -159,6 +175,17 @@ sub traverse_changesets {
     my $recoder = $self->pull_encoder->new( { sync_source => $self } );
     my ( $changesets ) = $recoder->run( after => $args{'after'} );
     for my $changeset (@$changesets) {
+        if ( $args{'before_load_changeset_callback'} ) {
+            my $continue = $args{'before_load_changeset_callback'}->(
+                changeset_metadata => $self->_construct_changeset_index_entry($changeset)
+            );
+
+            next unless $continue;
+
+        }
+
+
+
         $args{callback}->(
             changeset                 => $changeset,
             after_integrate_changeset => sub {
@@ -177,11 +204,19 @@ sub traverse_changesets {
 
             }
         );
+        $args{reporting_callback}->($changeset) if ($args{reporting_callback});
 
     }
 
 }
 
+sub _construct_changeset_index_entry {
+    my $self = shift;
+    my $changeset = shift;
+
+    return [ $changeset->sequence_no, $changeset->original_source_uuid, $changeset->original_sequence_no, $changeset->calculate_sha1];
+
+}
 
 sub remote_uri_path_for_id {
     die "your subclass needds to implement this to be able to ".

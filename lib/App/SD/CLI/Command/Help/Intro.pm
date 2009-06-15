@@ -22,7 +22,7 @@ environment variable.
 
 To clone a ticket database:
 
-    ${cmd}clone http://example.com/path/to/sd
+    ${cmd}clone --from http://example.com/path/to/sd
 
 To start a new ticket database:
 

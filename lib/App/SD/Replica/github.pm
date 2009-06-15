@@ -16,16 +16,21 @@ use constant scheme => 'github';
 use constant pull_encoder => 'App::SD::Replica::github::PullEncoder';
 use constant push_encoder => 'App::SD::Replica::github::PushEncoder';
 
-has github     => ( isa => 'Net::Github', is => 'rw' );
-has remote_url => ( isa => 'Str',         is => 'rw' );
-has owner      => ( isa => 'Str',         is => 'rw' );
-has repo       => ( isa => 'Str',         is => 'rw' );
+has github     => ( isa => 'Net::GitHub::V2', is => 'rw' );
+has remote_url => ( isa => 'Str',             is => 'rw' );
+has owner      => ( isa => 'Str',             is => 'rw' );
+has repo       => ( isa => 'Str',             is => 'rw' );
+has query      => ( isa => 'Str',             is => 'rw' );
+
+our %PROP_MAP = ( state => 'status', title => 'summary' );
 
 sub BUILD {
     my $self = shift;
 
-    my ( $server , $owner , $repo  ) = $self->{url} =~ m/^github:(.+?)\|(\w+)\|(\w+)\|$/
-        or die "Can't parse Github server spec. Expected github:http://user\@github.com|owner|repository|";
+    my ( $server, $owner, $repo ) =
+      $self->{url} =~ m/^github:(.*?)\|(.+)\|(.+)\|$/
+      or die
+"Can't parse Github server spec. Expected github:http://user\@github.com|owner|repository|";
 
 
     my $uri = URI->new($server);
@@ -56,6 +61,18 @@ sub uuid {
     my $self = shift;
     Carp::cluck "- can't make a uuid for this" unless ($self->remote_url && $self->owner && $self->repo );
     return $self->uuid_for_url( join( '/', $self->remote_url, $self->owner , $self->repo ) );
+}
+
+sub remote_uri_path_for_comment {
+    my $self = shift;
+    my $id = shift;
+    return "/comment/".$id;
+}
+
+sub remote_uri_path_for_id {
+    my $self = shift;
+    my $id = shift;
+    return "/ticket/".$id;
 }
 
 __PACKAGE__->meta->make_immutable;

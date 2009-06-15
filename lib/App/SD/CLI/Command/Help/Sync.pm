@@ -9,11 +9,11 @@ sub run {
 
 print <<EOF
 
-    ${cmd}clone http://example.com/path/to/sd
+    ${cmd}clone --from http://example.com/path/to/sd
       Create a new copy (replica) of a published SD replica from an
       http, ftp or file URL.
 
-    ${cmd}pull http://example.com/path/to/sd
+    ${cmd}pull --from http://example.com/path/to/sd
       Integrate changes from a published SD replica over http, ftp or 
       file URL.
 

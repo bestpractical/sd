@@ -11,6 +11,16 @@ rewrite qr/^\?(.*)/ => sub { "help ".($1||'') };
 # 'sd about' -> 'sd help about', 'sd copying' -> 'sd help copying'
 rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 
+on qr'^(?!help)' => sub {
+    my $self = shift;
+    my $cmd = $_; 
+    if ($self->context->has_arg('help')) {
+        run("help $cmd", $self, @_);
+    } else { 
+        next_rule;
+        }
+
+};
 
 under help => sub {
     on [ [ 'intro', 'init', 'clone' ] ]   => run_command('Help::Intro');
@@ -66,6 +76,7 @@ on qr/^(\w+)\s+tickets?(.*)$/ => sub {
     my $self = shift;
     my $primary = $1;
     my $secondary = $2;
+    next_rule if $primary eq 'help';
     my $cmd = join( ' ', grep { $_ ne '' } 'ticket',$primary, $secondary);
     my @orig_argv = @{$self->cli->context->raw_args};
     my ($subcommand, undef) = (shift @orig_argv, shift @orig_argv);
@@ -83,7 +94,7 @@ under ticket => sub {
     on details  => run_command('Ticket::Details');
 
     under [ [ 'give', 'assign' ] ] => sub {
-        on [qr/^(?:\d+|[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})$/, qr/^\S+$/] => sub {
+        on [qr/^(?:\d+|[0-9a-zA-Z\-\_]{22,24}|[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})$/, qr/^\S+$/] => sub {
             my $self = shift;
             my ($id, $owner) = ($1, $2);
 
