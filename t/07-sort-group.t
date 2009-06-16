@@ -40,11 +40,13 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--sort', 'owner' ],
 );
 
 my $config_filename = $ENV{'SD_REPO'} . '/config';
-App::SD::Test->write_to_file($config_filename,
-    "default_sort_ticket_list = owner\n");
+App::SD::Test->write_to_file($config_filename, '
+[ticket "list"]
+    default-sort = owner
+');
 $ENV{'SD_CONFIG'} = $config_filename;
 
-diag('using default_sort_ticket_list = owner');
+diag('using ticket.list.default-sort = owner');
 run_output_matches( 'sd', [ 'ticket', 'list' ],
     [ qr/(\d+) huzzah! new/,
       qr/(\d+) YATTA new/,
@@ -58,7 +60,7 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--sort' ],
     ]
 );
 
-diag('using default_sort_ticket_list = owner and --sort none');
+diag('using ticket.list.default-sort = owner and --sort none');
 run_output_matches( 'sd', [ 'ticket', 'list', '--sort', 'none' ],
     [ qr/(\d+) YATTA new/,
       qr/(\d+) huzzah! new/,
@@ -82,11 +84,11 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--group', 'owner' ],
     ]
 );
 
-diag('using default_group_ticket_list = owner');
-$config_filename = $ENV{'SD_REPO'} . '/config';
-App::SD::Test->write_to_file($config_filename,
-    "default_group_ticket_list = owner\n");
-$ENV{'SD_CONFIG'} = $config_filename;
+diag('using ticket.list.default-group = owner');
+App::SD::Test->write_to_file($config_filename, '
+[ticket "list"]
+    default-group = owner
+');
 
 run_output_matches( 'sd', [ 'ticket', 'list' ],
     [ '',
@@ -117,7 +119,7 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--group' ],
     ]
 );
 
-diag('using default_group_ticket_list = owner and --group none');
+diag('using ticket.list.default-group = owner and --group none');
 run_output_matches( 'sd', [ 'ticket', 'list', '--group', 'none' ],
     [ qr/(\d+) YATTA new/,
       qr/(\d+) huzzah! new/,
