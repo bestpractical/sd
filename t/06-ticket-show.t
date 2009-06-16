@@ -93,22 +93,24 @@ diag("passing --skip history (doesn't show history)");
 check_output_without_history('--skip-history');
 
 my $config_filename = $ENV{'SD_REPO'} . '/config';
-App::SD::Test->write_to_file($config_filename,
-    "disable_ticket_show_history_by_default = 1\n");
+App::SD::Test->write_to_file($config_filename, '
+[ticket "show"]
+    disable-history = true
+');
 $ENV{'SD_CONFIG'} = $config_filename;
 
-diag("config option disable_ticket_show_history_by_default set");
+diag("config option ticket.show.disable-history set");
 diag("(shouldn't show history)");
 
 check_output_without_history();
 
-diag("config option disable_ticket_show_history_by_default set");
+diag("config option ticket.show.disable-history set");
 diag("and --skip-history passed (shouldn't show history)");
 
 check_output_without_history('--skip-history');
 
 # config option set and --with-history passed (should show history)
-diag('config option disable_ticket_show_history_by_default set');
+diag('config option ticket.show.disable-history set');
 diag('and --with-history passed (should show history)');
 
 check_output_with_history('--with-history');

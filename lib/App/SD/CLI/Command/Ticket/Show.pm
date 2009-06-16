@@ -46,11 +46,13 @@ override run => sub {
     }
 
     # allow user to not display history by specifying the --skip-history
-    # arg or setting disable_ticket_show_history_by_default config item to a
+    # arg or setting ticket.show.disable-history config item to a
     # true value (can be overridden with --with-history)
     if (!$self->has_arg('skip-history')
-        && (  !$self->app_handle->config->get('disable_ticket_show_history_by_default')
-            || $self->has_arg('with-history') )
+        && (  !$self->app_handle->config->get(
+                key => 'ticket.show.disable-history',
+                as => 'bool',
+            ) || $self->has_arg('with-history') )
         )
     {
         print "\n= HISTORY\n\n";
