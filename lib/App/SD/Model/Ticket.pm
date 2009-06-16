@@ -167,7 +167,7 @@ sub props_to_show {
     my $self = shift;
     my $args = shift || {};
     my @props_from_config = split(',',
-        ($self->app_handle->config->get('common_ticket_props') || ''));
+        ($self->app_handle->config->get( key => 'ticket.common-props') || ''));
     my $props_list = @props_from_config ? \@props_from_config :
         $self->app_handle->setting(label => 'common_ticket_props')->get();
 
