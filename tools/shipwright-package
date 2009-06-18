@@ -1,4 +1,4 @@
-export REPO=/Users/jesse/shipwright-sd/
+export REPO=/Users/jesse/shipwright-sd-`date +%Y-%-m-%d`/
 export SVN_PATH="svn:file://$REPO"
 export MIN_PERL=5.008006
 export SKIP="--skip=Pod::Simple,Module::Signature,Test::Pod,Test::Pod::Coverage,Test::Distribution,Pod::Readme,Archive::Tar,HTML::Lint,Prophet,Encode,Date::Calc"
@@ -43,12 +43,6 @@ cd cpan-DateTime-Format-Natural
 perl -pi -e s'/Build test/Build/g' build
 svn commit -m 'Made DTFN not run its tests which add a slew of deps' build
 cd ..
-
-
-svn co file://${REPO}/sources/cpan-Net-Bonjour/vendor
-cd vendor
-perl -pi -e's/^chomp.*?STDIN.*?$/my \$ans = "n";/g;' Makefile.PL
-svn commit -m 'Made Net::Bonjour not promtp ' Makefile.PL
 
 
 svn export file://$REPO /tmp/sdex-$$
