@@ -75,8 +75,8 @@ sub integrate_attachment {
     my $ticket = RT::Client::REST::Ticket->new( rt => $self->sync_source->rt, id => $ticket_id );
 
     my $tempdir = File::Temp::tempdir( CLEANUP => 1 );
-    my $file = file( $tempdir => ( $props{'name'} || 'unnamed' ) );
-    my $fh = $file->openw;
+    my $file = File::Spec->catfile( $tempdir, ( $props{'name'} || 'unnamed' ) );
+    open my $fh, '>', $file or die $!;
     print $fh $props{content};
     close $fh;
     my %content = ( message     => '(See attachments)', attachments => ["$file"]);
