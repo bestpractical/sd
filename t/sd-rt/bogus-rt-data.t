@@ -6,7 +6,6 @@
 use strict;
 
 use Prophet::Test;
-use Path::Class;
 
 BEGIN {
     unless ( eval 'use RT::Test; 1' ) {

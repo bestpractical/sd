@@ -5,7 +5,6 @@ use strict;
 use Prophet::Test tests => 6;
 use App::SD::Test;
 use File::Temp qw/tempdir/;
-use Path::Class;
 use Term::ANSIColor;
 
 no warnings 'once';

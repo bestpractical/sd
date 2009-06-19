@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 use Prophet::Test;
-use Path::Class;
 plan tests => 10;
 use App::SD::Test;
 

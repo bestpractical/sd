@@ -5,7 +5,6 @@ use strict;
 use warnings;
 
 use Prophet::Test;
-use Path::Class;
 use File::Path qw(rmtree);
 
 BEGIN {
