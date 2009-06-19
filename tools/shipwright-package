@@ -32,7 +32,7 @@ rm -rf sdex
 #shipwright update -r $SVN_PATH cpan-Module-Build --add-deps cpan-Pod-Simple
 #shipwright update -r $SVN_PATH cpan-IO-Compress-Base --add-deps cpan-Scalar-List-Utils
 shipwright update -r $SVN_PATH prophet.git      --add-deps cpan-Term-ReadLine-Perl,cpan-TermReadKey,cpan-DBD-SQLite,cpan-File-ShareDir,cpan-HTTP-Server-Simple,cpan-JSON-XS
-shipwright update -r $SVN_PATH sd.git           --add-deps prophet.git,cpan-Net-Bonjour,cpan-Email-Address,cpan-Net-Trac,cpan-RT-Client-REST,Net-Google-Code
+shipwright update -r $SVN_PATH sd.git           --add-deps prophet.git,cpan-Net-Bonjour,cpan-Email-Address,cpan-Net-Trac,cpan-RT-Client-REST,cpan-Net-Google-Code
 shipwright maintain -r $SVN_PATH --update-order
 cd /tmp
 mkdir svnhack-$$
