@@ -31,9 +31,7 @@ sub get_content {
     my $content;
     if (my $file = $self->delete_arg('file')) {
         my ( $vol, $dir, $name ) = File::Spec->splitpath( $file );
-        local $/;
-        open my $fh, '<', $file;
-        $content = <$fh>;
+        $content = Prophet::Util->slurp( $file );
         $self->set_prop(name => $name);
     } elsif ($content = $self->delete_arg('content')) {
 
