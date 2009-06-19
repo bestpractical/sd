@@ -41,6 +41,21 @@ feature 'Trac sync' => (
 
 recommends 'Net::Trac';
 
+feature 'Google Code sync (experimental)' => (
+    -default => 0,
+    'Net::Google::Code' => 0,
+);
+
+recommends 'Net::Google::Code';
+
+
+feature 'GitHub sync (experimental)' => (
+    -default => 0,
+    'Net::GitHub' => 0.18,
+);
+
+recommends 'Net::GitHub' => 0.18;
+
 install_script('bin/sd');
 install_script('bin/git-sd');
 install_share('share');
