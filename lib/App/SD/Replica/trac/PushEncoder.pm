@@ -1,7 +1,6 @@
 package App::SD::Replica::trac::PushEncoder;
 use Any::Moose; 
 use Params::Validate;
-use Path::Class;
 use Time::HiRes qw/usleep/;
 has sync_source => 
     ( isa => 'App::SD::Replica::trac',

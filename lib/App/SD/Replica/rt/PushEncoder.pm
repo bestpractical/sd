@@ -4,7 +4,6 @@ use Any::Moose;
 extends 'App::SD::ForeignReplica::PushEncoder';
 
 use Params::Validate;
-use Path::Class;
 
 has sync_source => 
     ( isa => 'App::SD::Replica::rt',

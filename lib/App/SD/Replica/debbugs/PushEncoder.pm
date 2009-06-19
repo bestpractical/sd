@@ -2,7 +2,6 @@ package App::SD::Replica::debbugs::PushEncoder;
 use Any::Moose;
 
 use Params::Validate;
-use Path::Class;
 
 has sync_source => 
     ( isa => 'App::SD::Replica::debbugs',

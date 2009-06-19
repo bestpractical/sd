@@ -1,7 +1,6 @@
 package App::SD::Replica::gcode::PushEncoder;
 use Any::Moose;
 use Params::Validate;
-use Path::Class;
 use Net::Google::Code::Issue;
 use Net::Google::Code;
 

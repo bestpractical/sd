@@ -6,7 +6,6 @@ license('MIT');
 version_from('lib/App/SD.pm');
 requires('DateTime');
 requires('Time::Progress');
-requires('Path::Class');
 requires 'Prophet'; # URI UNIVERSAL::require Params::Validate Class::Accessor Template::Declare::Tags Test::HTTP::Server::Simple JSON Test::WWW::Mechanize Any::Moose
 requires('HTML::TreeBuilder');
 requires('DateTime::Format::Natural');
