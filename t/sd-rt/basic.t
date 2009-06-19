@@ -178,6 +178,7 @@ my $image_data = Prophet::Util->slurp( $IMAGE_FILE );
 my ( $contentret, $stdout, $stderr )
     = run_script( 'sd', [ qw/attachment content --id/, $rt_attach_id ] );
 ok( $contentret, "Ran the script ok" );
+utf8::decode($stdout);
 is( $stdout, $image_data, "We roundtripped some binary" );
 is( $stderr, '' );
 
