@@ -3,6 +3,12 @@
 use strict;
 use warnings;
 use Prophet::Test;
+
+BEGIN {
+    plan skip_all => "Tests require Net::GitHub 0.18"
+        unless eval { require Net::GitHub; Net::GitHub->VERSION(0.18); 1 };
+}
+
 plan tests => 8;
 use App::SD::Test;
 
