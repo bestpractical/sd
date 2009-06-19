@@ -18,10 +18,10 @@ sub handle_changeset {
         },
         header_callback => sub {
             my $c = shift;
-            sprintf "%s - %s : %s @ %s\n",
+            sprintf "%s - %s : %s@%s\n",
                 $c->created,
-                $c->original_sequence_no,
                 ( $c->creator || '(unknown)' ),
+                $c->original_sequence_no,
                 $c->original_source_uuid
                 ;
             }
