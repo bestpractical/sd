@@ -4,7 +4,9 @@ use Prophet::Test;
 use App::SD::Test;
 
 require File::Temp;
-$ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
+$ENV{TEST_VERBOSE} = 1;
+$ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+
 diag "export SD_REPO=" . $ENV{'PROPHET_REPO'} . "\n";
 
 unless ( eval { require Net::Redmine } ) {
@@ -48,8 +50,7 @@ When qr/I clone the redmine project with sd/, sub {
     $sd_redmine_url =~ s|http://|http://${user}:${pass}@|;
     my ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--verbose', '--from', $sd_redmine_url ] );
 
-    diag($out);
-    diag($err);
+
     should($ret, 0);
 };
 
@@ -57,8 +58,11 @@ Then qr/I should see at least five tickets./, sub {
     my ( $ret, $out, $err ) = run_script('sd' => [ 'ticket', 'list', '--regex', '.' ]);
     my @lines = split(/\n/,$out);
 
+    diag "----";
     diag($out);
+    diag "----";
     diag($err);
+    diag "----";
 
     assert(0+@lines >= 5);
 };
