@@ -29,11 +29,10 @@ sub get_content {
     my %args = @_;
 
     my $content;
-    ### XXX Extract to a common "slurp" routine
-    require Path::Class; Path::Class->import('file'); # instead of use to get runtime loading
-    if (my $file = file($self->delete_arg('file'))) {
-        $content = $file->slurp();
-        $self->set_prop(name => $file->basename);
+    if (my $file = $self->delete_arg('file')) {
+        my ( $vol, $dir, $name ) = File::Spec->splitpath( $file );
+        $content = Prophet::Util->slurp( $file );
+        $self->set_prop(name => $name);
     } elsif ($content = $self->delete_arg('content')) {
 
     } elsif ($args{default_edit} || $self->has_arg('edit')) {

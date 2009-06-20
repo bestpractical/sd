@@ -628,7 +628,6 @@ table.tablesorter td a:hover {
 
 table.tablesorter td.summary {
  margin-top: 0em;
- background: #f00;
  padding: 0;
  font-weight: normal;
  right:1.5em;
@@ -642,3 +641,77 @@ table.tablesorter td.summary {
 
 }
 
+.pagesection {
+ max-width: 130px;
+ }
+
+.pagesection .bar-wrapper {
+ background: #ccc;
+ height: 6px;
+ margin-top: 4px;
+ margin-bottom: 2px;
+ -moz-border-radius: 4px;
+ -webkit-border-radius: 4px;
+
+}
+
+.pagesection .bar {
+ height: 6px;
+ background: #900;
+ -moz-border-radius: 4px;
+ -webkit-border-radius: 4px;
+
+
+ }
+
+.pagesection li {
+ font-size: 0.8em;
+}
+
+.pagesection li a {
+  color: #000;
+  padding-left: 0.1em;
+  text-decoration: none;
+ font-weight: bold;
+}
+
+
+
+div.overview {
+ position: absolute;
+ top: 80px;
+ left: 160px;
+ right: 20px;
+
+
+}
+
+
+div.overview h2 {
+ padding-bottom: 0;
+ font-weight: normal;
+ border-bottom: 1px solid #ddd;
+}
+
+.sidebar {
+  width: 120px;
+  border-right: 1px solid #ddd;
+  padding-right: 10px; 
+}
+
+.sidebar h2 { 
+  padding-left: 0;
+  font-size: 1.1em;
+  font-weight: normal;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  padding-top: 0.5em;
+}
+
+.sidebar .pagesection {
+ padding-bottom: 5px;
+
+  border-bottom: 1px solid #ddd;
+
+} 

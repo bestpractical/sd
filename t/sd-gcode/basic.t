@@ -3,7 +3,12 @@
 use strict;
 use warnings;
 use Prophet::Test;
-use Path::Class;
+
+BEGIN {
+    plan skip_all => "Tests require Net::Google::Code"
+        unless eval { require Net::Google::Code; 1 };
+}
+
 plan tests => 10;
 use App::SD::Test;
 

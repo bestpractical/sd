@@ -14,9 +14,29 @@ use App::SD::Collection::Ticket;
 
 my @BASIC_PROPS = qw(status milestone component owner reporter due created tags description);
 
+sub page_box { 
+    my ($id, $title, $component) = (@_);
 
+    div {   { id is $id };
+            { h2 { $title}; show($component)}
+        };
 
-template '/' => page {'My open tickets for the current milestone'}
+}
+
+template '' => page { 'Project overview'} content {
+    my $self = shift;
+    div { { class is 'stats sidebar'};
+    page_box('components', 'Components', 'component_list');
+    page_box('statuses', 'Statuses', 'status_list');
+    page_box('milestones', 'Milestones', 'milestone_list');
+    };
+    div { { class is 'overview'};
+    h2 { 'Your active tickets for '. $self->app_handle->setting( label => 'default_milestone' )->get()->[0];};
+    show('/tickets/hot');
+    };
+};
+
+template 'hot_tickets' => page {'Your open tickets for the current milestone'}
 content {
     show('/tickets/hot');
 
@@ -31,30 +51,82 @@ template 'milestones' => page {'Project milestones'} content {
 };
 
 
-template 'milestone_list' => sub {
-    my $self = shift;
-    my $milestones = $self->app_handle->setting( label => 'milestones' )->get();
+template 'status_list' => sub { show('property_list','status'); };
+template 'milestone_list' => sub { show('property_list', 'milestone') };
+template 'component_list' => sub { show('property_list', 'component')};
 
-    div { { class is 'pagesection'};
-        ul{
-    foreach my $milestone (@$milestones) {
-            li {
-                a {{ href is '/milestone/'.$milestone} $milestone }
+template 'property_list' => sub {
+    my $self          = shift;
+    my $property_name = shift;
+    my $props         = $self->app_handle->setting(
+        label => ( $property_name =~ /s$/ ? $property_name . "es" : $property_name . 's' ) )->get();
 
-            }    
+    my %counts = map { $_ => 0 } @$props;
+    $self->find_tickets( sub {
+             my $ticket = shift; 
+            return if ($property_name ne 'status' && !$ticket->has_active_status);
+            $counts{ $ticket->prop($property_name) || '' }++}); 
 
-    }
+    my $total = 0;
+    $total += $_ for values %counts;
+
+    div {
+        { class is 'pagesection' };
+        ul {
+
+            my @order = grep {$_ ne ''}  keys %counts;
+                       
+            if ( defined $counts{''} && $counts{''} > 0) {
+                   push @order, '';
+            }
+
+ 
+            foreach my $prop ( @order) { 
+                li {
+                    div { {class is 'bar-wrapper'} ;
+                        div {
+                        { class is 'bar'; ($total ? style is ("width: ". int(( ($counts{$prop} ||0)/ $total) * 100 )."%") : ()) };
+                        outs(' ');
+                    };};
+                        outs ( ($counts{$prop} ||'0') . " - ");
+                    a {
+                        { href is '/' . $property_name . '/' . ($prop ||'') }
+                        ( $prop ? $prop : 'None' ) 
+                    }
+
+                }
+
+            }
         }
     }
 
 };
 
-template 'no_component' => sub {show 'component' => undef};
 
-template 'component' => page { 'Component: ' . ( $_[1] || '<i>none</i>' ) }
+
+
+template 'status' => page { 'Status: ' . ( $_[1] || 'none' ) }
+content {
+    my $self      = shift;
+    my $status = shift || '' ;
+
+    $self->show_tickets(
+        sub {my $item = shift;
+            ( ( $item->prop('status') || '' ) eq $status )
+                ? 1
+                : 0;
+        }
+    );
+};
+
+
+
+template 'component' => page { 'Component: ' . ( $_[1] || 'none' ) }
 content {
     my $self      = shift;
     my $component = shift || '' ;
+
+
 
     $self->show_tickets(
         sub {my $item = shift;
@@ -65,8 +137,7 @@ content {
     );
 };
 
-template 'no_milestone' => sub { show 'milestone' => undef };
-template 'milestone' => page { 'Milestone: ' . ( $_[1] || '<i>none</i>' ) }
+template 'milestone' => page { 'Milestone: ' . ( $_[1] || 'none' ) }
 content {
     my $self      = shift;
     my $milestone = shift;
@@ -83,6 +154,12 @@ content {
 
 sub show_tickets {
     my $self     = shift;
+    my $tickets = $self->find_tickets(@_);
+    show( '/ticket_list', $tickets );
+}
+
+sub find_tickets {
+    my $self     = shift;
     my $callback = shift;
 
     my $tickets = App::SD::Collection::Ticket->new(
@@ -90,7 +167,7 @@ sub show_tickets {
         handle     => $self->app_handle->handle
     );
     $tickets->matching($callback);
-    show( '/ticket_list', $tickets );
+    return $tickets;
 }
 
 template edit_ticket => page {
@@ -316,6 +393,7 @@ private template 'ticket_list' => sub {
     my $self   = shift;
     my $tickets = shift;
     my $id = substr(rand(10),2); # hack  to get a unique id
+    div { { class is 'ticket-list'};
     table {
         { class is 'tablesorter'; id is $id; };
         thead {
@@ -343,7 +421,7 @@ private template 'ticket_list' => sub {
 
             }
         };
-    };
+    }};
          script {outs_raw(qq{
             \$(document).ready(function() { \$("#@{[$id]}").tablesorter(); } ); 
         }

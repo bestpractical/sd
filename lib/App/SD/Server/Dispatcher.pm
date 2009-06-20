@@ -59,7 +59,7 @@ under { method => 'POST' } => sub {
 
 under { method => 'GET' } => sub {
     on qr'^/static/sd/(.*)$' => sub { shift->server->send_static_file($1)};
-    on qr'^/(milestone|component)/([\w\d-]+)$' => sub {
+    on qr'^/(milestone|component|status)/([\w\d-]*)$' => sub {
         my $name = $1;
         my $type = $2;
         shift->show_template( $name => $type );
