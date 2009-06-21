@@ -53,11 +53,16 @@ replica types for RT (http://bestpractical.com/rt) and Hiveminder
 your bug tracker, you should get in touch with SD's developers (see
 http://syncwith.us/contact).
 
-    ${cmd}push --to rt:http://rt3.fsck.com|rt3|Owner='jesse'
+The RT server is specified as as rt:serveraddress|Queue|Query
+
+    ${cmd}clone --from "rt:http://rt3.fsck.com|rt3|Owner='jesse'"
+      Create a local replica and pull data from a foreign replica.
+
+    ${cmd}push --to "rt:http://rt3.fsck.com|rt3|Owner='jesse'"
       Push changes to the given foreign replica. Foreign replica
       schemas will vary based on the replica type.
 
-    ${cmd}pull --from rt:http://rt3.fsck.com|rt3|Owner='jesse'
+    ${cmd}pull --from "rt:http://rt3.fsck.com|rt3|Owner='jesse'"
       Pull changes from a foreign replica to be merged into the
       local replica.
 EOF
