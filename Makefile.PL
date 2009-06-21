@@ -56,6 +56,11 @@ feature 'GitHub sync (experimental)' => (
 
 recommends 'Net::GitHub' => 0.18;
 
+feature 'Redmine sync (experimental)' => (
+    -default => 0,
+    'Net::Redmine' => 0.08,
+);
+
 install_script('bin/sd');
 install_script('bin/git-sd');
 install_share('share');
