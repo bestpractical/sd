@@ -22,7 +22,7 @@ my @tickets;
 my $the_ticket_with_histories;
 
 Given qr/a clean sd repo/ => sub {
-    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
+    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
     diag "export SD_REPO=" . $ENV{'PROPHET_REPO'} . "\n";
 };
 
@@ -50,7 +50,7 @@ Then qr/I should see at least five tickets./, sub {
     my ( $ret, $out, $err ) = run_script('sd' => [ 'ticket', 'list', '--regex', '.' ]);
     my @lines = split(/\n/,$out);
 
-    diag($out);
+    # diag($out);
 
     assert(0+@lines >= 5);
 };
@@ -75,16 +75,13 @@ Given qr/there is one ticket contains several history entries/ => sub {
 };
 
 Then qr/the history entries should also be cloned as ticket transactions/ => sub {
-    my ( $ret, $out, $err ) = run_script('sd' => [ 'ticket', 'list', '--regex', '.' ]);
+    my ($ret, $out, $err) = run_script('sd' => [ 'ticket', 'list', '--regex', $the_ticket_with_histories->subject ]);
     my @lines = split(/\n/,$out);
-    assert(0+@lines >= 5);
-
-    ($ret, $out, $err) = run_script('sd' => [ 'ticket', 'list', '--regex', $the_ticket_with_histories->subject ]);
-    @lines = split(/\n/,$out);
     my $id = (split / /, $lines[0], "2")[0];
 
     ($ret, $out, $err) = run_script('sd' => [ 'ticket', 'comments', $id ]);
 
+    # diag "---\n$out\n---";
     assert $out !~ m/^No comments found/m;
     assert $out =~ m/comment 1/;
     assert $out =~ m/comment 2/;

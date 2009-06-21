@@ -42,6 +42,13 @@ sub find_matching_transactions {
         }
     }
 
+    # if ($args{ticket}->id == 420) {
+    #     die Dump({
+    #         ticket_id => $args{ticket}->id,
+    #         txn => [ map { { id => $_->{serial}, comment => $_->{comment} } } @txns ]
+    #     });
+    # }
+
     return \@txns;
 }
 
@@ -56,7 +63,8 @@ sub translate_ticket_state {
         summary     => $ticket->subject,
         description => $ticket->description,
         priority    => $ticket->priority,
-        created     => $ticket->created_at->ymd . " " . $ticket->created_at->hms
+        created     => $ticket->created_at->ymd . " " . $ticket->created_at->hms,
+        creator     => $ticket->author->email
     };
     my $initial_state = {%$final_state};
 
@@ -93,37 +101,73 @@ sub transcode_one_txn {
 
     my $ticket_id   = $newer_ticket_state->{ $self->sync_source->uuid . '-id' };
     my $ticket_uuid = $self->sync_source->uuid_for_remote_id($ticket_id);
-    my $creator     = 'ttt@example.com';
+    my $creator     = $newer_ticket_state->{creator};
     my $created     = $newer_ticket_state->{created};
 
-    my $changeset = Prophet::ChangeSet->new(
-        {
-            original_source_uuid => $ticket_uuid,
-            original_sequence_no => $txn->id,
-            creator              => $creator,
-            created              => $created,
-        }
-    );
+    my $changeset = Prophet::ChangeSet->new({
+        original_source_uuid => $ticket_uuid,
+        original_sequence_no => $txn->id,
+        creator              => $creator,
+        created              => $created,
+    });
 
-    my $change = Prophet::Change->new(
-        {
-            record_type => 'ticket',
-            record_uuid => $ticket_uuid,
-            change_type => 'update_file',
-        }
-    );
+    my $change = Prophet::Change->new({
+        record_type => 'ticket',
+        record_uuid => $ticket_uuid,
+        change_type => 'update_file',
+    });
 
-    for my $prop ( keys %{ $txn->{post_state} } ) {
+    for my $prop ( keys %{ $txn_wrapper->{post_state} } ) {
+        my $new = $txn_wrapper->{post_state}->{$prop};
+        my $old = $txn_wrapper->{pre_state}->{$prop};
+
+        next unless defined($new) && defined($old);
+
         $change->add_prop_change(
             name => $prop,
-            new  => ref( $txn->{post_state}->{$prop} ) eq 'ARRAY'
-            ? join( ', ', @{ $txn->{post_state}->{$prop} } )
-            : $txn->{post_state}->{$prop},
-        );
+            new  => $new,
+            old  => $old,
+        ) unless $new eq $old;
     }
-    $changeset->add_change( { change => $change } );
 
+    $changeset->add_change({ change => $change });
+
+    $self->_include_change_comment($changeset, $ticket_uuid, $txn);
     return $changeset;
+}
+
+sub _include_change_comment {
+    my $self        = shift;
+    my $changeset   = shift;
+    my $ticket_uuid = shift;
+    my $txn         = shift;
+
+    my $comment = Prophet::Change->new({
+        record_type => 'comment',
+        record_uuid => $self->sync_source->app_handle->uuid_generator->create_str(),
+        change_type => 'add_file'
+    });
+
+    my $content = $txn->note || "";
+
+    if ( $content !~ /^\s*$/s ) {
+        $comment->add_prop_change(
+            name => 'created',
+            new  => $txn->date->ymd . ' ' . $txn->date->hms,
+        );
+        $comment->add_prop_change(
+            name => 'creator',
+            new => 'ccc@example.com',
+        );
+        $comment->add_prop_change( name => 'content', new => $content );
+        $comment->add_prop_change(
+            name => 'content_type',
+            new  => 'text/plain',
+        );
+        $comment->add_prop_change( name => 'ticket', new => $ticket_uuid, );
+
+        $changeset->add_change( { change => $comment } );
+    }
 }
 
 sub transcode_create_txn {
@@ -170,8 +214,6 @@ sub transcode_create_txn {
 
     return $changeset;
 }
-
-sub _include_change_comment {}
 
 sub translate_prop_status {}
 
