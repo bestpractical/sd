@@ -50,21 +50,33 @@ sub translate_ticket_state {
     my $ticket       = shift;
     my $transactions = shift;
 
-
-    my $ticket_data = {
+    my $final_state = {
         $self->sync_source->uuid . '-id' => $ticket->id,
-        status      => ( $ticket->status  || undef ),
-        summary     => ( $ticket->subject || undef ),
-        description => ( $ticket->description || undef ),
-        priority    => ( $ticket->priority || undef ),
-        created_at  => ( $ticket->created_at->ymd . " " . $ticket->created_at->hms )
+        status      => lc($ticket->status),
+        summary     => $ticket->subject,
+        description => $ticket->description,
+        priority    => $ticket->priority,
+        created     => $ticket->created_at->ymd . " " . $ticket->created_at->hms
     };
+    my $initial_state = {%$final_state};
 
-    # delete undefined and empty fields
-    delete $ticket_data->{$_}
-        for grep !defined $ticket_data->{$_} || $ticket_data->{$_} eq '', keys %$ticket_data;
+    for my $txn ( sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions ) {
+        $txn->{post_state} = { %$final_state };
 
-    return $ticket_data, { %$ticket_data };
+        if ($txn->{serial} == 0) {
+            $txn->{pre_state} = {};
+            last;
+        }
+
+        my $property_changes = $txn->{object}->property_changes;
+        while (my ($name, $changes) = each(%$property_changes)) {
+            $initial_state->{$name} = $changes->{from};
+        }
+
+        $txn->{pre_state} = {%$initial_state};
+    }
+
+    return $initial_state, $final_state;
 }
 
 sub transcode_one_txn {
@@ -79,17 +91,15 @@ sub transcode_one_txn {
         return $self->transcode_create_txn($txn_wrapper, $older_ticket_state, $newer_ticket_state);
     }
 
-    return;
-
     my $ticket_id   = $newer_ticket_state->{ $self->sync_source->uuid . '-id' };
     my $ticket_uuid = $self->sync_source->uuid_for_remote_id($ticket_id);
-    my $creator     = $self->resolve_user_id_to( email_address => $newer_ticket_state->{reporter} );
+    my $creator     = 'ttt@example.com';
     my $created     = $newer_ticket_state->{created};
 
     my $changeset = Prophet::ChangeSet->new(
         {
             original_source_uuid => $ticket_uuid,
-            original_sequence_no => 0,
+            original_sequence_no => $txn->id,
             creator              => $creator,
             created              => $created,
         }
@@ -125,34 +135,29 @@ sub transcode_create_txn {
     my $ticket_id   = $final_data->{ $self->sync_source->uuid . '-id' };
     my $ticket_uuid = $self->sync_source->uuid_for_remote_id($ticket_id);
     my $creator     = 'xxx@example.com';
-    my $created     = $final_data->{created_at};
+    my $created     = $final_data->{created};
 
-    my $changeset = Prophet::ChangeSet->new(
-        {
-            original_source_uuid => $ticket_uuid,
-            original_sequence_no => 0,
-            creator              => $creator,
-            created              => $created,
-        }
-    );
+    my $changeset = Prophet::ChangeSet->new({
+        original_source_uuid => $ticket_uuid,
+        original_sequence_no => 0,
+        creator              => $creator,
+        created              => $created,
+    });
 
-    my $change = Prophet::Change->new(
-        {
-            record_type => 'ticket',
-            record_uuid => $ticket_uuid,
-            change_type => 'add_file',
-        }
-    );
+    my $change = Prophet::Change->new({
+        record_type => 'ticket',
+        record_uuid => $ticket_uuid,
+        change_type => 'add_file',
+    });
 
-    for my $prop ( keys %{ $txn->{post_state} } ) {
+    while ( my ($name, $value) = each %{ $txn->{post_state} }) {
         $change->add_prop_change(
-            name => $prop,
-            new  => ref( $txn->{post_state}->{$prop} ) eq 'ARRAY'
-            ? join( ', ', @{ $txn->{post_state}->{$prop} } )
-            : $txn->{post_state}->{$prop},
-        );
+            name => $name,
+            new => $value
+        )
     }
-    $changeset->add_change( { change => $change } );
+
+    $changeset->add_change({ change => $change });
 
     # for my $att ( @{ $txn->{object}->attachments } ) {
     #     $self->_recode_attachment_create(
