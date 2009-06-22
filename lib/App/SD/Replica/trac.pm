@@ -3,7 +3,6 @@ use Any::Moose;
 extends qw/App::SD::ForeignReplica/;
 
 use Params::Validate qw(:all);
-use Path::Class;
 use File::Temp 'tempdir';
 use Memoize;
 

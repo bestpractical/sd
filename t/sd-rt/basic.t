@@ -6,7 +6,6 @@
 use strict;
 
 use Prophet::Test;
-use Path::Class;
 
 BEGIN {
     unless ( eval 'use RT::Test; 1' ) {
@@ -175,16 +174,17 @@ diag(
     "Check to see if YATTA's attachment is binary-identical to the original one"
 );
 
-my $image_data = file($IMAGE_FILE)->slurp;
+my $image_data = Prophet::Util->slurp( $IMAGE_FILE );
 my ( $contentret, $stdout, $stderr )
     = run_script( 'sd', [ qw/attachment content --id/, $rt_attach_id ] );
 ok( $contentret, "Ran the script ok" );
+utf8::decode($stdout);
 is( $stdout, $image_data, "We roundtripped some binary" );
 is( $stderr, '' );
 
 diag("Add an attachment to YATTA");
 
-my $MAKEFILE_CONTENT = file('Makefile.PL')->slurp;
+my $MAKEFILE_CONTENT = Prophet::Util->slurp('Makefile.PL');
 chomp($MAKEFILE_CONTENT);
 my $makefile_attach_uuid;
 run_output_matches(
@@ -218,7 +218,7 @@ is( $makefile->content, $MAKEFILE_CONTENT,
     " The makefile's content was roundtripped ot rt ok" );
 
 is( $logo->content,
-    file($IMAGE_FILE)->slurp,
+    scalar Prophet::Util->slurp( $IMAGE_FILE ),
     " The image's content was roundtripped ot rt ok"
 );
 

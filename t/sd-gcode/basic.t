@@ -3,8 +3,13 @@
 use strict;
 use warnings;
 use Prophet::Test;
-use Path::Class;
-plan tests => 8;
+
+BEGIN {
+    plan skip_all => "Tests require Net::Google::Code"
+        unless eval { require Net::Google::Code; 1 };
+}
+
+plan tests => 10;
 use App::SD::Test;
 
 BEGIN {
@@ -67,4 +72,6 @@ diag($out);
 
 like( $out, qr/"content" set to "comment from sd"/, 'comment pushed' );
 like( $out, qr/"summary" set to "YATTA"/, 'ticket yatta pushed' );
+unlike( $out, qr/test for sd/, 'pulled tickets not pushed' );
+unlike( $out, qr/first comment.*second comment/s, 'pulled comments not pushed' );
 

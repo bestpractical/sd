@@ -1,4 +1,4 @@
-export REPO=/Users/jesse/shipwright-sd/
+export REPO=/Users/jesse/shipwright-sd-`date +%Y-%-m-%d`/
 export SVN_PATH="svn:file://$REPO"
 export MIN_PERL=5.008006
 export SKIP="--skip=Pod::Simple,Module::Signature,Test::Pod,Test::Pod::Coverage,Test::Distribution,Pod::Readme,Archive::Tar,HTML::Lint,Prophet,Encode,Date::Calc"
@@ -8,13 +8,15 @@ svnadmin create $REPO
 
 
 shipwright create -r $SVN_PATH
-# Optional deps we sitll want
+# Optional deps we still want
 $IMPORT \
  cpan:Scalar::Util \
  cpan:Template::Declare \
  cpan:HTTP::Server::Simple \
  cpan:File::ShareDir \
  cpan:DBD::SQLite \
+ cpan:Net::GitHub \
+ cpan:Net::Google::Code \
  cpan:Term::ReadLine::Perl \
  cpan:JSON::XS \
  cpan:Net::Bonjour \
@@ -25,13 +27,12 @@ $IMPORT \
  cpan:Net::Jifty \
  cpan:Net::Trac \
  git:git+ssh://fsck.com/git/sd.git
-$IMPORT svn://fsck.com/Net-Google-Code/trunk Net-Google-Code
 cd /tmp
 rm -rf sdex
 #shipwright update -r $SVN_PATH cpan-Module-Build --add-deps cpan-Pod-Simple
 #shipwright update -r $SVN_PATH cpan-IO-Compress-Base --add-deps cpan-Scalar-List-Utils
 shipwright update -r $SVN_PATH prophet.git      --add-deps cpan-Term-ReadLine-Perl,cpan-TermReadKey,cpan-DBD-SQLite,cpan-File-ShareDir,cpan-HTTP-Server-Simple,cpan-JSON-XS
-shipwright update -r $SVN_PATH sd.git           --add-deps prophet.git,cpan-Net-Bonjour,cpan-Email-Address,cpan-Net-Trac,cpan-RT-Client-REST,Net-Google-Code
+shipwright update -r $SVN_PATH sd.git           --add-deps prophet.git,cpan-Net-Bonjour,cpan-Email-Address,cpan-Net-Trac,cpan-RT-Client-REST,cpan-Net-Google-Code
 shipwright maintain -r $SVN_PATH --update-order
 cd /tmp
 mkdir svnhack-$$
@@ -44,12 +45,5 @@ svn commit -m 'Made DTFN not run its tests which add a slew of deps' build
 cd ..
 
 
-svn co file://${REPO}/sources/cpan-Net-Bonjour/vendor
-cd vendor
-perl -pi -e's/^chomp.*?STDIN.*?$/my \$ans = "n";/g;' Makefile.PL
-svn commit -m 'Made Net::Bonjour not promtp ' Makefile.PL
-
-
-svn export file://$REPO /tmp/sdex
-rsync -rvp /tmp/sdex/ jesse@fsck.com:/tmp/sdex-$$
+svn export file://$REPO /tmp/sdex-$$
 echo "cd /tmp/sdex-$$; ./bin/shipwright-builder"

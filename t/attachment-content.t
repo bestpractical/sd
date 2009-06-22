@@ -5,11 +5,10 @@ use strict;
 use Prophet::Test tests => 10;
 use App::SD::Test;
 use File::Temp qw/tempdir/;
-use Path::Class;
 
 my $dir = tempdir(CLEANUP => 1);
 
-my $file=  file($dir => 'paper_order.doc');
+my $file= File::Spec->catfile($dir, 'paper_order.doc');
 
 open (my $fh, ">" , $file) || die "Could not create $file: $!";
 print $fh "5 tonnes of hard white" || die "Could not write to file $file $!";
@@ -69,7 +68,7 @@ my $image_file = 't/data/bplogo.gif';
 
 run_output_matches('sd', [qw/ticket attachment create --uuid/, $yatta_uuid, '--file', $image_file], [qr/Created attachment (\d+)(?{ $image_attach = $1})/], [], "Added a attachment");
 
-my $image_data = file($image_file)->slurp;
+my $image_data = Prophet::Util->slurp( $image_file );
 my ($ret, $stdout, $stderr) = run_script('sd', [qw/attachment content --id/, $image_attach]);
 ok($ret, "Ran the script ok");
 is($stdout, $image_data, "We roundtripped some binary");

@@ -5,7 +5,6 @@ extends qw/App::SD::ForeignReplica/;
 use Params::Validate qw(:all);
 use Memoize;
 
-use UNIVERSAL::require;
 use URI;
 use Memoize;
 use Net::GitHub;

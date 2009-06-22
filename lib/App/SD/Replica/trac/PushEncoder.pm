@@ -1,7 +1,6 @@
 package App::SD::Replica::trac::PushEncoder;
 use Any::Moose; 
 use Params::Validate;
-use Path::Class;
 use Time::HiRes qw/usleep/;
 has sync_source => 
     ( isa => 'App::SD::Replica::trac',
@@ -78,7 +77,8 @@ sub integrate_attachment {
     my $ticket = Net::Trac::Ticket->new( trac => $self->sync_source->trac, id => $ticket_id );
 
     my $tempdir = File::Temp::tempdir( CLEANUP => 1 );
-    my $file = file( $tempdir => ( $props{'name'} || 'unnamed' ) );
+    my $file = File::Spec->catfile( $tempdir, ( $props{'name'} || 'unnamed' ) );
+    open my $fh, '>', $file or die $!;
     my $fh = $file->openw;
     print $fh $props{content};
     close $fh;

@@ -14,6 +14,14 @@ has '+config' => (
     }
 );
 
+use constant DEFAULT_REPLICA_TYPE => 'sqlite';
+
+sub default_replica_type {
+        my $self = shift;
+            return $ENV{'PROPHET_REPLICA_TYPE'} || DEFAULT_REPLICA_TYPE;
+}
+
+
 sub database_settings {
 { 
         statuses            => ['24183C4D-EFD0-4B16-A207-ED7598E875E6' => qw/new open stalled closed rejected/],
