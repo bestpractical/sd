@@ -47,7 +47,8 @@ sub process_template {
         eval { super(); } or chomp ($error = $@ || "Something went wrong!");
 
     return $self->handle_template_errors(
-        error        => $error,
+        error        => $error . "\n\nYou can bypass validation for a "
+                        ."property by appending a ! to it.",
         template_ref => $args{template},
         bad_template => $updated,
         rtype        => $record->type,
