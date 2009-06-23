@@ -27,16 +27,21 @@ sub BUILD {
     my $self = shift;
 
     my ( $server, $owner, $repo ) =
-      $self->{url} =~ m/^github:(.*?)\|(.+)\|(.+)\|$/
+      $self->{url} =~ m{^github:(http://.*?github.com/)?(.*?)/(.*)}
       or die
-"Can't parse Github server spec. Expected github:http://user\@github.com|owner|repository|";
+"Can't parse Github server spec. Expected github:owner/repository or github:http://github.com/owner/repository";
 
+    my ( $uri, $username, $apikey );
 
-    my $uri = URI->new($server);
-    my ( $username, $apikey );
-    if ( my $auth = $uri->userinfo ) {
-        ( $username, $apikey ) = split /:/, $auth, 2;
-        $uri->userinfo(undef);
+    if ($server) {
+        $uri = URI->new($server);
+        if ( my $auth = $uri->userinfo ) {
+            ( $username, $apikey ) = split /:/, $auth, 2;
+            $uri->userinfo(undef);
+        }
+    }
+    else {
+        $uri = 'http://github.com/';
     }
 
     ( $username, $apikey ) = $self->prompt_for_login( $uri, $username ) unless $apikey ;
