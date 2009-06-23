@@ -15,8 +15,9 @@ $ENV{'PROPHET_REPO'} ||= $ENV{'SD_REPO'} || $ENV{'HOME'}.'/.sd';
 unless ($ENV{SD_VERBOSE_ERROR} || $ENV{'TEST_VERBOSE'}) {
     $SIG{__DIE__} = sub {
         my $line = shift;
-        $line =~ s/\n.*//s if ($line =~ /at line/s);
-        $line .= "\n"; $line =~ s/\n+$/\n/gs;
+        $line =~ s/\n.*//s if ($line =~ /at .* line \d+.$/s);
+        $line .= "\n";
+        $line =~ s/\n+$/\n/gs;
         die $line;
     };
 }
