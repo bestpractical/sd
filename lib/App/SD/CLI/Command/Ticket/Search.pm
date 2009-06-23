@@ -10,20 +10,20 @@ sub run {
     my $self = shift;
 
     if (  (!$self->has_arg('sort') || !$self->arg('sort'))
-        && $self->app_handle->config->get( key => 'ticket.search.default-sort') )
+        && $self->app_handle->config->get( key => 'ticket.list.default-sort') )
     {
         $self->set_arg(
             'sort' => $self->app_handle->config->get(
-                key => 'ticket.search.default-sort'
+                key => 'ticket.list.default-sort'
             )
         );
     }
 
     if (  (!$self->has_arg('group') || !$self->arg('group'))
-        && $self->app_handle->config->get( key => 'ticket.search.default-group') )
+        && $self->app_handle->config->get( key => 'ticket.list.default-group') )
     {
         $self->set_arg( 'group' =>
-              $self->app_handle->config->get( key => 'ticket.search.default-group') );
+              $self->app_handle->config->get( key => 'ticket.list.default-group') );
     }
 
     # sort output by given prop if user specifies --sort

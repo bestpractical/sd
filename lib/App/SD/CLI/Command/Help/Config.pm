@@ -26,7 +26,7 @@ documents, we'll refer to variables in the manner:
 "section.subsection.variable-name". In a configuration file, this
 would look like:
 
-    [section "subsection]
+    [section "subsection"]
         variable-name = value
 
 Currently, the following configuration variables are available (sorted
@@ -43,13 +43,13 @@ by configuration file section):
       creating or updating tickets. (Overrides the database-wide
       setting of the same name.)
 
-    ticket.search.default-sort = status
-      Bug property to determine order of display when searching/listing
+    ticket.list.default-sort = status
+      Bug property to determine order of display when displaying lists of
       tickets. (Can be any property; will be compared lexically.)
 
-    ticket.search.default-group = milestone
-      Bug property to group tickets by when displaying searches/lists. (Can be
-      any property.)
+    ticket.list.default-group = milestone
+      Bug property to group tickets by when displaying lists of tickets. (Can
+      be any property.)
 
     ticket.show.disable-history = 1
       Don't display ticket history when running '${cmd}ticket show'. Can
