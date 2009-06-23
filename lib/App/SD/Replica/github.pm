@@ -27,16 +27,21 @@ sub BUILD {
     my $self = shift;
 
     my ( $server, $owner, $repo ) =
-      $self->{url} =~ m/^github:(.*?)\|(.+)\|(.+)\|$/
+      $self->{url} =~ m{^github:(http://.*?github.com/)?(.*?)/(.*)}
       or die
-"Can't parse Github server spec. Expected github:http://user\@github.com|owner|repository|";
+"Can't parse Github server spec. Expected github:owner/repository or github:http://github.com/owner/repository";
 
+    my ( $uri, $username, $apikey );
 
-    my $uri = URI->new($server);
-    my ( $username, $apikey );
-    if ( my $auth = $uri->userinfo ) {
-        ( $username, $apikey ) = split /:/, $auth, 2;
-        $uri->userinfo(undef);
+    if ($server) {
+        $uri = URI->new($server);
+        if ( my $auth = $uri->userinfo ) {
+            ( $username, $apikey ) = split /:/, $auth, 2;
+            $uri->userinfo(undef);
+        }
+    }
+    else {
+        $uri = 'http://github.com/';
     }
 
     ( $username, $apikey ) = $self->prompt_for_login( $uri, $username ) unless $apikey ;
@@ -72,6 +77,16 @@ sub remote_uri_path_for_id {
     my $self = shift;
     my $id = shift;
     return "/ticket/".$id;
+}
+
+sub database_settings {
+    my $self = shift;
+    return {
+# TODO limit statuses too? the problem is github's statuses are so poor,
+# it only has 2 statuses: 'open' and 'closed'.
+        project_name => $self->owner . '/' . $self->repo,
+    };
+
 }
 
 __PACKAGE__->meta->make_immutable;
