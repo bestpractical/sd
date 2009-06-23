@@ -79,6 +79,16 @@ sub remote_uri_path_for_id {
     return "/ticket/".$id;
 }
 
+sub database_settings {
+    my $self = shift;
+    return {
+# TODO limit statuses too? the problem is github's statuses are so poor,
+# it only has 2 statuses: 'open' and 'closed'.
+        project_name => $self->owner . '/' . $self->repo,
+    };
+
+}
+
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 1;
