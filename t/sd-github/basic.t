@@ -19,7 +19,7 @@ BEGIN {
     diag "export SD_REPO=" . $ENV{'PROPHET_REPO'} . "\n";
 }
 
-my $url           = 'http://root:password@github.com|fayland|perl-net-github|';
+my $url           = 'http://root:password@github.com/fayland/perl-net-github';
 my $sd_github_url = "github:$url";
 
 my ( $ret, $out, $err );
