@@ -27,7 +27,8 @@ and global aliases, if any). '${cmd}aliases edit' will present you with an
 editor window in which aliases can be modified. Aliases will be saved to your
 local configuration file when editing is done.
 
-Examples (in all examples, 'alias' can be used anywhere 'aliases' appears):
+Examples (in all examples, 'alias' can be used anywhere 'aliases' appears
+and vice-versa):
 
     ${cmd}aliases
     ${cmd}aliases show

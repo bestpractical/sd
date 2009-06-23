@@ -1,20 +1,21 @@
-package App::SD::CLI::Command::Help::summary_format_ticket;
+package App::SD::CLI::Command::Help::ticket_summary_format;
 use Any::Moose;
 extends 'App::SD::CLI::Command::Help';
 
 sub run {
     my $self = shift;
-    $self->print_header('The summary_format_ticket configuration option');
+    $self->print_header('The ticket.summary-format configuration option');
 
 print <<EOF
-The summary_format_ticket configuration directive consists of any number
+The ticket.summary-format configuration directive consists of any number
 of comma-separated pairs, with each pair separated from the next by a vertical
 bar (|). Any amount of whitespace may appear before or after the | and will not
 affect the summary format.
 
 Here is an example:
 
-    summary_format_ticket = %5.5s },\$luid | %8.8s,status | %-52.52s,summary
+    [ticket]
+        summary-format = %5.5s },\$luid | %8.8s,status | %-52.52s,summary
 
 Let's deconstruct this example. It consists of three pairs. The first pair is
 '%5.5s },\$luid'. The first item of the pair should look somewhat familiar to
