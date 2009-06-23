@@ -1,4 +1,5 @@
-export REPO=/Users/jesse/shipwright-sd-`date +%Y-%-m-%d`/
+export TODAY=`date +%Y-%-%m-%d`
+export REPO=/Users/jesse/shipwright-sd-${TODAY}/
 export SVN_PATH="svn:file://$REPO"
 export MIN_PERL=5.008006
 export SKIP="--skip=Pod::Simple,Module::Signature,Test::Pod,Test::Pod::Coverage,Test::Distribution,Pod::Readme,Archive::Tar,HTML::Lint,Prophet,Encode,Date::Calc"
@@ -46,4 +47,10 @@ cd ..
 
 
 svn export file://$REPO /tmp/sdex-$$
-echo "cd /tmp/sdex-$$; ./bin/shipwright-builder"
+cd /tmp/sdex-$$ 
+echo "# one argument per line
+--skip-man-pages
+--skip-test-except-final
+--install-base=~/sd
+" > __default_builder_options 
+./bin/shipwright-utility --generate-tar-file /tmp/sd-image-${TODAY}.bin
