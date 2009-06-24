@@ -4,6 +4,10 @@ use warnings;
 use Prophet::Test;
 use App::SD::Test;
 
+unless ( $] >= 5.01 ) {
+    plan skip_all => 'You need at least Perl 5.010 to enable redmine support';
+}
+
 unless ( eval { require Net::Redmine } ) {
     plan skip_all => 'You need Net::Redmine installed to run the tests';
 }
