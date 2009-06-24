@@ -18,6 +18,20 @@ You can use the '${cmd}config' command to view what configuration files
 SD has loaded and all loaded configuration variables, as they apply
 to the current replica.
 
+'${cmd}config' can also be used to set configuration variables.
+
+Examples:
+
+    ${cmd}config user.email-address user\@example.com
+    ${cmd}config --delete user.email-address
+    ${cmd}config user.email-address
+      Print the current value of this configuration variable.
+    ${cmd}config alias.'this.alias.contains.dots' 'so it must be quoted'
+    ${cmd}config edit
+    ${cmd}config edit --user
+    ${cmd}config edit --global
+      Edit the specified config file in an editor.
+
 The configuration file format is similar to that of the VCS 'Git'. See
 http://www.kernel.org/pub/software/scm/git/docs/git-config.html for
 specifics. The biggest thing you need to know is that the config file
