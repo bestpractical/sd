@@ -37,8 +37,7 @@ and vice-versa):
     ${cmd}aliases edit
       Edit aliases in an editor window.
 
-    ${cmd}aliases set command to type = command to translate to
-    ${cmd}alias command to type = command to translate to
+    ${cmd}aliases "command to type" "command to translate to"
       Set the given alias (or change it if it already exists).
 
     ${cmd}aliases delete command to type
