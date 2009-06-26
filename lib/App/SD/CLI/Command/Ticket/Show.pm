@@ -84,7 +84,7 @@ sub show_history_entry {
     $self->history_entry_header(
          $changeset->creator,
         $changeset->created,
-        $changeset->original_sequence_no,
+        $self->config->display_name_for_uuid($changeset->original_sequence_no),
         $changeset->original_source_uuid);
 
     print $body;
