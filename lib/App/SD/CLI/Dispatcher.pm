@@ -71,10 +71,9 @@ on qr'.*' => sub {
     exit 1;
 };
 
-
-
 on browser => run_command('Browser');
 
+# allow doing some things backwards -- e.g. 'list tickets' etc.
 on qr/^(\w+)\s+tickets?(.*)$/ => sub {
     my $self = shift;
     my $primary = $1;
