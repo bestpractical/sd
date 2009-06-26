@@ -8,7 +8,7 @@ use Prophet::Test;
 use File::Path qw(rmtree);
 
 BEGIN {
-    unless ( eval 'use RT::Test; 1' ) {
+    unless (eval 'use RT::Test tests => "no_declare"; 1') {
         diag $@ if $ENV{'TEST_VERBOSE'};
         plan skip_all => 'requires RT 3.8 or newer to run tests.';
     }

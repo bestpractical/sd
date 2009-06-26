@@ -12,7 +12,7 @@ use Prophet::Test;
 use App::SD::Test;
 
 BEGIN {
-    unless (eval 'use RT::Test (); 1') {
+    unless (eval 'use RT::Test tests => "no_declare"; 1') {
         diag $@;
         plan skip_all => 'requires RT 3.8 to run tests.';
     }
