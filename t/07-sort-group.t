@@ -3,6 +3,7 @@
 use strict;
 
 use Prophet::Test tests => 11;
+use Prophet::Util;
 use App::SD::Test;
 use File::Temp qw/tempdir/;
 
@@ -39,13 +40,14 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--sort', 'owner' ],
 );
 
 my $config_filename = $ENV{'SD_REPO'} . '/config';
-App::SD::Test->write_to_file($config_filename, '
-[ticket "search"]
+Prophet::Util->write_file(
+    file => $config_filename, content => '
+[ticket "list"]
     default-sort = owner
 ');
 $ENV{'SD_CONFIG'} = $config_filename;
 
-diag('using ticket.search.default-sort = owner');
+diag('using ticket.list.default-sort = owner');
 run_output_matches( 'sd', [ 'ticket', 'list' ],
     [ qr/(\d+) huzzah! new/,
       qr/(\d+) YATTA new/,
@@ -59,7 +61,7 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--sort' ],
     ]
 );
 
-diag('using ticket.search.default-sort = owner and --sort none');
+diag('using ticket.list.default-sort = owner and --sort none');
 run_output_matches( 'sd', [ 'ticket', 'list', '--sort', 'none' ],
     [ qr/(\d+) YATTA new/,
       qr/(\d+) huzzah! new/,
@@ -84,8 +86,9 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--group', 'owner' ],
 );
 
 diag('using ticket.search.default-group = owner');
-App::SD::Test->write_to_file($config_filename, '
-[ticket "search"]
+Prophet::Util->write_file(
+    file => $config_filename, content => '
+[ticket "list"]
     default-group = owner
 ');
 

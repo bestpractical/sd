@@ -223,19 +223,4 @@ sub get_ticket_info {
     return \%res;
 }
 
-=head2 write_to_file FILENAME DATA
-
-Takes the string given in DATA and writes it to the file whose name is given
-by FILENAME.
-
-=cut
-
-sub write_to_file {
-    my ($self, $filename, $data) = @_;
-
-    open FH, '>', $filename;
-    print FH $data;
-    close FH;
-}
-
 1;

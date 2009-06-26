@@ -4,6 +4,7 @@ use strict;
 
 use Prophet::Test tests => 6;
 use App::SD::Test;
+use Prophet::Util;
 use File::Temp qw/tempdir/;
 use Term::ANSIColor;
 
@@ -92,7 +93,8 @@ diag("passing --skip history (doesn't show history)");
 check_output_without_history('--skip-history');
 
 my $config_filename = $ENV{'SD_REPO'} . '/config';
-App::SD::Test->write_to_file($config_filename, '
+Prophet::Util->write_file(
+    file => $config_filename, content => '
 [ticket "show"]
     disable-history = true
 ');
