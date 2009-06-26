@@ -13,9 +13,11 @@ sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  a => 'all-props'  };
 # allowing the creation of a new comment in the process
 override run => sub {
     my $self = shift;
+
     $self->require_uuid;
     my $record = $self->_load_record;
-   return super() if ($self->context->prop_names && !$self->has_arg('edit'));
+
+    return super() if ($self->context->prop_names && !$self->has_arg('edit'));
     my $template_to_edit = $self->create_record_template($record);
 
     my $done = 0;
