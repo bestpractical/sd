@@ -41,7 +41,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
     ]
 );
 
-App::SD::Test->set_editor("ticket-update-editor.pl --no-args $replica_uuid $ticket_uuid");
+Prophet::Test->set_editor_script("ticket-update-editor.pl --no-args $replica_uuid $ticket_uuid");
 
 # update it
 my ($comment_id, $comment_uuid) = App::SD::Test->update_ticket_with_editor_ok($ticket_id, $ticket_uuid);
@@ -80,7 +80,7 @@ sub check_comment_ok {
 check_comment_ok();
 
 # sd ticket edit 20 --all-props
-App::SD::Test->set_editor("ticket-update-editor.pl --all-props $replica_uuid $ticket_uuid");
+Prophet::Test->set_editor_script("ticket-update-editor.pl --all-props $replica_uuid $ticket_uuid");
 
 # update it
 # template should show the hidden component prop
@@ -104,7 +104,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id  ]
 check_comment_ok();
 
 # sd ticket edit 20 --verbose
-App::SD::Test->set_editor("ticket-update-editor.pl --verbose $replica_uuid $ticket_uuid");
+Prophet::Test->set_editor_script("ticket-update-editor.pl --verbose $replica_uuid $ticket_uuid");
 
 # update it
 ($comment_id, $comment_uuid) = App::SD::Test->update_ticket_with_editor_ok($ticket_id, $ticket_uuid, '--verbose');
@@ -127,7 +127,7 @@ run_output_matches( 'sd', [ 'ticket', 'basics', '--batch', '--id', $ticket_id ],
 check_comment_ok();
 
 # sd ticket edit 20 --verbose --all-props
-App::SD::Test->set_editor("ticket-update-editor.pl --verbose-and-all $replica_uuid $ticket_uuid");
+Prophet::Test->set_editor_script("ticket-update-editor.pl --verbose-and-all $replica_uuid $ticket_uuid");
 
 diag('changing settings for regression test: make sure props aren\'t deleted');
 diag('if they weren\'t presented for editing in the first place');

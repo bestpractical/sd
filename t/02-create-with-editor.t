@@ -50,18 +50,18 @@ sub create_ticket_and_check {
 }
 
 # test template for sd ticket create
-App::SD::Test->set_editor("ticket-create-editor.pl --no-args $replica_uuid");
+Prophet::Test->set_editor_script("ticket-create-editor.pl --no-args $replica_uuid");
 create_ticket_and_check(check_sd_list => 1);
 
 # test template for sd ticket create --all-props
-App::SD::Test->set_editor("ticket-create-editor.pl --all-props $replica_uuid");
+Prophet::Test->set_editor_script("ticket-create-editor.pl --all-props $replica_uuid");
 create_ticket_and_check(extra_args => ['--all-props']);
 
 # test template for sd ticket create --verbose
-App::SD::Test->set_editor("ticket-create-editor.pl --verbose $replica_uuid");
+Prophet::Test->set_editor_script("ticket-create-editor.pl --verbose $replica_uuid");
 create_ticket_and_check(extra_args => ['--verbose']);
 
 # test template for sd ticket create --verbose --all-props
-App::SD::Test->set_editor("ticket-create-editor.pl --verbose-and-all $replica_uuid");
+Prophet::Test->set_editor_script("ticket-create-editor.pl --verbose-and-all $replica_uuid");
 create_ticket_and_check(extra_args => ['--all-props', '--verbose']);
 
