@@ -1,6 +1,6 @@
 package App::SD;
 use Any::Moose;
-use Prophet::Config;
+use App::SD::Config;
 
 extends 'Prophet::App';
 
@@ -10,7 +10,7 @@ has '+config' => (
     default => sub {
         my $self = shift;
         $ENV{PROPHET_APP_CONFIG} = $ENV{SD_CONFIG} if defined $ENV{SD_CONFIG};
-        return Prophet::Config->new( app_handle => $self, confname => 'sdrc' );
+        return App::SD::Config->new( app_handle => $self, confname => 'sdrc' );
     }
 );
 
