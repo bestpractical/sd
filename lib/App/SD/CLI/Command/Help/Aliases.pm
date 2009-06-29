@@ -20,6 +20,11 @@ to you with the alias 'mine':
 
     mine = ticket list -- owner=you\@domain.com status !~closed|rejected
 
+To create aliases that take additional arguments, use the argument
+number prefixed with a '\$' to refer to them, like this:
+
+    ts = ticket show \$1
+
 SD also provides a command for managing aliases: '${cmd}aliases'. If
 given no arguments, the aliases command will print the active aliases
 for the current repository (including all non-overridden user-wide
