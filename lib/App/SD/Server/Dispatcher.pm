@@ -27,7 +27,7 @@ on qr'.' => sub {
         #$m->child('mine' => label => 'Mine', url => '/milestone/'.$item.'/mine');
         #$m->child('closed' => label => 'Closed', url => '/milestone/'.$item.'/closed');
     }
-        $milestones->child( none => label => 'None', url => '/no_milestone');
+        $milestones->child( none => label => 'None', url => '/milestone/');
     
     my $components = $tickets->child( components => label => 'Components', url => '/components');
     my $component_list = $self->server->app_handle->setting( label => 'components' )->get();
@@ -39,7 +39,7 @@ on qr'.' => sub {
 
 
     }
-    $components->child('None' => label => 'None', url => '/no_component');
+    $components->child('None' => label => 'None', url => '/component/');
 
     $tickets->child( all => label => 'All' => url => '/tickets/all');
     $self->server->nav->child( create => label => 'New ticket', url => '/ticket/new') unless($self->server->static);
