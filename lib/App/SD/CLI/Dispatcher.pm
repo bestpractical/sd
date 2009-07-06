@@ -88,7 +88,7 @@ on qr/^(\w+)\s+tickets?(.*)$/ => sub {
 under ticket => sub {
     # all these might possibly have IDs tacked onto the end
     on
-    qr/^((?:comment\s+)?comments?|update|edit|show|display|delete|del|rm|history|claim|take|resolve|close) $Prophet::CLIContext::ID_REGEX$/i => sub {
+    qr/^((?:comment\s+)?(?:comments?|update|edit|show|display|delete|del|rm|history|claim|take|resolve|basics|close)) $Prophet::CLIContext::ID_REGEX$/i => sub {
         my $self = shift;
         $self->context->set_id_from_primary_commands;
         run("ticket $1", $self, @_);
@@ -158,6 +158,14 @@ under ticket => sub {
 };
 
 under attachment => sub {
+    on qr/^(.*)\s+($Prophet::CLIContext::ID_REGEX)$/i => sub {
+        my $self = shift;
+        my $next = $1;
+        my $id = $2;
+        $self->context->set_id($id);
+        run("attachment $next", $self, @_);
+    };
+
     on content => run_command('Attachment::Content');
     on create  => run_command('Attachment::Create');
 };
