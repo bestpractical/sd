@@ -79,7 +79,6 @@ sub integrate_attachment {
     my $tempdir = File::Temp::tempdir( CLEANUP => 1 );
     my $file = File::Spec->catfile( $tempdir, ( $props{'name'} || 'unnamed' ) );
     open my $fh, '>', $file or die $!;
-    my $fh = $file->openw;
     print $fh $props{content};
     close $fh;
     my %content = ( message     => '(See attachments)', attachments => ["$file"]);
