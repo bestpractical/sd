@@ -84,8 +84,10 @@ sub show_history_entry {
     $self->history_entry_header(
          $changeset->creator,
         $changeset->created,
-        $self->config->display_name_for_uuid($changeset->original_sequence_no),
-        $changeset->original_source_uuid);
+        $changeset->original_sequence_no,
+        $self->config->display_name_for_uuid($changeset->original_source_uuid),
+    
+    );
 
     print $body;
 }
@@ -119,7 +121,7 @@ sub show_comment {
         $content =~ s|\n\n|\n|gismx;
     }
 
-    $self->history_entry_header($creator, $created,$creation->original_sequence_no, $creation->original_source_uuid);
+    $self->history_entry_header($creator, $created,$creation->original_sequence_no, $self->config->display_name_for_uuid($creation->original_source_uuid));
     print $content;
     print "\n\n";
 }
