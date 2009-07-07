@@ -27,7 +27,6 @@ BEGIN {
 
 plan tests => 10;
 
-RT::Test->import();
 
 no warnings 'once';
 
