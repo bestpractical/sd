@@ -27,8 +27,6 @@ BEGIN {
 
 plan tests => 9;
 
-RT::Test->import();
-
 no warnings 'once';
 
 RT::Handle->InsertData( $RT::EtcPath . '/initialdata' );
