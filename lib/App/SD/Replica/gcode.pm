@@ -108,7 +108,13 @@ sub database_settings {
             statuses =>
               [ map { lc } @{ $status->{open} }, @{ $status->{closed} } ]
           )
-        : (),
+        : (
+            active_statuses => [qw/new accepted started/],
+            statuses        => [
+                qw/new accepted started duplicate fixed verified
+                  invalid wontfix done/
+            ],
+        ),
     };
 }
 
