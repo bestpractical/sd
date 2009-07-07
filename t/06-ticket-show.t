@@ -95,23 +95,23 @@ check_output_without_history('--skip-history');
 my $config_filename = $ENV{'SD_REPO'} . '/config';
 Prophet::Util->write_file(
     file => $config_filename, content => '
-[ticket "show"]
-    disable-history = true
+[ticket]
+    no-implicit-history-display = true
 ');
 $ENV{'SD_CONFIG'} = $config_filename;
 
-diag("config option ticket.show.disable-history set");
+diag("config option no-implicit-history-display set");
 diag("(shouldn't show history)");
 
 check_output_without_history();
 
-diag("config option ticket.show.disable-history set");
+diag("config option no-implicit-history-display set");
 diag("and --skip-history passed (shouldn't show history)");
 
 check_output_without_history('--skip-history');
 
 # config option set and --with-history passed (should show history)
-diag('config option ticket.show.disable-history set');
+diag('config option no-implicit-history-display set');
 diag('and --with-history passed (should show history)');
 
 check_output_with_history('--with-history');

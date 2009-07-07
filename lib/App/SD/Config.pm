@@ -68,12 +68,12 @@ override load => sub  {
 # migrated from old to new.
 our %KEYS_CONVERSION_TABLE = (
     'email_address' => 'user.email-address',
-    'default_group_ticket_list' => 'ticket.list.default-group',
-    'default_sort_ticket_list' => 'ticket.list.default-sort',
+    'default_group_ticket_list' => 'ticket.default-group',
+    'default_sort_ticket_list' => 'ticket.default-sort',
     'summary_format_ticket' => 'ticket.summary-format',
     'default_summary_format' => 'record.summary-format',
     'common_ticket_props' => 'ticket.common-props',
-    'disable_ticket_show_history_by_default' => 'ticket.show.disable-history',
+    'disable_ticket_show_history_by_default' => 'ticket.no-implicit-history-display',
 );
 
 

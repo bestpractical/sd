@@ -42,12 +42,12 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--sort', 'owner' ],
 my $config_filename = $ENV{'SD_REPO'} . '/config';
 Prophet::Util->write_file(
     file => $config_filename, content => '
-[ticket "list"]
+[ticket]
     default-sort = owner
 ');
 $ENV{'SD_CONFIG'} = $config_filename;
 
-diag('using ticket.list.default-sort = owner');
+diag('using ticket.default-sort = owner');
 run_output_matches( 'sd', [ 'ticket', 'list' ],
     [ qr/(\d+) huzzah! new/,
       qr/(\d+) YATTA new/,
@@ -61,7 +61,7 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--sort' ],
     ]
 );
 
-diag('using ticket.list.default-sort = owner and --sort none');
+diag('using ticket.default-sort = owner and --sort none');
 run_output_matches( 'sd', [ 'ticket', 'list', '--sort', 'none' ],
     [ qr/(\d+) YATTA new/,
       qr/(\d+) huzzah! new/,
@@ -85,10 +85,10 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--group', 'owner' ],
     ]
 );
 
-diag('using ticket.search.default-group = owner');
+diag('using ticket.default-group = owner');
 Prophet::Util->write_file(
     file => $config_filename, content => '
-[ticket "list"]
+[ticket]
     default-group = owner
 ');
 
@@ -121,7 +121,7 @@ run_output_matches( 'sd', [ 'ticket', 'list', '--group' ],
     ]
 );
 
-diag('using ticket.list.default-group = owner and --group none');
+diag('using ticket.default-group = owner and --group none');
 run_output_matches( 'sd', [ 'ticket', 'list', '--group', 'none' ],
     [ qr/(\d+) YATTA new/,
       qr/(\d+) huzzah! new/,

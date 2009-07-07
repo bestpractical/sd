@@ -57,11 +57,11 @@ by configuration file section):
       creating or updating tickets. (Overrides the database-wide
       setting of the same name.)
 
-    ticket.list.default-sort = status
+    ticket.default-sort = status
       Bug property to determine order of display when displaying lists of
       tickets. (Can be any property; will be compared lexically.)
 
-    ticket.list.default-group = milestone
+    ticket.default-group = milestone
       Bug property to group tickets by when displaying lists of tickets. (Can
       be any property.)
 
