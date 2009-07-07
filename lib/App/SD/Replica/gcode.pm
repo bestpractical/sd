@@ -39,11 +39,17 @@ sub BUILD {
     # Require rather than use to defer load
     require Net::Google::Code;
 
-    my (  $project ) = $self->{url} =~ m/^gcode:(.*?)$/
-        or die "Can't parse Google::Code server spec. Expected gcode:k9mail";
+    my ( $userinfo, $project ) = $self->{url} =~ m/^gcode:(.*@)?(.*?)$/
+        or die "Can't parse Google::Code server spec. Expected gcode:user:password\@k9mail";
     $self->project($project);
+    my ( $email, $password );
+    # ask password only if there is userinfo but not password
+    if ( $userinfo ) {
+        $userinfo =~ s/\@$//;
+        ( $email, $password ) = split /:/, $userinfo;
+        ( undef, $password ) = $self->prompt_for_login( "gcode:$project", $email ) unless $password;
+    }
 
-    #( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
     $self->gcode( Net::Google::Code->new( project => $self->project));
     $self->gcode->load();
 }
@@ -95,11 +101,15 @@ sub database_settings {
     $issue->load_predefined;
     my $status = $issue->predefined_status;
     return {
-        active_statuses => [ map { lc } @{ $status->{open} } ],
-        statuses => [ map { lc } @{ $status->{open} }, @{ $status->{closed} } ],
         project_name => $self->project,
+        $status
+        ? (
+            active_statuses => [ map { lc } @{ $status->{open} } ],
+            statuses =>
+              [ map { lc } @{ $status->{open} }, @{ $status->{closed} } ]
+          )
+        : (),
     };
-
 }
 
 __PACKAGE__->meta->make_immutable;
