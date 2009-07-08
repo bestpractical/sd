@@ -4,7 +4,7 @@ export REPO=/Users/jesse/shipwright-sd-${TODAY}.git/
 
 export GIT_PATH="git:file://$REPO"
 export MIN_PERL=5.008006
-export SKIP="--skip=Pod::Simple,Module::Signature,Test::Pod,Test::Pod::Coverage,Test::Distribution,Pod::Readme,Archive::Tar,HTML::Lint,Prophet,Encode,Date::Calc,Test::Cukes,Quantum::Superpositions,Test::Memory::Cycle,Text::Greeking,Test::Exception,Test::HTTP::Server::Simple,Test::WWW::Mechanize"
+export SKIP="--skip=Pod::Simple,Module::Signature,Test::Pod,Test::Pod::Coverage,Test::Distribution,Pod::Readme,Archive::Tar,HTML::Lint,Prophet,Encode,Date::Calc,Test::Cukes,Quantum::Superpositions,Test::Memory::Cycle,Text::Greeking,Test::Exception,Test::HTTP::Server::Simple,Test::WWW::Mechanize,Config::GitLike"
 export IMPORT="shipwright import --min-perl-version=$MIN_PERL $SKIP -r $GIT_PATH --log-file - --log-level info"
 rm -rf $REPO
 
@@ -21,6 +21,7 @@ $IMPORT \
  cpan:JSON::XS \
  cpan:Net::Bonjour \
  cpan:Term::ReadKey \
+ git://github.com/bestpractical/config-gitlike.git \
  git:git+ssh://fsck.com/git/prophet.git \
  cpan:RT::Client::REST \
  cpan:Email::Address \
@@ -39,13 +40,13 @@ shipwright maintain -r $GIT_PATH --update-order
 
 cd /tmp
 
-#seems no cpan-DateTime-Format-Natual dep any more
-#git clone file://${REPO} hack-$$
-#cd hack-$$/scripts/cpan-DateTime-Format-Natural
-#perl -pi -e s'/Build test/Build/g' build
-#git commit -m 'Made DTFN not run its tests which add a slew of deps' build
-#git push
-#rm -rf hack-$$
+git clone file://${REPO} hack-$$
+cd hack-$$/scripts/cpan-DateTime-Format-Natural
+perl -pi -e s'/Build test/Build/g' build
+git commit -m 'Made DTFN not run its tests which add a slew of deps' build
+git push
+cd /tmp/
+rm -rf hack-$$
 
 git clone file://$REPO /tmp/sdex-$$
 cd /tmp/sdex-$$ 
