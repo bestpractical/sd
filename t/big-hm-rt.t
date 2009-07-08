@@ -34,7 +34,7 @@ BEGIN {
 # }}}
 # do we have HM and RT? {{{
 BEGIN {
-    unless (eval 'use RT::Test (); 1') {
+    unless (eval 'use RT::Test tests => "no_declare"; 1') {
         diag $@;
         plan skip_all => 'requires RT 3.8 to run tests.';
     }
@@ -60,7 +60,6 @@ BEGIN {
 plan tests => 17;
 
 # setup the servers {{{
-RT::Test->import;
 no warnings 'once';
 RT::Handle->InsertData( $RT::EtcPath . '/initialdata' );
 
