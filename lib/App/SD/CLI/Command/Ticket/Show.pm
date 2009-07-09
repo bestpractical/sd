@@ -46,11 +46,13 @@ override run => sub {
     }
 
     # allow user to not display history by specifying the --skip-history
-    # arg or setting disable_ticket_show_history_by_default config item to a
+    # arg or setting ticket.no-implicit-history-display config item to a
     # true value (can be overridden with --with-history)
     if (!$self->has_arg('skip-history')
-        && (  !$self->app_handle->config->get('disable_ticket_show_history_by_default')
-            || $self->has_arg('with-history') )
+        && (  !$self->app_handle->config->get(
+                key => 'ticket.no-implicit-history-display',
+                as => 'bool',
+            ) || $self->has_arg('with-history') )
         )
     {
         print "\n= HISTORY\n\n";
@@ -83,7 +85,9 @@ sub show_history_entry {
          $changeset->creator,
         $changeset->created,
         $changeset->original_sequence_no,
-        $changeset->original_source_uuid);
+        $self->config->display_name_for_uuid($changeset->original_source_uuid),
+    
+    );
 
     print $body;
 }
@@ -117,7 +121,7 @@ sub show_comment {
         $content =~ s|\n\n|\n|gismx;
     }
 
-    $self->history_entry_header($creator, $created,$creation->original_sequence_no, $creation->original_source_uuid);
+    $self->history_entry_header($creator, $created,$creation->original_sequence_no, $self->config->display_name_for_uuid($creation->original_source_uuid));
     print $content;
     print "\n\n";
 }

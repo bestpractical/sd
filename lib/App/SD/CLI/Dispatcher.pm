@@ -2,6 +2,7 @@
 package App::SD::CLI::Dispatcher;
 use Prophet::CLI::Dispatcher -base;
 use Any::Moose;
+require Prophet::CLIContext;
 
 Prophet::CLI::Dispatcher->add_command_prefix('App::SD::CLI::Command');
 
@@ -13,13 +14,14 @@ rewrite [ ['about', 'copying'] ] => sub { "help $1" };
 
 on qr'^(?!help)' => sub {
     my $self = shift;
-    my $cmd = $_; 
+    my $cmd = $_;
+
     if ($self->context->has_arg('help')) {
         run("help $cmd", $self, @_);
-    } else { 
+    }
+    else {
         next_rule;
-        }
-
+    }
 };
 
 under help => sub {
@@ -27,7 +29,8 @@ under help => sub {
     on about   => run_command('Help::About');
     on config  => run_command('Help::Config');
     on copying => run_command('Help::Copying');
-    on summary_format_ticket => run_command('Help::summary_format_ticket');
+    on [ ['summary-format', 'ticket.summary-format', 'ticket_summary_format'] ]
+        => run_command('Help::ticket_summary_format');
 
     on [ ['author', 'authors'] ]         => run_command('Help::Authors');
     on [ ['environment', 'env'] ]        => run_command('Help::Environment');
@@ -68,10 +71,9 @@ on qr'.*' => sub {
     exit 1;
 };
 
-
-
 on browser => run_command('Browser');
 
+# allow doing some things backwards -- e.g. 'list tickets' etc.
 on qr/^(\w+)\s+tickets?(.*)$/ => sub {
     my $self = shift;
     my $primary = $1;
@@ -84,22 +86,30 @@ on qr/^(\w+)\s+tickets?(.*)$/ => sub {
 };
 
 under ticket => sub {
+    # all these might possibly have IDs tacked onto the end
+    on
+    qr/^((?:comment\s+)?(?:comments?|update|edit|show|display|delete|del|rm|history|claim|take|resolve|basics|close)) $Prophet::CLIContext::ID_REGEX$/i => sub {
+        my $self = shift;
+        $self->context->set_id_from_primary_commands;
+        run("ticket $1", $self, @_);
+    };
+
+    on [ [ 'new'    , 'create' ] ]    => run_command('Ticket::Create');
+    on [ [ 'show'   , 'display' ] ]   => run_command('Ticket::Show');
+    on [ [ 'update' , 'edit' ] ]      => run_command('Ticket::Update');
     on [ [ 'search', 'list', 'ls' ] ] => run_command('Ticket::Search');
-    on [ [ 'new',    'create' ] ]  => run_command('Ticket::Create');
-    on [ [ 'show',   'display' ] ] => run_command('Ticket::Show');
-    on [ [ 'update', 'edit' ] ]    => run_command('Ticket::Update');
-    on basics   => run_command('Ticket::Basics');
-    on comments => run_command('Ticket::Comments');
-    on comment  => run_command('Ticket::Comment');
     on details  => run_command('Ticket::Details');
+    on basics   => run_command('Ticket::Basics');
+    on comment  => run_command('Ticket::Comment');
+    on comments => run_command('Ticket::Comments');
 
     under [ [ 'give', 'assign' ] ] => sub {
-        on [qr/^(?:\d+|[0-9a-zA-Z\-\_]{22,24}|[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12})$/, qr/^\S+$/] => sub {
+        on [qr/^$Prophet::CLIContext::ID_REGEX$/, qr/^\S+$/] => sub {
             my $self = shift;
             my ($id, $owner) = ($1, $2);
 
-            $self->context->set_arg(id    => $id);
-            $self->context->set_arg(type    => 'ticket');
+            $self->context->set_arg(id     => $id);
+            $self->context->set_arg(type   => 'ticket');
             $self->context->set_prop(owner => $owner);
             $self->context->set_type_and_uuid;
             run('ticket update', $self, @_);
@@ -130,12 +140,17 @@ under ticket => sub {
     };
 
     under comment => sub {
-        on [ [ 'new', 'create' ] ] => run_command('Ticket::Comment::Create');
-        on [ [ 'update', 'edit' ] ] => run_command('Ticket::Comment::Update');
+        on create => run_command('Ticket::Comment::Create');
+        on update => run_command('Ticket::Comment::Update');
     };
 
     under attachment => sub {
         on create => run_command('Ticket::Attachment::Create');
+        on [ [ 'create', 'new' ], qr/^$Prophet::CLIContext::ID_REGEX$/ ] => sub {
+            my $self = shift;
+            $self->context->set_id_from_primary_commands;
+            run('ticket attachment create', $self, @_);
+        };
         on search => run_command('Ticket::Attachment::Search');
     };
 
@@ -143,6 +158,14 @@ under ticket => sub {
 };
 
 under attachment => sub {
+    on qr/^(.*)\s+($Prophet::CLIContext::ID_REGEX)$/i => sub {
+        my $self = shift;
+        my $next = $1;
+        my $id = $2;
+        $self->context->set_id($id);
+        run("attachment $next", $self, @_);
+    };
+
     on content => run_command('Attachment::Content');
     on create  => run_command('Attachment::Create');
 };

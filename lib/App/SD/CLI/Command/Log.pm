@@ -22,7 +22,7 @@ sub handle_changeset {
                 $c->created,
                 ( $c->creator || '(unknown)' ),
                 $c->original_sequence_no,
-                $c->original_source_uuid
+                $self->config->display_name_for_uuid($c->original_source_uuid)
                 ;
             }
 

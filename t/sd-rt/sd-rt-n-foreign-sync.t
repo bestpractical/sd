@@ -12,7 +12,7 @@ use Prophet::Test;
 use App::SD::Test;
 
 BEGIN {
-    unless (eval 'use RT::Test (); 1') {
+     unless (eval 'use RT::Test; 1;') {
         diag $@;
         plan skip_all => 'requires RT 3.8 to run tests.';
     }
@@ -29,7 +29,6 @@ BEGIN {
 
 plan tests => 11;
 
-RT::Test->import;
 use RT::Client::REST;
 use RT::Client::REST::Ticket;
 

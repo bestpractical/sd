@@ -21,6 +21,8 @@ configuration. Example syntax is for bash-like shells.
         
     export SD_CONFIG=/path/to/sd/config/file
       Specify where the configuration file SD is using should reside.
+      If this variable is specified, no other config file will be
+      loaded.
 
     export PROPHET_HISTFILE=~/.sd-history
       Specify where the interactive shell should store its history.

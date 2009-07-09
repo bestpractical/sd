@@ -4,6 +4,7 @@ use strict;
 
 use Prophet::Test tests => 6;
 use App::SD::Test;
+use Prophet::Util;
 use File::Temp qw/tempdir/;
 use Term::ANSIColor;
 
@@ -92,22 +93,25 @@ diag("passing --skip history (doesn't show history)");
 check_output_without_history('--skip-history');
 
 my $config_filename = $ENV{'SD_REPO'} . '/config';
-App::SD::Test->write_to_file($config_filename,
-    "disable_ticket_show_history_by_default = 1\n");
+Prophet::Util->write_file(
+    file => $config_filename, content => '
+[ticket]
+    no-implicit-history-display = true
+');
 $ENV{'SD_CONFIG'} = $config_filename;
 
-diag("config option disable_ticket_show_history_by_default set");
+diag("config option no-implicit-history-display set");
 diag("(shouldn't show history)");
 
 check_output_without_history();
 
-diag("config option disable_ticket_show_history_by_default set");
+diag("config option no-implicit-history-display set");
 diag("and --skip-history passed (shouldn't show history)");
 
 check_output_without_history('--skip-history');
 
 # config option set and --with-history passed (should show history)
-diag('config option disable_ticket_show_history_by_default set');
+diag('config option no-implicit-history-display set');
 diag('and --with-history passed (should show history)');
 
 check_output_with_history('--with-history');
