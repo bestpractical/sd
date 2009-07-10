@@ -1,4 +1,4 @@
-export TODAY=`date +%Y-%-%m-%d`
+export TODAY=`date +%Y-%m-%d`
 export REPO=/Users/jesse/shipwright-sd-${TODAY}.git/
 #export REPO=/tmp/shipwright-sd-${TODAY}.git/
 
