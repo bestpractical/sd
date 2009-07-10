@@ -1,6 +1,7 @@
 blib/
 pm_to_blib
-Makefile*
+Makefile
+Makefile.old
 *~
 .prove
 MANIFEST*
