@@ -1,0 +1,20 @@
+#!/bin/sh
+
+darcsdir=`darcs show repo | grep Root: | sed -e 's/\s*Root: \s*//'`
+
+if [ -z $darcsdir ] ; then # darcsdir not defined
+    darcsdir=`pwd`
+    while ! [ -e "$darcsdir/_darcs" ]; do
+	if [ "$darcsdir" = "/" ]; then
+	    echo ""
+	    echo "Can't find a _darcs directory anywhere in your current directory"
+	    echo "or any higher directories."
+	    exit 1;
+	fi
+	darcsdir=`dirname $darcsdir`
+    done
+fi
+
+replica="$darcsdir/_darcs/prefs/sd"
+
+SD_REPO=$replica exec sd $@
