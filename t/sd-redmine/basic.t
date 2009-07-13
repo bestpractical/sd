@@ -4,6 +4,10 @@ use strict;
 use Prophet::Test;
 use App::SD::Test;
 
+unless ( $] >= 5.010 ) {
+    plan skip_all => 'You need at least Perl 5.010 to enable redmine support';
+}
+
 require File::Temp;
 $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
 diag "export SD_REPO=" . $ENV{'PROPHET_REPO'} . "\n";
@@ -58,4 +62,3 @@ sub count_tickets_in_sd {
     my @lines = split(/\n/,$out);
     return scalar @lines;
 }
-
