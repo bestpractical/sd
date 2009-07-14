@@ -414,7 +414,7 @@ private template 'ticket_list' => sub {
             for my $ticket (@$tickets) {
                 row {
                     cell { class is 'id'; ticket_link( $ticket => $ticket->luid ); };
-                    for (qw|status milestone component order reporter due created|) {
+                    for (qw|status milestone component owner reporter due created|) {
                     
                         cell { class is $_; $ticket->prop($_) };
                     }
