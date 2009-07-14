@@ -224,7 +224,10 @@ sub translate_ticket_state {
 
     my $props = shift;
 
-    return $props, {%$props};
+    my $translated = {%$props};
+    $translated->{status} = (delete $translated->{complete})  ? 'closed' : 'open';
+
+    return $props, $translated;
 
 }
 __PACKAGE__->meta->make_immutable;

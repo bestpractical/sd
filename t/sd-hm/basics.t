@@ -54,7 +54,7 @@ $task->set_summary('Crash Man');
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
 
-run_output_matches_unordered( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_uuid Crash Man -"] );
+run_output_matches_unordered( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_uuid Crash Man open"] );
 
 
 ( $ret, $out, $err ) = run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $flyman_uuid ] );
@@ -69,7 +69,7 @@ run_output_matches_unordered(
     [ 'ticket', 'list', '--regex', '.' ],
     [ sort  
         "$yatta_id YATTA new",
-        "$flyman_id Crash Man -"
+        "$flyman_id Crash Man open"
     
     ]
 );
@@ -83,7 +83,7 @@ ok( $task->load_by_cols( summary => 'YATTA' ) );
 run_output_matches_unordered(
     'sd',
     [ 'ticket',                     'list', '--regex', '.' ],
-    [ sort "$yatta_id YATTA new", "$flyman_id Crash Man -" ]
+    [ sort "$yatta_id YATTA new", "$flyman_id Crash Man open" ]
 );
 diag("We did one pull from hm just fine");
 $task->set_summary('KILL');
@@ -94,5 +94,5 @@ diag("pulling from hiveminder a second time");
 run_output_matches_unordered(
     'sd',
     [ 'ticket',                    'list', '--regex', '.' ],
-    [ sort "$yatta_id KILL new", "$flyman_id Crash Man -" ]
+    [ sort "$yatta_id KILL new", "$flyman_id Crash Man open" ]
 );
