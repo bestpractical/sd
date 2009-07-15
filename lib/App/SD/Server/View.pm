@@ -573,7 +573,7 @@ template ticket_history => sub {
                 };
                 span {
                     { class is 'original_source_uuid' };
-                    $self->app_handle->config->display_name_for_uuid($changeset->original_source_uuid);
+                    $self->app_handle->display_name_for_replica($changeset->original_source_uuid);
                 };
                 };
             };

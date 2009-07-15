@@ -22,7 +22,7 @@ sub handle_changeset {
                 $c->created,
                 ( $c->creator || '(unknown)' ),
                 $c->original_sequence_no,
-                $self->config->display_name_for_uuid($c->original_source_uuid)
+                $self->app_handle->display_name_for_replica($c->original_source_uuid)
                 ;
             }
 
