@@ -48,7 +48,7 @@ under help => sub {
 
     on [ ['search', 'list', 'find'] ] => run_command('Help::Search');
 
-    on [ ['sync', 'push', 'pull', 'publish', 'server'] ]
+    on [ ['sync', 'push', 'pull', 'publish', 'server','clone'] ]
         => run_command('Help::Sync');
 
     on qr/^(\S+)$/ => sub {
