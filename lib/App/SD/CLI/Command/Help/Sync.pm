@@ -47,10 +47,21 @@ print <<EOF
       -w is a shortcut for --writable and -p is a shortcut for --port
       for this command.
 
-SD can sync to external systems as well as itself. Currently, there are foreign
-replica types for RT (http://bestpractical.com/rt) and Hiveminder
-(http://hiveminder.com/). If you're interested in building a replica type for
-your bug tracker, you should get in touch with SD's developers (see
+SD can sync to external systems as well as itself. Currently, there 
+are foreign replica types for:
+
+    RT (http://bestpractical.com/rt)
+    Hiveminder (http://hiveminder.com/)
+    Trac (http://trac.edgewall.com)
+    Google Code (http://code.google.com)
+    GitHib (http://github.com). 
+
+Read-only support is available for:
+
+     Redmine (http://redmine.org)
+
+If you're interested in building a replica type for your bug 
+tracker, you should get in touch with SD's developers (see
 http://syncwith.us/contact).
 
 The RT server is specified as as rt:serveraddress|Queue|Query
@@ -65,6 +76,20 @@ The RT server is specified as as rt:serveraddress|Queue|Query
     ${cmd}pull --from "rt:http://rt3.fsck.com|rt3|Owner='jesse'"
       Pull changes from a foreign replica to be merged into the
       local replica.
+
+    Cloning from Google Code
+
+    ${cmd}clone --from gcode:k9mail
+
+    Cloning from Trac
+
+    ${cmd}clone --from trac:https://trac.parrot.org/parrot
+
+    Cloning from GitHub
+
+    ${cmd}clone --from github:miyagawa/remedie
+
+
 EOF
 
 }
