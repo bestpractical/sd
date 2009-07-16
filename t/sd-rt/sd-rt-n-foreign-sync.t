@@ -12,7 +12,7 @@ use Prophet::Test;
 use App::SD::Test;
 
 BEGIN {
-     unless (eval 'use RT::Test; 1;') {
+     unless (eval 'use RT::Test tests => "no_declare"; 1;') {
         diag $@;
         plan skip_all => 'requires RT 3.8 to run tests.';
     }
@@ -136,7 +136,7 @@ as_bob {
     run_output_matches_unordered(
         'sd',
         [ 'ticket',                             'list', '--regex', '.' ],
-        [ reverse sort "$bob_yatta_id YATTA -", "$bob_flyman_id Fly Man new" ]
+        [ reverse sort "$bob_yatta_id YATTA open", "$bob_flyman_id Fly Man new" ]
     );
 
 
@@ -155,7 +155,7 @@ as_alice {
     run_output_matches_unordered(
         'sd',
         [ 'ticket',                             'list', '--regex', '.' ],
-        [ sort "$alice_yatta_id YATTA -", "$alice_flyman_id Fly Man new" ]
+        [ sort "$alice_yatta_id YATTA open", "$alice_flyman_id Fly Man new" ]
     );
 };
 
