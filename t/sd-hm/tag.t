@@ -69,7 +69,7 @@ my ($flyman_uuid, $flyman_id );
 {
     $task->set_summary('Crash Man');
     ( $ret, $out, $err ) = run_script( 'sd', [ 'pull', '--from', $sd_hm_url ] );
-    run_output_matches_unordered( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_uuid Crash Man -"] );
+    run_output_matches_unordered( 'sd', [ 'ticket', 'list', '--regex', '.' ], ["$flyman_uuid Crash Man open"] );
 }
 
 
@@ -79,7 +79,7 @@ diag $yatta_uuid;
 run_output_matches_unordered(
     'sd',
     [ 'ticket', 'list', '--regex', '.' ],
-    [ "$yatta_id YATTA new", "$flyman_id Crash Man -" ]
+    [ "$yatta_id YATTA new", "$flyman_id Crash Man open" ]
 );
 
 {
@@ -94,7 +94,7 @@ run_output_matches_unordered(
     run_output_matches_unordered(
         'sd',
         [ 'ticket',                     'list', '--regex', '.' ],
-        [ "$yatta_id YATTA new", "$flyman_id Crash Man -" ]
+        [ "$yatta_id YATTA new", "$flyman_id Crash Man open" ]
     );
 }
 
@@ -104,6 +104,6 @@ run_output_matches_unordered(
     run_output_matches_unordered(
         'sd',
         [ 'ticket',                    'list', '--regex', '.' ],
-        [ "$yatta_id KILL new", "$flyman_id Crash Man -" ]
+        [ "$yatta_id KILL new", "$flyman_id Crash Man open" ]
     );
 }
