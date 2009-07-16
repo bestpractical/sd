@@ -88,7 +88,7 @@ as_bob {
     run_output_matches(
         'sd',
         [ 'ticket', 'list', '--regex', '.' ],
-        [ "$yatta_id YATTA -" ]
+        [ "$yatta_id YATTA open" ]
     );
 };
 
@@ -106,7 +106,7 @@ as_bob {
     run_output_matches_unordered(
         'sd',
         [ 'ticket',                             'list', '--regex', '.' ],
-        [ reverse sort "$yatta_id YATTA -", "$flyman_id Fly Man new" ]
+        [ reverse sort "$yatta_id YATTA open", "$flyman_id Fly Man new" ]
     );
 };
 
