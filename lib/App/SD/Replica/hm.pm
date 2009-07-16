@@ -85,8 +85,6 @@ sub get_txn_list_by_date {
 
         sort { $a->{'id'} <=> $b->{'id'} }
         @{ $self->hm->search( 'TaskTransaction', task_id => $ticket ) || [] };
-    use Data::Dump qw(pp);
-    pp @txns;
 
     return @txns;
 }
