@@ -437,6 +437,88 @@ private template 'ticket_list' => sub {
         
         };
 
+template 'history' => page {
+    my $self = shift;
+   'History';
+}
+content {
+    my $self = shift;
+    my $latest = $self->app_handle->handle->latest_sequence_no;
+    my $start = shift || $latest;
+    my $end = $start - 20;
+
+    my @changesets;
+    $self->app_handle->handle->traverse_changesets(
+        reverse  => 1,
+        after    => $end,
+        until    => $start,
+        callback => sub {
+            my %args = (@_);
+            push @changesets, $args{changeset};
+        }
+    );
+
+    div { { class is 'log'};
+    my $nav = sub {
+    div {{ class is 'nav'};
+        if ($end > 1 ) {
+            a {{  class is 'prev', href is '/history/'.($end-1) };  'Earlier'  };
+        }
+        if ($start < $latest) {
+            a {{ class is 'next', href is '/history/'.(( $start+21 < $latest) ? ($start+21) : $latest) };  'Later'  };
+        }
+        }
+    };
+
+    $nav->();
+
+    show(
+        'format_history',
+        changesets    => \@changesets,
+        change_filter => sub {1},
+        sort_changesets => sub { sort {$b->sequence_no <=> $a->sequence_no} @_ },
+        change_header => sub {
+            my $change = shift;
+            if ( $change->record_type eq 'ticket' ) {
+                my $ticket = App::SD::Model::Ticket->new(
+                    app_handle => $self->app_handle,
+                    handle     => $self->app_handle->handle
+                );
+                $ticket->load( uuid => $change->record_uuid );
+
+                h2 {
+                    a {{ href is '/ticket/' . $ticket->uuid; class is 'ticket-summary'; }; $ticket->prop('summary') };
+                   span { { class is 'ticket-id'};  ' (' . $ticket->luid . ')'};
+                }
+            } elsif ($change->record_type eq 'comment') {
+                my $ticket = App::SD::Model::Ticket->new(
+                    app_handle => $self->app_handle,
+                    handle     => $self->app_handle->handle
+                );
+
+                my $id;
+                for ( $change->prop_changes ) {
+                     if (  $_->name eq 'ticket' ) {  $id =  $_->new_value  }
+
+                }
+                $ticket->load( uuid =>  $id ) ;
+
+                h2 {
+                     outs('Comment on: ');
+                     a {{ href is '/ticket/' . $ticket->uuid; class is 'ticket-summary'; }; $ticket->prop('summary') };
+                   span { { class is 'ticket-id'};  ' (' . $ticket->luid . ')'};
+                }
+
+
+            }
+        }
+    );
+
+    $nav->();
+    }
+};
+
+
 template 'show_ticket_history' => page {
         my $self = shift;
         my $id = shift;
@@ -458,7 +540,9 @@ template 'show_ticket_history' => page {
 
         $self->ticket_page_actions($ticket);
 
-        show ticket_history     => $ticket;
+        show('format_history', changesets => [$ticket->changesets], change_filter => sub { my $change = shift; return $ticket->uuid eq $change->record_uuid ? 1 : 0},
+        
+        );
         };
 
 template 'show_ticket' => page {
@@ -550,13 +634,22 @@ template ticket_attachments => sub {
 
 
 };
-template ticket_history => sub {
+
+
+
+
+
+private template format_history => sub {
     my $self   = shift;
-    my $ticket = shift;
+    my %args = (changesets => undef,
+                change_filter => undef,
+                change_header => undef,
+                sort_changesets => sub { sort {$a->created cmp $b->created} @_ },
+                @_);
 
     dl {
         { class is 'history' };
-        for my $changeset ( sort { $a->created cmp $b->created } $ticket->changesets ) {
+        for my $changeset ( $args{sort_changesets}->( @{$args{changesets}} )) {
             dt {
                 span {
                     { class is 'created' };
@@ -579,7 +672,10 @@ template ticket_history => sub {
             };
             dd {
                 for my $change ( $changeset->changes ) {
-                    if ( $change->record_uuid eq $ticket->uuid ) {
+                    if ( $args{change_filter}->($change)) {
+                    if ($args{change_header}) {
+                        $args{change_header}->($change);
+                    }
                     ul {
 
                         li { outs_raw($_) }
