@@ -15,6 +15,7 @@ on qr'.' => sub {
 
 on qr'.' => sub {
     my $self = shift;
+    $self->server->nav->child( history => label => 'History', url => '/history');
     my $tickets = $self->server->nav->child( tickets => label => 'Tickets', url => '/');
     $tickets->child( go => label => '<form method="GET" action="/ticket/"><a href="#">Show ticket # <input type=text name=id size=3></a></form>', escape_label => 0) unless($self->server->static);
 
@@ -64,7 +65,8 @@ under { method => 'GET' } => sub {
         my $type = $2;
         shift->show_template( $name => $type );
     };
-    
+   
+    on qr'^/history/?(\d*)/?$' => sub {my  $since = $1; shift->show_template('history', $since)};
     on qr'^/tickets/all$' => sub {shift->show_template('all_tickets')};
     under qr'^/ticket/' => sub {
         on '' => sub {

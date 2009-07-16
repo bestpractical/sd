@@ -88,6 +88,63 @@ h2 {
 
 }
 
+.log h2 {
+    font-weight: normal;
+}
+
+.log h2 a.ticket-summary {
+  font-weight: normal;
+  text-decoration: none;
+  color: #700;
+} 
+
+.log h2 a:hover {
+    text-decoration: underline;
+}
+
+
+h2 .ticket-id {
+    color: #ccc;
+}
+
+
+.log .nav {
+ text-align: center;
+padding-top: 0.25em;
+padding-bottom: 0.25em;
+
+}
+.log .nav a:hover {
+  text-decoration: underline;
+  background: #aaa;
+  color: #333;
+
+}
+.log .nav a { 
+padding: 0.5em;
+background: #ccc;
+width: 5em;
+display: inline-block;
+text-align: center;
+color: #666;
+text-decoration: none;
+}
+.log .nav .prev { 
+    -moz-border-radius-bottomleft: 0.5em;
+    -webkit-border-bottom-left-radius: 0.5em;
+    -moz-border-radius-topleft: 0.5em;
+    -webkit-border-top-left-radius: 0.5em;
+
+}
+.log .nav .next {
+    -moz-border-radius-bottomright: 0.5em;
+    -webkit-border-bottom-right-radius: 0.5em;
+    -moz-border-radius-topright: 0.5em;
+    -webkit-border-top-right-radius: 0.5em;
+
+}
+
+
 ul.actions {
     align: center;
     display: block;
