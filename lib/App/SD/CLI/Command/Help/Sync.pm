@@ -89,6 +89,26 @@ The RT server is specified as as rt:serveraddress|Queue|Query
 
     ${cmd}clone --from github:miyagawa/remedie
 
+SD also supports naming replicas, so you can push, pull, and publish
+to short, human-friendly names instead of URLs. When a replica is
+initialized, cloned, or published, a [replica "name"] section is created in
+the replica-specific configuration file (replica_root/config). Its name is, by
+default, the URL you passed to the command. You can change this to a more
+memorable name with:
+
+    ${cmd}config edit
+
+You can then use sync commands like this:
+
+    ${cmd}pull --from name
+    ${cmd}push --to name
+    ${cmd}publish --to name
+
+For pull and push, the given name is substituted with the value of the
+replica.name.url config variable. For publish, replica.name.publish-url
+is used. If different urls are needed for push and pull for a given
+replica, you can override replica.name.url with replica.name.push-url
+and/or replica.name.pull-url.
 
 EOF
 
