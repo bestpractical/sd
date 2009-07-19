@@ -3,6 +3,7 @@ package App::SD::CLI::Dispatcher;
 use Prophet::CLI::Dispatcher -base;
 use Any::Moose;
 require Prophet::CLIContext;
+use File::Basename;
 
 Prophet::CLI::Dispatcher->add_command_prefix('App::SD::CLI::Command');
 
@@ -54,7 +55,7 @@ under help => sub {
     on qr/^(\S+)$/ => sub {
        my $self = shift;
        my $topic = $1;
-       die "Cannot find help on topic '$topic'. Try '$0 help'?\n";
+       die "Cannot find help on topic '$topic'. Try '"._format_cmd_name('help')."'?\n";
     };
 };
 
@@ -67,7 +68,7 @@ on qr'.*' => sub {
     next_rule if $self->cli->app_handle->handle->replica_exists;
 
     print join("\n","No SD database was found at " . $self->cli->app_handle->handle->url(),
-               qq{Type "$0 help init" or "$0 help environment" for tips on how to sort that out.});
+               qq{Type "} . _format_cmd_name('help init'). qq{" or "} . _format_cmd_name(' help environment').qq{ for tips on how to sort that out.});
     exit 1;
 };
 
@@ -187,12 +188,18 @@ on '' => run_command('Shell');
 on qr/^(.*)$/ => sub {
    my $self = shift;
    my $command = $1;
-   die "The command you ran, '$command', could not be found. Perhaps running '$0 help' would help?\n";
+   die "The command you ran, '$command', could not be found. Perhaps running '"._format_cmd_name('help')."' would help?\n";
 
 };
 
 sub run_command { Prophet::CLI::Dispatcher::run_command(@_) }
 
+
+sub _format_cmd_name {
+    my $cmd = shift;
+    return basename($0) . " ". $cmd;
+
+}
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
