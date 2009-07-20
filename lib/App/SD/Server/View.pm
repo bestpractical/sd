@@ -447,6 +447,8 @@ content {
     my $start = shift || $latest;
     my $end = $start - 20;
 
+    $end = 1 if $end < 1;
+
     my @changesets;
     $self->app_handle->handle->traverse_changesets(
         reverse  => 1,
@@ -501,6 +503,8 @@ content {
                      if (  $_->name eq 'ticket' ) {  $id =  $_->new_value  }
 
                 }
+
+                return  unless ($id);
                 $ticket->load( uuid =>  $id ) ;
 
                 h2 {
