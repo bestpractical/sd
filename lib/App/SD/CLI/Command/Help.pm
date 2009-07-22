@@ -8,14 +8,6 @@ sub title {
 
 }
 
-sub _get_cmd_name {
-    my $self = shift;
-    return '' if $self->cli->interactive_shell;
-    my ${cmd}= $0;
-    ${cmd}=~ s{^(.*)/}{}g;
-    return $cmd.' ';
-}
-
 sub version {
     my $self = shift;
     "sd ".$App::SD::VERSION;
@@ -36,7 +28,7 @@ sub print_header {
 
 sub run {
     my $self = shift;
-    my ${cmd}= $self->_get_cmd_name;
+    my ${cmd}= $self->get_cmd_name;
 
     $self->print_header("Help Index");
 

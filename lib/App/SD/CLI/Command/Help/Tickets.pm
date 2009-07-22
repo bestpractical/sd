@@ -5,7 +5,7 @@ extends 'App::SD::CLI::Command::Help';
 sub run {
     my $self = shift;
     $self->print_header('Creating and Updating tickets');
-    my ${cmd}= $self->_get_cmd_name;
+    my ${cmd}= $self->get_cmd_name;
 
 print <<EOF
     ${cmd}ticket create

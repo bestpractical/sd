@@ -5,7 +5,7 @@ extends 'App::SD::CLI::Command::Help';
 sub run {
     my $self = shift;
     $self->print_header('Working with ticket comments');
-    my ${cmd}= $self->_get_cmd_name;
+    my ${cmd}= $self->get_cmd_name;
 
 print <<EOF
 

@@ -4,7 +4,7 @@ extends 'App::SD::CLI::Command::Help';
 
 sub run {
     my $self = shift;
-    my ${cmd}= $self->_get_cmd_name;
+    my ${cmd}= $self->get_cmd_name;
     $self->print_header('About SD');
 
 print <<EOF
