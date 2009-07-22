@@ -42,10 +42,10 @@ and vice-versa):
     ${cmd}aliases edit
       Edit aliases in an editor window.
 
-    ${cmd}aliases "command to type" "command to translate to"
+    ${cmd}alias "command to type" "command to translate to"
       Set the given alias (or change it if it already exists).
 
-    ${cmd}aliases delete command to type
+    ${cmd}aliases delete "command to type"
       Delete the given alias.
 
 The --user and --global arguments can be used in conjunction with the
