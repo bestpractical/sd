@@ -5,6 +5,9 @@ extends 'Prophet::CLI::Command::Update';
 
 override run => sub {
     my $self = shift;
+
+    $self->print_usage if $self->has_arg('h');
+
     $self->require_uuid;
 
     my $record = $self->_load_record;

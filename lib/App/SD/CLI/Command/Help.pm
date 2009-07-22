@@ -3,6 +3,15 @@ use Any::Moose;
 extends 'Prophet::CLI::Command';
 with 'App::SD::CLI::Command';
 
+sub usage_msg {
+    my $self = shift;
+    my $cmd = $self->get_cmd_name;
+
+    return <<"END_USAGE";
+usage: ${cmd}help [<topic>]
+END_USAGE
+}
+
 sub title {
     my $self = shift;
 
@@ -18,8 +27,9 @@ sub print_header {
     my $self = shift;
     my $title = shift;
     my $string =  join(' - ', $self->version, $title);
-    
-    
+
+    $self->print_usage if $self->has_arg('h');
+
     print "\n".$string . "\n";
     print '-' x ( length($string));
     print "\n";

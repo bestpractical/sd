@@ -7,6 +7,8 @@ with 'App::SD::CLI::Command';
 sub run {
     my $self = shift;
 
+    $self->print_usage if $self->has_arg('h');
+
     my $content = $self->get_content(type => 'attachment');
 
     die "Aborted.\n"

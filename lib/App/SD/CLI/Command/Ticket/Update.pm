@@ -9,10 +9,29 @@ with 'Prophet::CLI::TextEditorCommand';
 
 sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  a => 'all-props'  };
 
+sub usage_msg {
+    my $self = shift;
+    my $cmd = $self->get_cmd_name;
+    my @primary_commands = @{ $self->context->primary_commands };
+
+    # if primary commands was only length 1, the type was not specified
+    # and we should indicate that a type is expected
+    push @primary_commands, '<record-type>' if @primary_commands <= 1;
+
+    my $type_and_subcmd = join( q{ }, @primary_commands );
+
+    return <<"END_USAGE";
+usage: ${cmd}${type_and_subcmd} <record-id> --edit [--all-props]
+       ${cmd}${type_and_subcmd} <record-id> -- status=open
+END_USAGE
+}
+
 # use an editor to edit if no props are specified on the commandline,
 # allowing the creation of a new comment in the process
 override run => sub {
     my $self = shift;
+
+    $self->print_usage if $self->has_arg('h');
 
     $self->require_uuid;
     my $record = $self->_load_record;

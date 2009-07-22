@@ -16,12 +16,29 @@ sub by_creation_date {
     ($a->can('created') ? $a->created : $a->prop('created') )
     cmp 
     ($b->can('created') ? $b->created : $b->prop('created') )
+}
 
+sub usage_msg {
+    my $self = shift;
+    my $cmd = shift || 'show';
+    my $script = $self->get_cmd_name;
+    my $type = $self->type ? $self->type . q{ } : q{};
 
+    return <<"END_USAGE";
+usage: ${script}${type}${cmd} <record-id> [options]
+
+Options are:
+    -a|--all-props      Show props even if they aren't common
+    -s|--skip-history   Don't show ticket history
+    -h|--with-history   Show ticket history even if disabled in config
+    -b|--batch
+END_USAGE
 }
 
 override run => sub {
     my $self = shift;
+
+    $self->print_usage if $self->has_arg('h');
 
     $self->require_uuid;
     my $record = $self->_load_record;

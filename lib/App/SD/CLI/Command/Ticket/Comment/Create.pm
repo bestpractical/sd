@@ -7,9 +7,22 @@ with 'App::SD::CLI::Command';
 
 sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  f => 'file', m => 'content'  };
 
+sub usage_msg {
+    my $self = shift;
+    my ($cmd, $type_and_subcmd) = $self->get_cmd_and_subcmd_names;
+
+    return <<"END_USAGE";
+usage: ${cmd}${type_and_subcmd} <ticket-id> [--edit]
+       ${cmd}${type_and_subcmd} <ticket-id> -- content="message here"
+END_USAGE
+}
+
 # override args to feed in that ticket's uuid as an argument to the comment
 sub run {
     my $self = shift;
+
+    $self->print_usage if $self->has_arg('h');
+
     $self->require_uuid;
 
     my $content = $self->get_content(type => 'comment', default_edit => 1);

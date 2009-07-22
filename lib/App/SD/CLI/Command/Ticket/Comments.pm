@@ -6,6 +6,16 @@ with 'Prophet::CLI::RecordCommand';
 with 'App::SD::CLI::Command';
 with 'App::SD::CLI::Model::Ticket';
 
+override usage_msg => sub {
+    my $self = shift;
+    my $cmd = $self->get_cmd_name;
+
+    return <<"END_USAGE";
+usage: ${cmd}ticket comments <ticket-id>
+
+END_USAGE
+};
+
 sub run {
     my $self = shift;
     my $record = $self->_get_record_object;

@@ -9,11 +9,34 @@ with 'Prophet::CLI::TextEditorCommand';
 
 sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  e => 'edit'  };
 
+# use actual valid ticket props in the help message, and make note of the
+# interactive editing mode
+override usage_msg => sub {
+    my $self = shift;
+    my $cmd = $self->get_cmd_name;
+
+    my @primary_commands = @{ $self->context->primary_commands };
+
+    # if primary commands was only length 1, the type was not specified
+    # and we should indicate that a type is expected
+    push @primary_commands, '<record-type>' if @primary_commands == 1;
+
+    my $type_and_subcmd = join( q{ }, @primary_commands );
+
+    return <<"END_USAGE";
+usage: ${cmd}${type_and_subcmd} -- summary=foo status=open
+       ${cmd}${type_and_subcmd} [--edit]
+END_USAGE
+};
+
 # we want to launch an $EDITOR window to grab props and a comment if no
 # props are specified on the commandline
 
 override run => sub {
     my $self = shift;
+
+    $self->print_usage if $self->has_arg('h');
+
     my @prop_set = $self->prop_set;
     my $record = $self->_get_record_object;
 

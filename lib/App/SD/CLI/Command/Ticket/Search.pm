@@ -5,9 +5,29 @@ with 'App::SD::CLI::Command';
 
 sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  s => 'sort', g => 'group'  };
 
+sub usage_msg {
+    my $self = shift;
+    my $script = $self->get_cmd_name;
+
+    my @primary_commands = @{ $self->context->primary_commands };
+
+    # if primary commands was only length 1, the type was not specified
+    # and we should indicate that a type is expected
+    push @primary_commands, '<record-type>' if @primary_commands <= 1;
+
+    my $type_and_subcmd = join( q{ }, @primary_commands );
+
+    return <<"END_USAGE";
+usage: ${script}${type_and_subcmd}
+       ${script}${type_and_subcmd} -- summary=~foo status!~new|open
+END_USAGE
+}
+
 # frob the sort routine before running prophet's search command
 sub run {
     my $self = shift;
+
+    $self->print_usage if $self->has_arg('h');
 
     if (  (!$self->has_arg('sort') || !$self->arg('sort'))
         && $self->app_handle->config->get( key => 'ticket.default-sort') )

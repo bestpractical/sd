@@ -4,8 +4,24 @@ extends 'App::SD::CLI::Command::Ticket::Show';
 
 sub by_creation_date { $a->prop('created') cmp $b->prop('created') };
 
+sub usage_msg {
+    my $self = shift;
+    my ($cmd, $type_and_subcmd) = $self->get_cmd_and_subcmd_names;
+
+    # XXX TODO Review these options
+    return <<"END_USAGE";
+usage: ${script}${type_and_subcmd} <record-id> [options]
+
+Options are:
+    -a|--all-props      Show props even if they aren't common
+    -b|--batch
+END_USAGE
+}
+
 override run => sub {
     my $self = shift;
+
+    $self->print_usage if $self->has_arg('h');
 
     $self->require_uuid;
     my $record = $self->_load_record;
