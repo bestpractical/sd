@@ -54,7 +54,7 @@ are foreign replica types for:
     Hiveminder (http://hiveminder.com/)
     Trac (http://trac.edgewall.com)
     Google Code (http://code.google.com)
-    GitHib (http://github.com). 
+    GitHub (http://github.com). 
 
 Read-only support is available for:
 
