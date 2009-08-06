@@ -11,18 +11,24 @@ print <<EOF
 The 'settings' command allows you to modify configuration variables
 that propagate with the current database, known as settings.
 
-If given no arguments, the settings command will present you with
-an editor window in which settings can be modified. Setting values
-must be valid JSON data structures.
+If given no arguments, the settings command will print the current
+settings.
 
 The following arguments are supported:
 
-    --show (or -s)
+    show
       Don't present an editor window, just print the current
       settings to STDOUT.
 
-    --set -- common_ticket_props '["id", "summary", "original_replica"]'
+    edit
+      Present an editor window containing all the current settings
+      for interactive editing.
+
+    set -- common_ticket_props '["id", "summary", "original_replica"]'
       Update the setting common_ticket_props to the given value.
+      Any setting, including multiple settings, may be set this way.
+
+Setting values must be valid JSON.
 
 Settings are not the same as local configuration variables. For
 more information on local configuration, see '${cmd}help config'.
