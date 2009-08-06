@@ -10,7 +10,7 @@ sub usage_msg {
 
     # XXX TODO Review these options
     return <<"END_USAGE";
-usage: ${script}${type_and_subcmd} <record-id> [options]
+usage: ${cmd}${type_and_subcmd} <record-id> [options]
 
 Options are:
     -a|--all-props      Show props even if they aren't common
