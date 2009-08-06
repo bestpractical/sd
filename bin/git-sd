@@ -1,6 +1,6 @@
 #!/bin/sh
 
-replica=`git config --get sd.local-replica`
+replica=$(git config --get sd.local-replica)
 if [ -z "$replica" ]; then
     gitdir=$(git rev-parse --git-dir 2>/dev/null)
     if [ -z "$gitdir" ]; then
