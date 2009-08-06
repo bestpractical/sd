@@ -28,6 +28,8 @@ sub get_content {
     my $self = shift;
     my %args = @_;
 
+    Prophet::CLI->end_pager();
+
     my $content;
     if (my $file = $self->delete_arg('file')) {
         my ( $vol, $dir, $name ) = File::Spec->splitpath( $file );
@@ -49,8 +51,8 @@ sub get_content {
         if (my $footer = $args{footer}) {
             $text .= $footer;
         }
-    
-           $content = $self->edit_text($text);
+
+        $content = $self->edit_text($text);
         # user aborted their text editor without changing anything; signify
         # this to the caller by returning nothing
         $content = '' if $content eq $text;
@@ -58,7 +60,7 @@ sub get_content {
         die "Tried to invoke an editor in a test script!";
     } else {
         print "Please type your $args{type} and press ctrl-d.\n";
-        $content = do { local $/; <> };
+        $content = do { local $/; <STDIN> };
     }
 
     chomp $content;
