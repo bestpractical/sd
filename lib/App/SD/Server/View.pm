@@ -490,7 +490,7 @@ content {
 
                 h2 {
                     a {{ href is '/ticket/' . $ticket->uuid; class is 'ticket-summary'; }; $ticket->prop('summary') };
-                   span { { class is 'ticket-id'};  ' (' . $ticket->luid . ')'};
+                   span { { class is 'ticket-id'};  ' (' . ($ticket->luid || '') . ')'};
                 }
             } elsif ($change->record_type eq 'comment') {
                 my $ticket = App::SD::Model::Ticket->new(
@@ -510,7 +510,7 @@ content {
                 h2 {
                      outs('Comment on: ');
                      a {{ href is '/ticket/' . $ticket->uuid; class is 'ticket-summary'; }; $ticket->prop('summary') };
-                   span { { class is 'ticket-id'};  ' (' . $ticket->luid . ')'};
+                   span { { class is 'ticket-id'};  ' (' . ($ticket->luid ||''). ')'};
                 }
 
 
