@@ -7,8 +7,12 @@ require Prophet::Test;
 use Test::More;
 use File::Spec;
 use File::Temp ();
+use Test::Script::Run qw(:all);
 use base qw/Exporter/;
-our @EXPORT = qw(create_ticket_ok update_ticket_ok create_ticket_with_editor_ok create_ticket_comment_ok get_uuid_for_luid get_luid_for_uuid get_ticket_info);
+our @EXPORT = qw(create_ticket_ok update_ticket_ok
+    create_ticket_with_editor_ok create_ticket_comment_ok get_uuid_for_luid
+    get_luid_for_uuid get_ticket_info run_ok run_output_matches
+    run_output_matches_unordered run_script is_script_output);
 delete $ENV{'PROPHET_APP_CONFIG'};
 $ENV{'EDITOR'} = '/bin/true';
 
@@ -36,7 +40,7 @@ Returns a list of the luid and uuid of the newly created ticket.
 sub create_ticket_ok {
     my @args = (@_);
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create', '--', @args ],
+    run_output_matches( 'sd', [ 'ticket', 'create', '--', @args ],
         [qr/Created ticket (.*?)(?{ $A = $1})\s+\((.*)(?{ $B = $2 })\)/]
     );
 
@@ -55,7 +59,7 @@ Returns nothing interesting.
 sub update_ticket_ok {
     my ($id, @args) = (@_);
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'update', $id, '--', @args ],
+    run_output_matches( 'sd', [ 'ticket', 'update', $id, '--', @args ],
         [qr/ticket \d+\s+\([^)]*\)\s+updated\./i]
     );
 }
@@ -71,7 +75,7 @@ Returns a list of the luid and uuid of the newly created comment.
 sub create_ticket_comment_ok {
     my @args = (@_);
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    Prophet::Test::run_output_matches(
+    run_output_matches(
         'sd',
         [ 'ticket', 'comment', 'create', @args ],
         [qr/Created comment (.*?)(?{ $A = $1})\s+\((.*)(?{ $B = $2 })\)/]
@@ -91,7 +95,7 @@ Returns undef if none can be found.
 
 sub get_uuid_for_luid {
         my $luid = shift;
-    my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $luid ]);
+    my ($ok, $out, $err) =  run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $luid ]);
     if ($out =~ /^id: \d+ \((.*)\)/m) {
             return $1;
     }
@@ -108,7 +112,7 @@ Returns undef if none can be found.
 
 sub get_luid_for_uuid {
         my $uuid = shift;
-    my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $uuid ]);
+    my ($ok, $out, $err) =  run_script( 'sd', [ 'ticket', 'show', '--batch', '--id', $uuid ]);
     if ($out =~ /^id: (\d+)/m) {
             return $1;
     }
@@ -130,7 +134,7 @@ sub create_ticket_with_editor_ok {
     my @extra_args = @_;
 
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'create', @extra_args ],
+    run_output_matches( 'sd', [ 'ticket', 'create', @extra_args ],
         [qr/Created ticket (.*?)(?{ $A = $1})\s+\((.*)(?{ $B = $2 })\)/,
         qr/Created comment (.*?)(?{ $C = $1})\s+\((.*)(?{ $D = $2 })\)/]
     );
@@ -158,7 +162,7 @@ sub update_ticket_with_editor_ok {
     my @extra_args = @_;
 
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    Prophet::Test::run_output_matches( 'sd', [ 'ticket', 'update', $ticket_uuid,
+    run_output_matches( 'sd', [ 'ticket', 'update', $ticket_uuid,
                                                @extra_args ],
         [ qr/Updated ticket (.*?)\s+\((.*)\)/,
           qr/Created comment (.*?)(?{ $A = $1 })\s+\((.*)(?{ $B = $2 })\)/ ]
@@ -181,7 +185,7 @@ sub update_ticket_comment_with_editor_ok {
     my ($comment_luid, $comment_uuid) = @_;
 
     local $Test::Builder::Level = $Test::Builder::Level + 1;
-    Prophet::Test::run_output_matches( 'sd',
+    run_output_matches( 'sd',
         [ 'ticket', 'comment', 'update', $comment_uuid ],
         [ 'Updated comment '.$comment_luid . ' ('. $comment_uuid .')']
     );
@@ -195,7 +199,7 @@ Returns a hash reference with information about ticket.
 
 sub get_ticket_info {
     my $id = shift;
-    my ($ok, $out, $err) =  Prophet::Test::run_script( 'sd', [qw(ticket show --batch --verbose --id), $id ]);
+    my ($ok, $out, $err) =  run_script( 'sd', [qw(ticket show --batch --verbose --id), $id ]);
 
     my @lines = split /\n/, $out;
 
