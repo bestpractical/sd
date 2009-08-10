@@ -16,9 +16,8 @@ To get started with SD, you need a ticket database. To get an ticket
 database, you have two options: You can clone an existing database
 or start a new one.
 
-SD will store its local database replica in the ".sd" directory in your 
-home directory. You can override this behaviour by setting the SD_REPO
-environment variable.
+SD will store its local database replica in the path specified by the
+C<SD_REPO> environment variable.
 
 To clone a ticket database:
 
