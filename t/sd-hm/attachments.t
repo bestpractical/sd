@@ -54,7 +54,7 @@ my ($yatta_id, $yatta_uuid) =  create_ticket_ok( '--summary', 'YATTA', '--status
     );
     ok($attachment_id, " $attachment_id = $attachment_uuid");
 
-    my ( $ret, $out, $err ) = run_script( 'sd', ['push', '--to', $sd_hm_url] );
+    my ( $ret, $out, $err ) = run_script( 'sd', ['push', '--to', $sd_hm_url, '--force'] );
     diag $ret;
     diag $out;
     diag $err;

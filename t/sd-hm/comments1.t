@@ -40,9 +40,9 @@ run_script('sd', [qw(init)]);
 
 my ($yatta_id, $yatta_uuid) = create_ticket_ok( qw(--summary YATTA --status new) );
 {
-    my ( $ret, $out, $err ) = run_script( 'sd', [ 'push','--to', $sd_hm_url ] );
+    my ( $ret, $out, $err ) = run_script( 'sd', [ 'push','--to', $sd_hm_url, '--force'] );
 
-    my $task = BTDT::Model::Task->new( current_user => $GOODUSER );
+	my $task = BTDT::Model::Task->new( current_user => $GOODUSER );
     ok( $task->load_by_cols( summary => 'YATTA' ), "loaded a task" );
     is( $task->owner->id, $GOODUSER->id, 'correct owner' );
 }

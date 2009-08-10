@@ -42,7 +42,7 @@ diag("non pro have no right to set requestor");
     flush_sd();
     my ($luid, $uuid) = create_ticket_ok(qw(--summary YATTA --status new --reporter test@localhost));
 
-    my ($ret, $out, $err) = run_script( 'sd', ['push', '--to', $sd_hm_url] );
+    my ($ret, $out, $err) = run_script( 'sd', ['push', '--to', $sd_hm_url, '--force'] );
     diag $out;
     diag $err;
 

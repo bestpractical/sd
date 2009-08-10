@@ -43,7 +43,7 @@ diag($sd_hm_url);
 {
     flush_sd();
     my ($luid, $uuid) = create_ticket_ok(qw(--summary YATTA --status new --reporter test@localhost));
-    my ($ret, $out, $err) = run_script( 'sd', ['push', '--to', $sd_hm_url] );
+    my ($ret, $out, $err) = run_script( 'sd', ['push', '--to', $sd_hm_url, '--force'] );
     my $task = load_new_hm_task();
     is $task->requestor->email, 'onlooker@example.com', 'correct email';
 
