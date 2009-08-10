@@ -63,6 +63,25 @@ on help => run_command('Help');
 
 on qr'.*' => sub {
     my $self = shift;
+
+    unless ( $self->cli->app_handle->local_replica_url ) {
+
+        print join "\n",
+            "",
+            "It appears that you haven't specified a local replica path.",
+            "You can do so by setting the SD_REPO environment variable.",
+            "",
+            " 'sd help intro' will tell you a bit about how to get started with sd.",
+            " 'sd help' will show show you a list of help topics.",
+            "", "";
+
+        exit 1;
+    }
+	next_rule;
+};
+
+on qr'.*' => sub {
+    my $self = shift;
     my $command = $_;
     next_rule if $command =~ /^(?:shell|clone|init)$/;
     next_rule if $self->cli->app_handle->handle->replica_exists;
