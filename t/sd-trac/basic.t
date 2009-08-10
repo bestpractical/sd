@@ -3,6 +3,7 @@ use strict;
 
 use Prophet::Test;
 use App::SD::Test;
+use Test::Script::Run qw/:all/;
 
 BEGIN {
     require File::Temp;
