@@ -18,6 +18,9 @@ END_USAGE
 
 sub run {
     my $self = shift;
+
+    $self->print_usage if $self->has_arg('h');
+
     my $record = $self->_get_record_object;
 
     $self->require_uuid;
