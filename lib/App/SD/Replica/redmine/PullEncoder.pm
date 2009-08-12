@@ -142,11 +142,7 @@ sub _include_change_comment {
     my $ticket_uuid = shift;
     my $txn         = shift;
 
-    my $comment = Prophet::Change->new({
-        record_type => 'comment',
-        record_uuid => $self->sync_source->app_handle->uuid_generator->create_str(),
-        change_type => 'add_file'
-    });
+    my $comment = $self->new_comment_creation_change();
 
     my $content = $txn->note || "";
 

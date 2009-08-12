@@ -239,13 +239,7 @@ sub transcode_one_txn {
 
     $changeset->add_change( { change => $change } ) if $change->has_prop_changes;
 
-    my $comment = Prophet::Change->new(
-        {   record_type => 'comment',
-            record_uuid => $self->sync_source->app_handle->uuid_generator->create_str(),
-             # comments are never edited, we can have a random uuid
-            change_type => 'add_file'
-        }
-    );
+    my $comment = $self->new_comment_creation_change();
 
     if ( my $content = $txn->content ) {
         if ( $content !~ /^\s*$/s ) {

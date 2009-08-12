@@ -322,15 +322,8 @@ sub _include_change_comment {
     my $ticket_uuid = shift;
     my $txn         = shift;
 
-    my $comment = Prophet::Change->new(
-        {
-            record_type => 'comment',
-            record_uuid => $self->sync_source->app_handle->uuid_generator->create_str(),
-            ,    # comments are never edited, we can have a random uuid
-            change_type => 'add_file'
-        }
-    );
-
+    my $comment = $self->new_comment_creation_change();
+   
     if ( my $content = $txn->content ) {
         if ( $content !~ /^\s*$/s ) {
             $comment->add_prop_change(

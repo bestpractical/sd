@@ -132,6 +132,18 @@ sub _only_pull_tickets_modified_after {
     return $before;
 }
 
+sub new_comment_creation_change {
+	my $self = shift;
+	return Prophet::Change->new(
+        {
+            record_type => 'comment',
+            record_uuid =>  $self->sync_source->uuid_generator->create_str()
+            ,    # comments are never edited, we can have a random uuid
+            change_type => 'add_file'
+        }
+    );
+}
+
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 1;
