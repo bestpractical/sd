@@ -101,10 +101,7 @@ for my $item ( @cmds ) {
         chomp $got_error;
         chomp $exp_error;
     }
-    # use like rather than is here due to a strange redefine warning
-    # leaking through and causing this test to fail for 'browser -h'
-    # when run under Test::Harness::runtests, such as in make test
-    like( $got_error, qr/\Q$exp_error\E/, $item->{comment} . ' (non-shell)' );
+    is( $got_error, $exp_error, $item->{comment} . ' (non-shell)' );
 }
 
 $in_interactive_shell = 1;
@@ -126,11 +123,8 @@ for my $item ( @cmds ) {
     is( $got_error, $exp_error, $item->{comment} . ' (in shell)');
 }
 
-{
-    no warnings 'redefine';
-
-    sub Prophet::CLI::interactive_shell {
-        return $in_interactive_shell;
-    }
+no warnings 'redefine';
+sub Prophet::CLI::interactive_shell {
+    return $in_interactive_shell;
 }
 
