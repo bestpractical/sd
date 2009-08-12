@@ -14,6 +14,7 @@ requires('DateTime::Format::Natural');
 requires('HTML::Tree');
 requires('URI::file');
 
+build_requires('Test::Script::Run' => '0.02');
 
 feature 'RT sync' => (
     -default => 0,
