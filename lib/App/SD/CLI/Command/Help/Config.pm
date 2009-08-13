@@ -10,7 +10,7 @@ sub run {
 print <<EOF
 SD supports a layered configuration system with three configuration
 files: a global file (/etc/sdrc), a user-wide configuration file
-(\$HOME/.sdrc) and per-replica configuration file (/path/to/replica/config).
+(\$HOME/.sdrc) and a per-replica configuration file (/path/to/replica/config).
 Configuration variables in more local configuration files override
 those in more global ones.
 
@@ -35,13 +35,25 @@ Examples:
 The configuration file format is similar to that of the VCS 'Git'. See
 http://www.kernel.org/pub/software/scm/git/docs/git-config.html for
 specifics. The biggest thing you need to know is that the config file
-contains key/value variables, contained in sections. In the help
-documents, we'll refer to variables in the manner:
-"section.subsection.variable-name". In a configuration file, this
-would look like:
+contains key/value variables, contained in sections and subsections.
 
-    [section "subsection"]
+In the help documents, we'll refer to variables in the manner:
+"section-name.subsection-name.variable-name". In a configuration file,
+this would look like:
+
+    [section-name "subsection-name"]
         variable-name = value
+
+Here's an example of an actual configuration file, aimed at being
+a user-wide config file that affects all bug databases:
+
+    [user]
+        email-address = me\@example.com
+    [ticket]
+        summary-format = %5.5s,\$luid | %8.8s,status | %7.7s,component |%12.12s,owner| %-44.44s,summary
+        default-group = milestone
+    [alias]
+        mine = ticket list -- owner=~me status!~closed|rejected
 
 Currently, the following configuration variables are available (sorted
 by configuration file section):
