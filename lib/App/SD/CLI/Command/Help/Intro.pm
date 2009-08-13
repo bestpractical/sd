@@ -27,6 +27,10 @@ To start a new ticket database:
 
     ${cmd}init
 
+To configure your project's name, milestones and components:
+
+    ${cmd}settings edit
+
 To create a ticket, run:
 
     ${cmd}ticket create
