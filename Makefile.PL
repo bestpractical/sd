@@ -44,10 +44,10 @@ recommends 'Net::Trac';
 
 feature 'Google Code sync (experimental)' => (
     -default => 0,
-    'Net::Google::Code' => 0,
+    'Net::Google::Code' => 0.14,
 );
 
-recommends 'Net::Google::Code';
+recommends 'Net::Google::Code' => 0.14;
 
 
 feature 'GitHub sync (experimental)' => (
