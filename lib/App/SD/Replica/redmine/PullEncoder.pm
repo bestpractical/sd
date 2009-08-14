@@ -2,7 +2,7 @@ package App::SD::Replica::redmine::PullEncoder;
 use Any::Moose;
 extends 'App::SD::ForeignReplica::PullEncoder';
 
-use YAML::XS qw(Dump);
+# use YAML::XS qw(Dump);
 use Params::Validate qw(:all);
 
 has sync_source => (
