@@ -1,5 +1,5 @@
 unless ($_ = $ENV{NET_REDMINE_TEST}) {
-    plan skip_all => "Need NET_REDMINE_TEST env var";
+    plan skip_all => "Need NET_REDMINE_TEST env var set to '<project url> <username> <password>'";
     exit;
 }
 

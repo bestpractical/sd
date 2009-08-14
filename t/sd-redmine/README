@@ -1,0 +1,34 @@
+How to get the SD Redmine sync tests working
+--------------------------------------------
+
+* Install Net::Redmine and any other dependencies of the Redmine sync listed
+  in Makefile.PL
+
+* You need access to an instance of a recent version of a Redmine instance with
+  a test project. You can run a Redmine instance locally by downloading it from
+  here:
+  - http://www.redmine.org/wiki/redmine/Download
+
+  Follow the installation instructions here:
+  - http://www.redmine.org/wiki/redmine/RedmineInstall
+
+  Once you have a local server up and running (probably under WEBrick, go to
+  http://localhost:3000/, login with username 'admin', password 'admin'. Create
+  a project named 'test'.
+
+* Set NET_REDMINE_TEST to "http://localhost:3000/projects/test admin admin"
+  (Sub in different test project URL and username/password if yours are
+  different.)
+
+* Tests should at least run now. This foreign sync module is experimental as
+  of yet; some of them may fail. The tests also currently depend on having
+  no issues in the redmine test project when they start right now, so you'll
+  need to clear tickets by going to the "issues" UI for the test project in a
+  browser, selecting all the issues by clicking the green checkbox, and then
+  right-clicking in the table to bring up a menu that you can delete them
+  from.
+
+* In the future, we should make it so these tests require less setup on the
+  part of the developer, and maybe create a new redmine project for every
+  run (or some other way of not needing to manually delete tickets after
+  every run).
