@@ -3,12 +3,15 @@ use Any::Moose;
 
 extends 'App::SD::CLI::Command::Server';
 
-sub setup_server {
+override run => sub {
     my $self = shift;
-    my $server = $self->SUPER::setup_server();
-    $self->open_browser(url => 'http://localhost:'. $server->port);
-    return $server;
-}
+    $self->server;  # make sure server is initialised to not delay later
+
+    Prophet::CLI->end_pager();
+    print "Browser will be opened after server has been started.\n";
+    $self->open_browser(url => 'http://localhost:'. $self->server->port);
+    $self->SUPER::run();
+};
 
 sub open_browser {
     my $self = shift;
@@ -21,9 +24,14 @@ sub open_browser {
     }
 
     if ($args{url}) {
-        return if fork != 0;
-        sleep 2;
-        exec($opener, $args{url}) or die "Couldn't exec $opener: $!";
+        defined (my $child_pid = fork) or die "Cannot fork: $!\n";
+        if ( $child_pid == 0 ) {
+            # child runs this block
+            sleep 2;
+            exec($opener, $args{url}) or die "Couldn't exec $opener: $!";
+            exit(0);
+        }
+        return;     # parent just returns to run the server
     }
 }
 

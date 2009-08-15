@@ -4,11 +4,9 @@ extends 'Prophet::CLI::Command::Server';
 
 sub run {
     my $self = shift;
-    my $server = $self->setup_server();
-    $server->read_only(1) unless ($self->has_arg('writable'));
-    Prophet::CLI->end_pager();
+    $self->server->read_only(1) unless ($self->has_arg('writable'));
 
-    $server->run;
-}   
+    $self->SUPER::run();
+}
 
 1;
