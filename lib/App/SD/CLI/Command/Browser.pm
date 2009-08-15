@@ -37,9 +37,9 @@ sub open_url_cmd {
         return 'start';
     }
 
-    for my $cmd (qw|www-browser htmlview
-                    gnome-open gnome-moz-remote 
-                    firefox iceweasel opera w3m lynx|) {
+    for my $cmd (qw|x-www-browser htmlview
+                    gnome-open gnome-moz-remote
+                    firefox iceweasel opera www-browser w3m lynx|) {
         my $cmd_path = `which $cmd`;
         chomp($cmd_path);
         if ( $cmd_path &&  -f $cmd_path && -x _ ) {
