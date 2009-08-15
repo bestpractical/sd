@@ -1,7 +1,7 @@
 package App::SD::CLI::Command::Browser;
 use Any::Moose;
 
-extends 'Prophet::CLI::Command::Server';
+extends 'App::SD::CLI::Command::Server';
 
 sub setup_server {
     my $self = shift;
