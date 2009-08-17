@@ -26,6 +26,7 @@ BEGIN {
     print "setting SD_CONFIG to " . $tmp_config->filename . "\n";
     $ENV{'SD_CONFIG'} = $tmp_config->filename;
     $ENV{'PROPHET_EMAIL'} = 'nobody@example.com';
+    $ENV{'USER'} ||= 'nobody';
 }
 
 =head2 create_ticket_ok ARGS
