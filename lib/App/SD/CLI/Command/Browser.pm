@@ -5,6 +5,7 @@ extends 'App::SD::CLI::Command::Server';
 
 override run => sub {
     my $self = shift;
+    $self->print_usage if $self->has_arg('h');
     $self->server;  # make sure server is initialised to not delay later
 
     Prophet::CLI->end_pager();
