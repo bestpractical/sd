@@ -28,7 +28,12 @@ sub open_browser {
         if ( $child_pid == 0 ) {
             # child runs this block
             sleep 2;
-            exec($opener, $args{url}) or die "Couldn't exec $opener: $!";
+            if ( $^O eq 'MSWin32' ) {
+                system($opener, $args{url}) && die "Couldn't run $opener: $!";
+            }
+            else {
+                exec($opener, $args{url}) or die "Couldn't run $opener: $!";
+            }
             exit(0);
         }
         return;     # parent just returns to run the server
