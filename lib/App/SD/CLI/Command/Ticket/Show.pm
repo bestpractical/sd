@@ -21,7 +21,7 @@ sub by_creation_date {
 sub usage_msg {
     my $self = shift;
     my $cmd = shift || 'show';
-    my $script = $self->get_cmd_name;
+    my $script = $self->cli->get_script_name;
     my $type = $self->type ? $self->type . q{ } : q{};
 
     return <<"END_USAGE";

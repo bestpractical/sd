@@ -7,7 +7,7 @@ sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  s => 'sort', g => 'gro
 
 sub usage_msg {
     my $self = shift;
-    my $script = $self->get_cmd_name;
+    my $script = $self->cli->get_script_name;
 
     my @primary_commands = @{ $self->context->primary_commands };
 

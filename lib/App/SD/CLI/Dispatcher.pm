@@ -77,7 +77,7 @@ on qr'.*' => sub {
 
         exit 1;
     }
-	next_rule;
+    next_rule;
 };
 
 on qr'.*' => sub {
@@ -207,18 +207,12 @@ on '' => run_command('Shell');
 on qr/^(.*)$/ => sub {
    my $self = shift;
    my $command = $1;
-   die "The command you ran, '$command', could not be found. Perhaps running '"._format_cmd_name('help')."' would help?\n";
+   die "The command you ran, '$command', could not be found. Perhaps running '"
+        .$self->cli->get_script_name."help' would help?\n";
 
 };
 
 sub run_command { Prophet::CLI::Dispatcher::run_command(@_) }
-
-
-sub _format_cmd_name {
-    my $cmd = shift;
-    return basename($0) . " ". $cmd;
-
-}
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;

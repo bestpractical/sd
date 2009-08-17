@@ -5,7 +5,7 @@ extends 'App::SD::CLI::Command::Help';
 sub run {
     my $self = shift;
     $self->print_header('Getting started with SD');
-    my ${cmd}= $self->get_cmd_name;
+    my ${cmd}= $self->cli->get_script_name;
 
 print <<EOF
 SD is a peer to peer ticket tracking system built on the Prophet 
