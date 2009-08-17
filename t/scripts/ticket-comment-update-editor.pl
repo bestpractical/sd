@@ -1,4 +1,4 @@
-#!perl -i
+#!perl -i.bak
 use strict;
 use warnings;
 
