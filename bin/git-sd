@@ -18,6 +18,7 @@ if [ -z "$replica" ]; then
     echo "Setting it to '$replica':"
     echo ""
     echo "  git config --add sd.local-replica $replica"
+    echo ""
     git config --add sd.local-replica "$replica"
 fi
 
