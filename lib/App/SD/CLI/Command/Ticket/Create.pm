@@ -13,7 +13,7 @@ sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  e => 'edit'  };
 # interactive editing mode
 override usage_msg => sub {
     my $self = shift;
-    my $cmd = $self->get_cmd_name;
+    my $cmd = $self->cli->get_script_name;
 
     my @primary_commands = @{ $self->context->primary_commands };
 

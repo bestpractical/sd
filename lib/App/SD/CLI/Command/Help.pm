@@ -5,7 +5,7 @@ with 'App::SD::CLI::Command';
 
 sub usage_msg {
     my $self = shift;
-    my $cmd = $self->get_cmd_name;
+    my $cmd = $self->cli->get_script_name;
 
     return <<"END_USAGE";
 usage: ${cmd}help [<topic>]
@@ -38,7 +38,7 @@ sub print_header {
 
 sub run {
     my $self = shift;
-    my ${cmd}= $self->get_cmd_name;
+    my ${cmd}= $self->cli->get_script_name;
 
     $self->print_header("Help Index");
 

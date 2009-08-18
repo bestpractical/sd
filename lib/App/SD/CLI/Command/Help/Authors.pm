@@ -4,7 +4,7 @@ extends 'App::SD::CLI::Command::Help';
 
 sub run {
     my $self = shift;
-    my ${cmd}= $self->get_cmd_name;
+    my ${cmd}= $self->cli->get_script_name;
     $self->print_header("Authors");
 
 print <<EOF

@@ -55,7 +55,7 @@ under help => sub {
     on qr/^(\S+)$/ => sub {
        my $self = shift;
        my $topic = $1;
-       die "Cannot find help on topic '$topic'. Try '"._format_cmd_name('help')."'?\n";
+       die "Cannot find help on topic '$topic'. Try '".$self->cli->get_script_name()."help'?\n";
     };
 };
 
@@ -77,7 +77,7 @@ on qr'.*' => sub {
 
         exit 1;
     }
-	next_rule;
+    next_rule;
 };
 
 on qr'.*' => sub {
@@ -87,7 +87,8 @@ on qr'.*' => sub {
     next_rule if $self->cli->app_handle->handle->replica_exists;
 
     print join("\n","No SD database was found at " . $self->cli->app_handle->handle->url(),
-               qq{Type "} . _format_cmd_name('help init'). qq{" or "} . _format_cmd_name(' help environment').qq{ for tips on how to sort that out.});
+               qq{Type "} . $self->cli->get_script_name(). qq{help init" or "}. 
+			   $self->cli->get_script_name().qq{help environment" for tips on how to sort that out.});
     exit 1;
 };
 
@@ -207,18 +208,12 @@ on '' => run_command('Shell');
 on qr/^(.*)$/ => sub {
    my $self = shift;
    my $command = $1;
-   die "The command you ran, '$command', could not be found. Perhaps running '"._format_cmd_name('help')."' would help?\n";
+   die "The command you ran, '$command', could not be found. Perhaps running '"
+        .$self->cli->get_script_name."help' would help?\n";
 
 };
 
 sub run_command { Prophet::CLI::Dispatcher::run_command(@_) }
-
-
-sub _format_cmd_name {
-    my $cmd = shift;
-    return basename($0) . " ". $cmd;
-
-}
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;

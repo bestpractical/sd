@@ -11,7 +11,7 @@ sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  a => 'all-props'  };
 
 sub usage_msg {
     my $self = shift;
-    my $cmd = $self->get_cmd_name;
+    my $cmd = $self->cli->get_script_name;
     my @primary_commands = @{ $self->context->primary_commands };
 
     # if primary commands was only length 1, the type was not specified
