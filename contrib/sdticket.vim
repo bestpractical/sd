@@ -54,8 +54,8 @@ syn region sdColumn  start="^\w\+:\@="  end=":"
 " defaults
 let s:settings = system("sd settings")
 
-if s:settings =~ 'not found'
-  " user is running some wrapper script; use sd defaults
+if s:settings =~ '\(not found\)\|\(Compilation failed\)'
+  " user is running some wrapper script or sd is broken; use sd defaults
   syn keyword sdStatus new open closed stalled rejected
   syn keyword sdComponent core ui docs tests
   syn keyword sdMilestone alpha beta 1.0
