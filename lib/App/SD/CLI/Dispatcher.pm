@@ -83,7 +83,7 @@ on qr'.*' => sub {
 on qr'.*' => sub {
     my $self = shift;
     my $command = $_;
-    next_rule if $command =~ /^(?:shell|clone|init|config|alias(?:es)?)$/;
+    next_rule if $command =~ /^(?:shell|clone|init)$|(config|alias(?:es)?)/;
     next_rule if $self->cli->app_handle->handle->replica_exists;
 
     print join("\n","No SD database was found at " . $self->cli->app_handle->handle->url(),
