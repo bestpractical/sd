@@ -1,5 +1,6 @@
 #!/bin/sh
 
+sdsetup=0
 replica=$(git config --get sd.local-replica)
 if [ -z "$replica" ]; then
     gitdir=$(git rev-parse --git-dir 2>/dev/null)
@@ -20,6 +21,19 @@ if [ -z "$replica" ]; then
     echo "  git config --add sd.local-replica $replica"
     echo ""
     git config --add sd.local-replica "$replica"
+    sdsetup=1
+fi
+
+if [ \( "$1" = "init" \) -o \( "$1" = "clone" \) ]; then
+    echo ""
+    echo "  git config --get user.email"
+    echo ""
+    gitemail=$(git config --get user.email)
+    if [ ! -d $replica ]; then
+        mkdir $replica
+    fi
+    SD_REPO="$replica" sd config user.email-address $gitemail
+    echo "Using $gitemail as your email address"
 fi
 
 SD_REPO="$replica" exec sd "$@"
