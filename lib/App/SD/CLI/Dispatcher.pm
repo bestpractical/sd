@@ -156,7 +156,7 @@ under ticket => sub {
             run('ticket update', $self, @_);
         } else {
             die "Could not determine email address to assign ticket to ".
-                "(set \$EMAIL\nor the 'email' config variable.)\n";
+                "(set the 'user.email-address' config variable.)\n";
         }
     };
 
