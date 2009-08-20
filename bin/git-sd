@@ -25,16 +25,18 @@ if [ -z "$replica" ]; then
 fi
 
 if [ \( "$1" = "init" \) -o \( "$1" = "clone" \) ]; then
-    echo "Setting your SD email address to your git email:"
-    echo ""
-    echo "  git config --get user.email"
     gitemail=$(git config --get user.email)
-    if [ ! -d $replica ]; then
-        mkdir $replica
+    if [ ! -z $gitemail ]; then
+        echo "Setting your SD email address to your git email:"
+        echo ""
+        echo "  git config --get user.email"
+        if [ ! -d $replica ]; then
+            mkdir $replica
+        fi
+        echo "  sd config user.email-address $gitemail"
+        echo ""
+        SD_REPO="$replica" sd config user.email-address $gitemail
     fi
-    echo "  sd config user.email-address $gitemail"
-    echo ""
-    SD_REPO="$replica" sd config user.email-address $gitemail
 fi
 
 SD_REPO="$replica" exec sd "$@"
