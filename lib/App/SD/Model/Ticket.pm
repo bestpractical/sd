@@ -53,7 +53,16 @@ the environmental variable C<EMAIL>.)
 =cut
 
 sub default_prop_reporter {
-    shift->app_handle->current_user_email;
+    my $self = shift;
+    my $reporter = $self->app_handle->current_user_email;
+    if ( $reporter ) {
+        return $reporter;
+    }
+    else {
+        die "Cannot determine an email to attribute your changes to."
+           ." You can\nfix this by setting the config variable"
+           ." 'user.email-address'.\n";
+    }
 }
 
 =head2 canonicalize_prop_status
