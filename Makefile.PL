@@ -64,6 +64,7 @@ feature 'Redmine sync (experimental)' => (
 
 install_script('bin/sd');
 install_script('bin/git-sd');
+install_script('bin/darcs-sd');
 install_share('share');
 
 # Include subdirectory tests too.
