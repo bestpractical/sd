@@ -47,6 +47,10 @@ under help => sub {
         ['list', 'search', 'find'],
     ] => run_command('Help::Search');
 
+    # anything else under ticket, e.g. 'ticket close' etc. should be covered
+    # in the tickets help
+    on qr/^ticket/ => run_command('Help::Tickets');
+
     on [ ['search', 'list', 'find'] ] => run_command('Help::Search');
 
     on [ ['sync', 'push', 'pull', 'publish', 'server','clone'] ]
