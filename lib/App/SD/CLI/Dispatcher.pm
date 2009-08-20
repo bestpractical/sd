@@ -92,7 +92,7 @@ on qr'.*' => sub {
 
     print join("\n","No SD database was found at " . $self->cli->app_handle->handle->url(),
                qq{Type "} . $self->cli->get_script_name(). qq{help init" or "}. 
-			   $self->cli->get_script_name().qq{help environment" for tips on how to sort that out.});
+               $self->cli->get_script_name().qq{help environment" for tips on how to sort that out.});
     exit 1;
 };
 
