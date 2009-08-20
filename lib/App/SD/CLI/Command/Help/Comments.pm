@@ -13,17 +13,13 @@ print <<EOF
       Add a comment to the ticket with id 456, popping up a text editor.
 
     ${cmd}ticket comment 456 --file=myfile
+    ${cmd}ticket comment 456 -f myfile
       Add a comment to the ticket with id 456, using the content of 'myfile'.
 
-    ${cmd}ticket comment 456 -f myfile
-      -f is a shortcut for --file for this command.
-
     ${cmd}ticket comment 456 --content="The text of the comment."
+    ${cmd}ticket comment 456 -m "The text of the comment."
       Add a comment to the ticket with id 456, specifying its content on
       the commandline.
-
-    ${cmd}ticket comment 456 -m "The text of the comment."
-      -m is a shortcut for --content for this command.
 
     ${cmd}ticket comment list
       List all ticket comments.

@@ -13,12 +13,10 @@ print <<EOF
       Note that 'new' is an alias for 'create'.
 
     ${cmd}ticket create --verbose
+    ${cmd}ticket create -v
       Invokes a text editor with a ticket creation template
       and also shows descriptions and valid values for
       properties.
-
-    ${cmd}ticket create -v
-      -v is a shortcut for --verbose for this command.
 
     ${cmd}ticket create -- summary="This is a summary" status=open
       Create a new ticket non-interactively.
@@ -32,20 +30,16 @@ print <<EOF
       editor.
 
     ${cmd}ticket update 123 --verbose
+    ${cmd}ticket update 123 -v
       Interactively update the ticket with local id 123 in a text
       editor and show descriptions and valid values for props.
 
-    ${cmd}ticket update 123 -v
-      -v is a shortcut for --verbose for this command.
-
     ${cmd}ticket update 123 --all-props
+    ${cmd}ticket update 123 -a
       Interactively update the ticket with local id 123 in a text
       editor, presenting all the props of the record for editing instead of
       just those specified by the database setting 'common_ticket_props'
       (or local configuration variable 'common_ticket_props' if it exists).
-
-    ${cmd}ticket update 123 -a
-      -a is a shortcut for --all-props for this command.
 
     ${cmd}ticket update fad5849a-67f1-11dd-bde1-5b33d3ff2799 -- status=closed
       Sets the status of the ticket with uuid
@@ -61,15 +55,14 @@ print <<EOF
       An alias of 'give' is 'assign'.
 
     ${cmd}ticket resolve 123
+    ${cmd}ticket close 123
       Sets the status of the ticket with local id 123 to closed.
 
     ${cmd}ticket resolve 123 --edit
+    ${cmd}ticket resolve 123 -e
       Sets the status of the ticket with local id 123 to closed,
       allowing you to edit any properties in an editor and
       optionally add a comment in the process.
-
-    ${cmd}ticket resolve 123 -e
-      -e is a shortcut for --edit for this command.
 EOF
 
 }

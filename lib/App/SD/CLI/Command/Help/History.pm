@@ -15,10 +15,8 @@ command. It can be run in the following ways:
       Shows the last 20 changes.
 
     ${cmd}log --all
-      Shows the entire history from start to end.
-
     ${cmd}log -a
-      -a is a shortcut for --all.
+      Shows the entire history from start to end.
 
     ${cmd}log <since>..<until>
       Shows the range of history starting at <since> and ending at

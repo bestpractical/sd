@@ -10,10 +10,8 @@ sub run {
 print <<EOF
 
     ${cmd}ticket attachment create 456 --file bugfix.patch
-      Create a new attachment on this ticket from the file 'bugfix.patch'.
-
     ${cmd}ticket attachment create 456 -f bugfix.patch
-      -f is a shortcut for --file for this command.
+      Create a new attachment on this ticket from the file 'bugfix.patch'.
 
     ${cmd}ticket attachment list 456
       Show all attachemnts on ticket 456.
