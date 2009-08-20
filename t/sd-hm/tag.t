@@ -55,7 +55,8 @@ diag $task->id;
 my ( $ret, $out, $err );
 
 my $sd_hm_url = "hm:$URL|tag=mytag";
-eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] ) };
+eval { ( $ret, $out, $err )
+    = run_script( 'sd', [ 'clone', '--from', $sd_hm_url, '--non-interactive' ] ) };
 diag($err) if ($err);
 my ($flyman_uuid, $flyman_id );
 {

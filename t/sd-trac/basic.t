@@ -84,7 +84,8 @@ is( $first->category, 'Ticket' );
 #
 
 my ( $ret, $out, $err );
-( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_trac_url ] );
+( $ret, $out, $err )
+    = run_script( 'sd', [ 'clone', '--from', $sd_trac_url, '--non-interactive' ] );
 
 is(count_tickets_in_sd(),1);
 

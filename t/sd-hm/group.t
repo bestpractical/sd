@@ -67,7 +67,9 @@ my $sd_hm_url = "hm:$URL|group=$gid";
 
 # pull
 {
-    eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] ) };
+    eval { ( $ret, $out, $err )
+        = run_script( 'sd',
+            [ 'clone', '--from', $sd_hm_url, '--non-interactive' ] ) };
     diag($out);
     diag($err);
 }
@@ -122,7 +124,8 @@ rmtree( $ENV{'SD_REPO'}, {keep_root => 1} );
 $sd_hm_url = "hm:$URL|group=$gname";
 # pull
 {
-    eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] ) };
+    eval { ( $ret, $out, $err ) = run_script( 'sd',
+            [ 'clone', '--from', $sd_hm_url, '--non-interactive' ] ) };
     TODO: { local $TODO = ' Investigate changeset count. Why do we have 2 extra?';
     like($out, qr/2 changesets/, "merged changes");
     };

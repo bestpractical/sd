@@ -99,13 +99,14 @@ my ( $ret, $out, $err );
 as_alice {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
 
-    run_script( 'sd', [ 'init']);
+    run_script( 'sd', [ 'init', '--non-interactive' ]);
 };
 
 as_bob {
     local $ENV{SD_REPO} = $ENV{'PROPHET_REPO'};
 
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', repo_uri_for('alice') ] );
+    ( $ret, $out, $err ) = run_script( 'sd',
+        [ 'clone', '--from', repo_uri_for('alice'), '--non-interactive' ] );
 };
 
 # now the tests, bob syncs with rt, alice syncs with hm

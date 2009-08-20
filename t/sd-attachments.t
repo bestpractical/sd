@@ -12,7 +12,7 @@ BEGIN {
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
 }
 
-run_script( 'sd', [ 'init']);
+run_script( 'sd', [ 'init', '--non-interactive']);
 
 
 my $replica_uuid = replica_uuid;

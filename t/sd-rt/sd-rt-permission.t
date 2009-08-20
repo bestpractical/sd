@@ -64,7 +64,7 @@ $alice_url =~ s|http://|http://alice:AlicesPassword@|;
 my $alice_rt_url = "rt:$alice_url|General|Status!='resolved'";
 
 as_alice {
-    run_script( 'sd', [ 'init']);
+    run_script( 'sd', [ 'init', '--non-interactive' ]);
     ($ret, $out, $err) = run_script('sd', ['pull', '--from',  $alice_rt_url, '--force']);
     ok($ret);
 

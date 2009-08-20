@@ -79,13 +79,14 @@ my ( $ret, $out, $err );
 
 as_alice {
     local $ENV{SD_REPO} = $ENV{PROPHET_REPO};
-    ( $ret, $out, $err ) = run_script('sd',['init']);
+    ( $ret, $out, $err ) = run_script('sd',['init', '--non-interactive']);
     diag($err) if ($err);
 };
 
 as_bob {
     local $ENV{SD_REPO} = $ENV{PROPHET_REPO};
-    ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', repo_uri_for('alice') ] );
+    ( $ret, $out, $err ) = run_script( 'sd',
+        [ 'clone', '--from', repo_uri_for('alice'), '--non-interactive' ] );
     diag($err) if ($err);
 };
 

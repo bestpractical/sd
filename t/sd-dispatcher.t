@@ -13,7 +13,7 @@ BEGIN {
 
 # tests for pseudo-commands that are only sugar in the dispatcher
 
-run_script( 'sd', [ 'init']);
+run_script( 'sd', [ 'init', '--non-interactive']);
 
 # create from sd
 my ($yatta_id, $yatta_uuid) = create_ticket_ok(    '--summary', 'YATTA', '--status', 'new' );

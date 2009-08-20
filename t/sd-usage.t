@@ -12,7 +12,7 @@ diag "Replica is in $ENV{PROPHET_REPO}";
 
 # additional tests for SD-specific usage methods
 
-run_command( 'init' );
+run_command( 'init', '--non-interactive' );
 
 my @cmds = (
     {

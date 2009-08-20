@@ -162,6 +162,6 @@ ok $root->id, 'loaded root';
 
 sub flush_sd {
     rmtree( $ENV{'SD_REPO'} );
-    run_script( 'sd', ['init'] );
+    run_script( 'sd', ['init', '--non-interactive' ] );
 }
 

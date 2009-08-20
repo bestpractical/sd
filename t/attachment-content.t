@@ -21,7 +21,7 @@ BEGIN {
     $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
     diag "export SD_REPO=".$ENV{'PROPHET_REPO'} ."\n";
 }
-run_script( 'sd', [ 'init']);
+run_script( 'sd', [ 'init', '--non-interactive']);
 
 
 # create from sd and push

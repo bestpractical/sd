@@ -43,7 +43,9 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
 
 my $ticket = RT::Client::REST::Ticket->new( rt      => $rt, queue   => 'General', status  => 'new', subject => 'helium',)->store( text => "Ticket Comment" );
 diag("Clone from RT");
-my ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_rt_url ] );
+my ( $ret, $out, $err )
+    = run_script( 'sd',
+        [ 'clone', '--from', $sd_rt_url, '--non-interactive' ] );
 ok( $ret, $out );
 diag($err);
 my $helium_id;

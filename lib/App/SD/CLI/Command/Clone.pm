@@ -3,6 +3,11 @@ use Any::Moose;
 extends 'Prophet::CLI::Command::Clone';
 with 'App::SD::CLI::NewReplicaCommand';
 
+sub ARG_TRANSLATIONS {
+    shift->SUPER::ARG_TRANSLATIONS(),
+    n => 'non-interactive',
+};
+
 override run => sub {
     my $self = shift;
 

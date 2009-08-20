@@ -45,7 +45,9 @@ diag $task->id;
 my ( $ret, $out, $err );
 
 my $sd_hm_url = "hm:$URL";
-eval { ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] ) };
+eval { ( $ret, $out, $err )
+    = run_script( 'sd',
+        [ 'clone', '--from', $sd_hm_url, '--non-interactive' ] ) };
 
 my ($flyman_uuid, $flyman_id );
 run_output_matches( 'sd', [ 'ticket', 'list', '--regex', '.' ], [qr/(.*?)(?{ $flyman_uuid = $1 }) Fly Man (.*)/] );

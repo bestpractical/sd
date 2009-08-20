@@ -43,7 +43,9 @@ $task->create(
 my ($yatta_uuid, $yatta_id);
 {
     diag($sd_hm_url);
-    my ($ret, $out, $err) = run_script( 'sd', [ 'clone', '--from', $sd_hm_url ] );
+    my ($ret, $out, $err)
+        = run_script( 'sd',
+            [ 'clone', '--from', $sd_hm_url, '--non-interactive' ] );
     run_output_matches( 'sd', [qw(ticket list --regex .)], [qr/(.*?)(?{ $yatta_id = $1 }) YATTA (.*)/] );
     ( $ret, $out, $err ) = run_script( 'sd', [ qw(ticket show --batch --id), $yatta_id ] );
     if ($out =~ /^id: (.*) \((.*)\)$/m) {

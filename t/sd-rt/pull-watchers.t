@@ -518,6 +518,6 @@ my $sd_rt_url = "rt:$url|General|Status!='resolved'";
 
 sub flush_sd {
     rmtree( $ENV{'SD_REPO'} );
-    run_script( 'sd', ['init'] );
+    run_script( 'sd', ['init', '--non-interactive' ] );
 }
 

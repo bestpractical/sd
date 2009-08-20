@@ -20,7 +20,7 @@ BEGIN {
 
 eval 'use BTDT::Test; 1;' or die "$@";
 
-run_script('sd', ['init']);
+run_script('sd', ['init', '--non-interactive']);
 
 my $server = BTDT::Test->make_server;
 my $URL    = $server->started_ok;

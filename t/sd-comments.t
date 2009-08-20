@@ -13,7 +13,7 @@ BEGIN {
     diag $ENV{'PROPHET_REPO'};
 }
 
-run_script( 'sd', [ 'init']);
+run_script( 'sd', [ 'init', '--non-interactive']);
 
 
 my $replica_uuid = replica_uuid;

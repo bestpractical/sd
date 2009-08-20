@@ -12,24 +12,27 @@ sub new_replica_wizard {
     # VCS wrappers themselves should take care of settings email addresses on
     # init/clone from VCS configuration, don't put that here
 
-    # don't prompt for configuration if there's already a user-wide email set
-    if ( ! defined $self->config->get( key => 'user.email-address' ) ) {
+    # non-interactive option is useful for testing and scriptability
+    unless ( $self->has_arg('non-interactive') ) {
+        # don't prompt for configuration if there's already a user-wide email set
+        if ( ! defined $self->config->get( key => 'user.email-address' ) ) {
 
-        print "\nYou need an email address configured to use SD. I'll try"
-              ." to find one.\n";
+            print "\nYou need an email address configured to use SD. I'll try"
+                ." to find one.\n";
 
-        if ( $ENV{EMAIL} ) {
-            $self->_migrate_email_from_env;
+            if ( $ENV{EMAIL} ) {
+                $self->_migrate_email_from_env;
+            }
         }
-    }
-    # if we still don't have an email, ask
-    if ( ! defined $self->config->get( key => 'user.email-address' ) ) {
-        $self->_prompt_email;
-    }
+        # if we still don't have an email, ask
+        if ( ! defined $self->config->get( key => 'user.email-address' ) ) {
+            $self->_prompt_email;
+        }
 
-    # new replicas probably want to change settings right away,
-    # at least to change the project name ;)
-    $self->_prompt_edit_settings if $args{edit_settings};
+        # new replicas probably want to change settings right away,
+        # at least to change the project name ;)
+        $self->_prompt_edit_settings if $args{edit_settings};
+    }
 
     # this message won't print if the user has a ~/.sdrc, which is
     # probably a pretty good indication that they're not new

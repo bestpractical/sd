@@ -23,7 +23,7 @@ my $sd_gcode_url = "gcode:net-google-code";
 
 my ( $ret, $out, $err );
 ( $ret, $out, $err ) =
-  run_script( 'sd', [ 'clone', '--from', $sd_gcode_url ] );
+  run_script( 'sd', [ 'clone', '--from', $sd_gcode_url, '--non-interactive' ] );
 my $for_sd_id;
 
 diag($err) if ($err);

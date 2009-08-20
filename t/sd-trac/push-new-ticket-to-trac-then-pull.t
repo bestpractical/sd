@@ -41,7 +41,8 @@ is( count_tickets_in_trac(), 0 );
 # Clone from trac
 #
 
-my ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_trac_url ] );
+my ( $ret, $out, $err )
+    = run_script( 'sd', [ 'clone', '--from', $sd_trac_url, '--non-interactive' ] );
 is( count_tickets_in_sd(), 0 );
 ok(!($?>>8), $out." ".$err);
 #

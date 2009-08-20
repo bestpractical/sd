@@ -71,7 +71,9 @@ ok($flyman_rt_id, "I created a new ticket in RT");
 
 
 my ( $ret, $out, $err );
-( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_rt_url ] );
+( $ret, $out, $err )
+    = run_script( 'sd',
+        [ 'clone', '--from', $sd_rt_url, '--non-interactive' ] );
 my ( $yatta_id, $flyman_id );
 
 

@@ -52,7 +52,9 @@ my $ticket = RT::Client::REST::Ticket->new(
 my $flyman_rt_id = $ticket->id;
 
 my ( $ret, $out, $err );
-( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_rt_url ] );
+( $ret, $out, $err )
+    = run_script( 'sd',
+        [ 'clone', '--from', $sd_rt_url, '--non-interactive' ] );
 my ( $yatta_id, $flyman_id );
 diag($err) if ($err);
 run_output_matches(

@@ -24,7 +24,7 @@ my $sd_github_url = "github:$url";
 
 my ( $ret, $out, $err );
 ( $ret, $out, $err ) =
-  run_script( 'sd', [ 'clone', '--from', $sd_github_url ] );
+  run_script( 'sd', [ 'clone', '--from', $sd_github_url, '--non-interactive' ] );
 my $first_id;
 
 diag($err) if ($err);

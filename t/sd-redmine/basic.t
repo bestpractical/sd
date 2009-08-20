@@ -33,9 +33,11 @@ my $user = $r->connection->user;
 my $pass = $r->connection->password;
 $sd_redmine_url =~ s|http://|http://${user}:${pass}@|;
 
-diag "sd clone --from ${sd_redmine_url}";
+diag "sd clone --from ${sd_redmine_url} --non-interactive";
 
-my ( $ret, $out, $err ) = run_script( 'sd', [ 'clone', '--from', $sd_redmine_url ] );
+my ( $ret, $out, $err )
+    = run_script( 'sd',
+        [ 'clone', '--from', $sd_redmine_url, '--non-interactive' ] );
 is(count_tickets_in_sd(),5, "the total cloned tickets is 5.");
 
 note "close one of them, push it to server.";

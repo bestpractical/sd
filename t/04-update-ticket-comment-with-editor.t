@@ -11,7 +11,7 @@ BEGIN {
     Prophet::Test->set_editor_script('ticket-comment-update-editor.pl');
 }
 
-run_script( 'sd', [ 'init']);
+run_script( 'sd', [ 'init', '--non-interactive']);
 
 
 my $replica_uuid = replica_uuid;

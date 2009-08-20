@@ -109,7 +109,7 @@ diag("from requestor to no requestor");
 sub flush_sd {
     use File::Path qw(rmtree);
     rmtree( $ENV{'SD_REPO'} );
-    run_script( 'sd', ['init'] );
+    run_script( 'sd', ['init', '--non-interactive'] );
 }
 
 { my %seen;
