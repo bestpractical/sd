@@ -5,14 +5,14 @@ replica=$(git config --get sd.local-replica)
 if [ -z "$replica" ]; then
     gitdir=$(git rev-parse --git-dir 2>/dev/null)
     if [ -z "$gitdir" ]; then
-	echo "Can't find a .git directory anywhere in your current directory"
-	echo "or any higher directories."
-	exit 1;
+        echo "Can't find a .git directory anywhere in your current directory"
+        echo "or any higher directories."
+        exit 1;
     fi
     # Special case: when in the toplevel directory, rev-parse --git-dir only
     # returns '.git' instead of the full path.
     if [ "$gitdir" = ".git" ]; then
-	gitdir="$(pwd)/.git"
+        gitdir="$(pwd)/.git"
     fi
     replica="$gitdir/sd"
     echo "You don't appear to have an sd.local-replica defined in your .git/config"
