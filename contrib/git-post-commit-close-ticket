@@ -1,0 +1,17 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+# Close sd tickets from git commit messages
+# To use, copy or symlink into .git/hooks with the name 'post-commit'
+
+my $UUID_REGEX = qr'(?:[0-9a-fA-F\-]{32,36}|[A-Za-z0-9\-\_]{22})';
+
+open( my $gitpipe, "git log -1 HEAD |" );
+my $commit_msg = do { local $/ = <$gitpipe> };
+my ($git_commit_sha1) = ($commit_msg =~ /^commit (.*)$/m);
+
+if ( $commit_msg =~ /Closes(?::)?\s+($UUID_REGEX)/i ) {
+    system( qw(git sd ticket comment), $1,
+        '-m', "Closed by git commit $git_commit_sha1" );
+    system( qw(git sd ticket close), $1);
+}
