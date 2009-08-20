@@ -159,8 +159,8 @@ under ticket => sub {
             $self->context->set_prop(owner => $email);
             run('ticket update', $self, @_);
         } else {
-            die "Could not determine email address to assign ticket to ".
-                "(set the 'user.email-address' config variable.)\n";
+            die "Could not determine email address to assign ticket to!\n".
+                "Set the 'user.email-address' config variable.\n";
         }
     };
 
