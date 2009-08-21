@@ -88,23 +88,22 @@ under { method => 'GET' } => sub {
             }
         };
 
-        on 'new'                 => sub { shift->show_template('new_ticket') };
-        on qr'^([\w\d-]+)/?'    => sub {
-		my $self = shift;
-		my $id = $1;
+        on 'new'             => sub { shift->show_template('new_ticket') };
+        on qr'^([\w\d-]+)/?' => sub {
+            my $self = shift;
+            my $id = $1;
 
-        my $ticket = App::SD::Model::Ticket->new(
-            app_handle => $self->server->app_handle,
-            handle     => $self->server->app_handle->handle
-        );
-        $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
-			if (!$ticket->luid) {
-
-				$self->server->_send_404(); #redirect( to => "/error/ticket_does_not_exist");
-			}	else {
-				next_rule;
-				}
-		};
+            my $ticket = App::SD::Model::Ticket->new(
+                app_handle => $self->server->app_handle,
+                handle     => $self->server->app_handle->handle
+            );
+            $ticket->load(($id =~ /^\d+$/ ? 'luid' : 'uuid') =>$id);
+            if (!$ticket->luid) {
+                $self->server->_send_404(); #redirect( to => "/error/ticket_does_not_exist");
+            } else {
+                next_rule;
+            }
+        };
         on qr'^([\w\d-]+)/?$'    => sub { shift->server->_send_redirect( to => "/ticket/$1/view" ) };
         on qr'^([\w\d-]+)/edit$' => sub { shift->show_template( 'edit_ticket', $1 ) };
         on qr'^([\w\d-]+)/history$' => sub { shift->show_template( 'show_ticket_history', $1 ) };
