@@ -1,0 +1,13 @@
+~$
+.tmp[^l]
+.sw?$
+.svn$
+.bak$
+^.git/*
+^blib/
+pm_to_blib
+.gitignore
+^Makefile(?:\.old)?$
+.prove
+.shipit$
+cover_db/

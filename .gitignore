@@ -4,7 +4,8 @@ Makefile
 Makefile.old
 *~
 .prove
-MANIFEST*
+MANIFEST
+MANIFEST.bak
 META.yml
 cover_db/
 
