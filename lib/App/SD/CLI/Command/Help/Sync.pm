@@ -35,14 +35,7 @@ print <<EOF
     ${cmd}server --port 9876
       Start an sd replica server on port 9876. This command will make your 
       replica browsable and pullable by anyone with remote access to your 
-      computer.
-
-    ${cmd}server --writable --port 9876
-    ${cmd}server -w -p 9876
-      Start an sd replica server on port 9876, with UNAUTHENTICATED,
-      PUBLIC WRITE ACCESS via HTTP POST.  This command will make your
-      replica modifiable, browsable and pullable by ANYONE with remote
-      access to your computer.
+      computer. Changes will only be accepted from the local machine.
 
 SD can sync to external systems as well as itself. Currently, there 
 are foreign replica types for:
@@ -110,6 +103,13 @@ and/or replica.name.pull-url.
 EOF
 
 }
+
+    # ${cmd}server --writable --port 9876
+    # ${cmd}server -w -p 9876
+    #   Start an sd replica server on port 9876, with UNAUTHENTICATED,
+    #   PUBLIC WRITE ACCESS via HTTP POST.  This command will make your
+    #   replica modifiable, browsable and pullable by ANYONE with remote
+    #   access to your computer.
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;

@@ -53,6 +53,16 @@ on qr'.' => sub {
 
 
 under { method => 'POST' } => sub {
+    # reject edits from non-localhost
+    on qr'.' => sub {
+        my $self = shift;
+        if ( $self->server->cgi->remote_host() != '127.0.0.1' ) {
+            $self->server->_send_401;
+        }
+        else {
+            next_rule;
+        }
+    };
     on qr'^/ticket/([\w\d-]+)/edit$' => sub { shift->server->_send_redirect( to => '/ticket/' . $1 ); };
     on qr'^/(?!records)$' => sub { shift->server->_send_redirect( to => $1 ); };
 };
