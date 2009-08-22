@@ -1,0 +1,37 @@
+---
+author:
+  - '2008-2009 Best Practical Solutions, LLC'
+build_requires:
+  ExtUtils::MakeMaker: 6.42
+  Test::Script::Run: 0.02
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 0.91'
+license: MIT
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: App-SD
+no_index:
+  directory:
+    - inc
+    - share
+    - t
+    - xt
+recommends:
+  Email::Address: 0
+  Net::GitHub: 0.18
+  Net::Google::Code: 0.14
+  Net::Jifty: 0
+  Net::Trac: 0
+  RT::Client::REST: 0
+requires:
+  DateTime: 0
+  DateTime::Format::Natural: 0
+  HTML::Tree: 0
+  HTML::TreeBuilder: 0
+  Prophet: 0
+  Time::Progress: 0
+  URI::file: 0
+version: 0.69_01
