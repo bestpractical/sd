@@ -20,8 +20,13 @@ sub new_replica_wizard {
             print "\nYou need an email address configured to use SD. I'll try"
                 ." to find one.\n";
 
+            if ( $ENV{PROPHET_EMAIL} ) {
+                $self->_migrate_email_from_env( 'PROPHET_EMAIL' );
+            }
+        }
+        if ( ! defined $self->config->get( key => 'user.email-address' ) ) {
             if ( $ENV{EMAIL} ) {
-                $self->_migrate_email_from_env;
+                $self->_migrate_email_from_env( 'EMAIL' );
             }
         }
         # if we still don't have an email, ask
@@ -65,17 +70,18 @@ sub _prompt_which_config_file {
 
 sub _migrate_email_from_env {
     my $self = shift;
+    my $var = shift;
 
-    print "Found '$ENV{EMAIL}' in \$EMAIL.\n";
-    my $config_file = $self->_prompt_which_config_file( $ENV{EMAIL} );
+    print "Found '$ENV{$var}' in \$$var.\n";
+    my $config_file = $self->_prompt_which_config_file( $ENV{$var} );
 
     if ( $config_file ) {
         $self->config->set(
             key      => 'user.email-address',
-            value    => $ENV{EMAIL},
+            value    => $ENV{$var},
             filename => $config_file,
         );
-        print "  - added email '$ENV{EMAIL}' to\n    $config_file\n";
+        print "  - added email '$ENV{$var}' to\n    $config_file\n";
     }
 }
 
