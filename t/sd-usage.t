@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 
-use Prophet::Test tests => 18;
+use Prophet::Test tests => 22;
 use App::SD::Test;
 use App::SD::CLI;
 $Prophet::Test::CLI_CLASS = 'App::SD::CLI';
@@ -85,6 +85,26 @@ my @cmds = (
         cmd     => [ qw(browser -h) ],
         error   => [ 'usage: sd-usage.t browser [--port <number>]' ],
         comment => 'browser usage',
+    },
+    {
+        cmd     => [ qw(init -h) ],
+        error   => [ 'usage: sd-usage.t init [--non-interactive]',
+            '',
+            'Options:',
+            "    -n | --non-interactive - Don't prompt to edit settings or specify email",
+            '                             address for new database',
+        ],
+        comment => 'init usage',
+    },
+    {
+        cmd     => [ qw(clone -h) ],
+        error   => [ 'usage: sd-usage.t clone --from <url> [--non-interactive]',
+            '',
+            'Options:',
+            "    -n | --non-interactive - Don't prompt to specify email address for new",
+            '                             database',
+        ],
+        comment => 'clone usage',
     },
 );
 

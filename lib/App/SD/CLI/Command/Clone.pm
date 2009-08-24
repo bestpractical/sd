@@ -8,6 +8,19 @@ sub ARG_TRANSLATIONS {
     n => 'non-interactive',
 };
 
+sub usage_msg {
+    my $self = shift;
+    my $cmd = $self->cli->get_script_name;
+
+    return <<"END_USAGE";
+usage: ${cmd}clone --from <url> [--non-interactive]
+
+Options:
+    -n | --non-interactive - Don't prompt to specify email address for new
+                             database
+END_USAGE
+}
+
 override run => sub {
     my $self = shift;
 

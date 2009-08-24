@@ -56,7 +56,7 @@ under { method => 'POST' } => sub {
     # reject edits from non-localhost
     on qr'.' => sub {
         my $self = shift;
-        if ( $self->server->cgi->remote_host() != '127.0.0.1' ) {
+        if ( $self->server->cgi->remote_host() ne '127.0.0.1' ) {
             $self->server->_send_401;
         }
         else {

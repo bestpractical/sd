@@ -4,8 +4,7 @@ use Params::Validate;
 
 extends 'Prophet::Record';
 
-
-sub declared_props { 'created' }
+override declared_props => sub { 'created' };
 
 sub canonicalize_prop_created {
     my $self = shift;
