@@ -5,7 +5,7 @@ with 'App::SD::CLI::Command';
 
 sub ARG_TRANSLATIONS { shift->SUPER::ARG_TRANSLATIONS(),  s => 'sort', g => 'group'  };
 
-sub usage_msg {
+override usage_msg => sub {
     my $self = shift;
     my $script = $self->cli->get_script_name;
 
@@ -21,10 +21,10 @@ sub usage_msg {
 usage: ${script}${type_and_subcmd}
        ${script}${type_and_subcmd} -- summary=~foo status!~new|open
 END_USAGE
-}
+};
 
 # frob the sort routine before running prophet's search command
-sub run {
+override run => sub {
     my $self = shift;
 
     $self->print_usage if $self->has_arg('h');
@@ -94,16 +94,16 @@ sub run {
         );
     }
     $self->SUPER::run(@_);
-}
+};
 
 # implicit status != closed
-sub default_match {
+override default_match => sub {
     my $self   = shift;
     my $ticket = shift;
 
     return 1 if $ticket->has_active_status();
     return 0;
-}
+};
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
