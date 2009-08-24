@@ -169,22 +169,41 @@ sub _build_kv_pairs {
         # if called with --verbose, we print descriptions and valid values for
         # props (if they exist)
         if ( $args{verbose} ) {
-            if ( my $desc = $self->app_handle->setting( label => 'prop_descriptions' )->get()->[0]->{$prop} ) {
+            if ( my $desc = $self->app_handle->setting(
+                    label => 'prop_descriptions' )->get()->[0]->{$prop} ) {
                 $string .= '# '.$desc."\n";
             }
             if ( ($args{record}->recommended_values_for_prop($prop))[0] ) {
                 my @valid_values =
                     $args{record}->recommended_values_for_prop($prop);
-                $string .= "# valid values for $prop: ".
-                    join(', ', @valid_values)."\n";
+
+                my $valid_vals_header = "# valid values for $prop:";
+                my $valid_vals_header_len = length $valid_vals_header;
+                my $line_length = $valid_vals_header_len;
+
+                $string .= $valid_vals_header;
+                for my $val (@valid_values) {
+                    $line_length += length($val) + 1; # add 1 for space char
+                    my $default_line_length
+                        = $self->config->get( key => 'core.cli-line-length' )
+                        || $self->cli->LINE_LENGTH;
+                    if ( $line_length > $default_line_length ) {
+                        $string .= "\n#";
+                        $string .= q{ } x $valid_vals_header_len;
+                        $string .= $val;
+                        $line_length = $valid_vals_header_len + length($val);
+                    }
+                    else {
+                        $string .= " $val";
+                    }
+                }
+                $string .= "\n";
             }
         }
         $string .= "$prop: ".($args{data}->{$prop} ||'') ."\n";
     }
     return $string;
 }
-
-
 
 =head2 parse_record_template $str
 
