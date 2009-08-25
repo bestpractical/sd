@@ -197,8 +197,8 @@ sub translate_props {
             }
 
             if ($prop->name =~ /^(?:due|completed_at|created_at)$/) {
-                $prop->old_value(App::SD::Util::string_to_datetime($prop->old_value)."");
-                $prop->new_value(App::SD::Util::string_to_datetime($prop->new_value)."");
+                $prop->old_value(App::SD::Util::string_to_datetime($prop->old_value));
+                $prop->new_value(App::SD::Util::string_to_datetime($prop->new_value));
 
              }
 
