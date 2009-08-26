@@ -43,19 +43,22 @@ sub transcode_ticket {
     my @changesets;
 
     if ( my $ticket_last_modified = $self->ticket_last_modified($ticket) ) {
-
-        $last_modified = $ticket_last_modified if ( !$last_modified || $ticket_last_modified > $last_modified );
+        $last_modified = $ticket_last_modified
+            if ( !$last_modified || $ticket_last_modified > $last_modified );
     }
 
     my $transactions = $self->find_matching_transactions(
         ticket               => $ticket,
-        starting_transaction => $self->sync_source->app_handle->handle->last_changeset_from_source(
+        starting_transaction =>
+            $self->sync_source->app_handle->handle->last_changeset_from_source(
             $self->sync_source->uuid_for_remote_id( $self->ticket_id($ticket) )
-            ) || 1
+            ) || 1,
     );
 
     my $changesets;
-    ( $last_modified, $changesets ) = $self->transcode_history( $ticket, $transactions, $last_modified );
+    ( $last_modified, $changesets ) = $self->transcode_history(
+        $ticket, $transactions, $last_modified );
+
     return ( $last_modified, $changesets );
 }
 
@@ -71,12 +74,15 @@ sub transcode_history {
 
     # Walk transactions newest to oldest.
     my $txn_counter         = 0;
-    my ($initial_state, $final_state)          = $self->translate_ticket_state($ticket, $transactions);
+    my ($initial_state, $final_state)
+        = $self->translate_ticket_state($ticket, $transactions);
 
 
     for my $txn ( sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions ) {
-        $last_modified = $txn->{timestamp} if ( !$last_modified || ( $txn->{timestamp} > $last_modified ) );
-        $self->sync_source->log_debug( "$ticket_id Transcoding transaction " . ++$txn_counter . " of " . scalar @$transactions );
+        $last_modified = $txn->{timestamp}
+            if ( !$last_modified || ( $txn->{timestamp} > $last_modified ) );
+        $self->sync_source->log_debug( "$ticket_id Transcoding transaction "
+            . ++$txn_counter . " of " . scalar @$transactions );
 
         my $changeset = $self->transcode_one_txn( $txn, $initial_state, $final_state );
         next unless $changeset && $changeset->has_changes;
@@ -115,16 +121,17 @@ modified before that datetime
 sub _only_pull_tickets_modified_after {
     my $self = shift;
 
-    # last modified date is in GMT and searches are in user-time XXX -check assumption
-    # because of this, we really want to back that date down by one day to catch overlap
-    # XXX TODO we are playing FAST AND LOOSE WITH DATE MATH
+    # last modified date is in GMT and searches are in user-time XXX -check
+    # assumption because of this, we really want to back that date down by one
+    # day to catch overlap
+    # XXX TODO we are playing FAST AND LOOSE WITH DATE
     # XXX TODO THIS WILL HURT US SOME DAY
     # At that time, Jesse will buy you a beer.
     my $last_pull = $self->sync_source->upstream_last_modified_date();
     return undef unless $last_pull;
     my $before = App::SD::Util::string_to_datetime($last_pull);
-    die "Failed to parse '" . $self->sync_source->upstream_last_modified_date() . "' as a timestamp"
-        unless ($before);
+    die "Failed to parse '" . $self->sync_source->upstream_last_modified_date()
+        . "' as a timestamp" unless ($before);
 
     # 26 hours ago deals with most any possible timezone/dst edge case
     $before->subtract( hours => 26 );
@@ -133,8 +140,8 @@ sub _only_pull_tickets_modified_after {
 }
 
 sub new_comment_creation_change {
-	my $self = shift;
-	return Prophet::Change->new(
+    my $self = shift;
+    return Prophet::Change->new(
         {
             record_type => 'comment',
             record_uuid =>  $self->sync_source->uuid_generator->create_str()
