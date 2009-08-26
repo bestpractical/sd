@@ -68,6 +68,11 @@ feature 'Lighthouse sync' => (
     'Net::Lighthouse' => 0.01,
 );
 
+feature 'Debbugs sync (experimental)' => (
+    -default     => 0,
+    'SOAP::Lite' => 0,
+);
+
 install_script('bin/sd');
 install_script('bin/git-sd');
 install_script('bin/darcs-sd');
