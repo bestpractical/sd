@@ -1,3 +1,9 @@
+
+0.70 - 2009-08-26
+
+* Workaround for occasionally broken Ruby date formatting libraries in github replicas
+* Minor testing and formatting change
+
 0.69_01 - 2009-08-21
 
 * Initial release
