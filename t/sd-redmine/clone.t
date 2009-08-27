@@ -8,10 +8,11 @@ BEGIN {
     unless ( eval { require 5.010 } ) {
         plan skip_all => 'You need perl 5.010 or above to run the tests';
     }
-}
 
 unless ( eval { require Net::Redmine } ) {
     plan skip_all => 'You need Net::Redmine installed to run the tests';
+}
+
 }
 
 use Test::Cukes;
