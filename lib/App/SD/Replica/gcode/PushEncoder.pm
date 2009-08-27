@@ -31,8 +31,10 @@ sub integrate_change {
     my $before_integration = time();
     my ( $email, $password );
     if ( !$self->sync_source->gcode->password ) {
-        ( $email, $password ) = $self->sync_source->prompt_for_login(
-            'gcode:' . $self->sync_source->project );
+        ( $email, $password )
+            = $self->sync_source->prompt_for_login(
+                uri => 'gcode:' . $self->sync_source->project,
+            );
         $self->sync_source->gcode->email($email);
         $self->sync_source->gcode->password($password);
     }

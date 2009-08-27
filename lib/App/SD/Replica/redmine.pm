@@ -30,13 +30,16 @@ sub BUILD {
 
     $self->remote_url( $uri->as_string );
 
-    ($username, $password) = $self->prompt_for_login( $uri, $username )
-        unless $password;
+    ($username, $password)
+        = $self->prompt_for_login(
+            uri      => $uri,
+            username => $username,
+        ) unless $password;
 
     $self->redmine(
         Net::Redmine->new(
-            url => $self->remote_url,
-            user => $username,
+            url      => $self->remote_url,
+            user     => $username,
             password => $password
         ));
 

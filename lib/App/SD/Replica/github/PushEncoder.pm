@@ -104,7 +104,10 @@ sub integrate_ticket_create {
     my $attr = $self->_recode_props_for_integrate($change);
     my $new =
       $ticket->open( $attr->{title}, $attr->{body} );
-
+    # TODO: better error handler?
+    if ( $new->{error} ) {
+        die "\n\n$new->{error}";
+    }
     return $new->{number};
 }
 

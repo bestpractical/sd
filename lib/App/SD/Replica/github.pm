@@ -29,14 +29,15 @@ sub BUILD {
     my ( $server, $owner, $repo ) =
       $self->{url} =~ m{^github:(http://.*?github.com/)?(.*?)/(.*)}
       or die
-"Can't parse Github server spec. Expected github:owner/repository or github:http://github.com/owner/repository";
+        "Can't parse Github server spec. Expected github:owner/repository or\n"
+        ."github:http://github.com/owner/repository.";
 
-    my ( $uri, $username, $apikey );
+    my ( $uri, $username, $api_token );
 
     if ($server) {
         $uri = URI->new($server);
         if ( my $auth = $uri->userinfo ) {
-            ( $username, $apikey ) = split /:/, $auth, 2;
+            ( $username, $api_token ) = split /:/, $auth, 2;
             $uri->userinfo(undef);
         }
     }
@@ -44,7 +45,15 @@ sub BUILD {
         $uri = 'http://github.com/';
     }
 
-    ( $username, $apikey ) = $self->prompt_for_login( $uri, $username ) unless $apikey ;
+    ( $username, $api_token )
+        = $self->prompt_for_login(
+            uri => $uri,
+            username => $username,
+            secret_prompt => sub {
+                my ($uri, $username) = @_;
+                return "GitHub API token for $username (from ${uri}account): ";
+            },
+        ) unless $api_token;
 
     $self->remote_url("$uri");
     $self->owner( $owner );
@@ -53,7 +62,7 @@ sub BUILD {
     $self->github(
         Net::GitHub->new(
             login => $username,
-            token => $apikey,
+            token => $api_token,
             repo  => $repo,
             owner => $owner,
         ) );

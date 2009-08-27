@@ -40,7 +40,11 @@ sub BUILD {
     $self->query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
     $self->rt( RT::Client::REST->new( server => $server ) );
 
-    ( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
+    ( $username, $password )
+        = $self->prompt_for_login(
+            uri      => $uri,
+            username => $username,
+        ) unless $password;
 
     $self->rt_username($username);
 

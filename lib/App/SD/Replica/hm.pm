@@ -43,7 +43,13 @@ sub BUILD {
     }
     $self->remote_url("$uri");
     $self->foreign_username($username) if ($username);
-    ( $username, $password ) = $self->prompt_for_login( $uri, $username ) unless $password;
+
+    ( $username, $password )
+        = $self->prompt_for_login(
+            uri      => $uri,
+            username => $username,
+        ) unless $password;
+
     if ($props) {
         my %props = split /=|;/, $props;
         $self->props( \%props );
