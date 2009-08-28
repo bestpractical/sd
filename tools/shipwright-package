@@ -1,11 +1,11 @@
 export TODAY=`date +%Y-%m-%d`
-export REPO=/Users/jesse/shipwright-sd-${TODAY}.git/
+export REPO=${HOME}/shipwright-sd-${TODAY}.git/
 #export REPO=/tmp/shipwright-sd-${TODAY}.git/
 
 export GIT_PATH="git:file://$REPO"
 export MIN_PERL=5.008006
 export SKIP="--skip=Pod::Simple,Module::Signature,Test::Pod,Test::Pod::Coverage,Test::Distribution,Pod::Readme,Archive::Tar,HTML::Lint,Prophet,Encode,Date::Calc,Test::Cukes,Quantum::Superpositions,Test::Memory::Cycle,Text::Greeking,Test::HTTP::Server::Simple,Test::WWW::Mechanize,Config::GitLike,Module::Build,Test::Warn,Test::MockTime,Test::MockModule,Test::MockObject,Test::Warn"
-export IMPORT="shipwright import --min-perl-version=$MIN_PERL $SKIP -r $GIT_PATH --log-file - --log-level info"
+export IMPORT="shipwright import --min-perl-version=$MIN_PERL $SKIP -r $GIT_PATH --log-file - --log-level debug"
 rm -rf $REPO
 
 shipwright create -r $GIT_PATH
@@ -15,6 +15,7 @@ $IMPORT \
  cpan:Template::Declare \
  cpan:HTTP::Server::Simple \
  cpan:File::ShareDir \
+ cpan:DBI \
  cpan:DBD::SQLite \
  cpan:Net::GitHub \
  cpan:Term::ReadLine::Perl \
