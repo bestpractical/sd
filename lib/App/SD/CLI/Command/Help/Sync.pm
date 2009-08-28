@@ -37,6 +37,13 @@ print <<EOF
       replica browsable and pullable by anyone with remote access to your 
       computer. Changes will only be accepted from the local machine.
 
+      To clone from this replica use:
+
+          ${cmd}clone --from http://hostname_for_server:9876/replica/
+
+      Adjust port to the server, and notice the /replica/ path.
+
+
 SD can sync to external systems as well as itself. Currently, there 
 are foreign replica types for:
 
