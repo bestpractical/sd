@@ -35,7 +35,6 @@ sub foreign_username { return shift->gcode->email(@_) }
 
 sub BUILD {
     my $self = shift;
-
     # Require rather than use to defer load
     require Net::Google::Code;
 
@@ -48,9 +47,18 @@ sub BUILD {
         $userinfo =~ s/\@$//;
         ( $email, $password ) = split /:/, $userinfo;
         ( undef, $password ) = $self->prompt_for_login( "gcode:$project", $email ) unless $password;
+        $self->gcode(
+            Net::Google::Code->new(
+                project  => $self->project,
+                email    => $email,
+                password => $password,
+            )
+        );
+    }
+    else {
+        $self->gcode( Net::Google::Code->new( project => $self->project ) );
     }
 
-    $self->gcode( Net::Google::Code->new( project => $self->project));
     $self->gcode->load();
 }
 
