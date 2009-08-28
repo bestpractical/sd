@@ -28,7 +28,6 @@ sub integrate_change {
         $changeset->original_source_uuid ) >= $changeset->original_sequence_no;
 
     my $before_integration = time();
-    my ( $email, $password );
 
     eval {
         if (    $change->record_type eq 'ticket'
