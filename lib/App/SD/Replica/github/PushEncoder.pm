@@ -2,8 +2,6 @@ package App::SD::Replica::github::PushEncoder;
 use Any::Moose;
 use Params::Validate;
 use Path::Class;
-use Net::Google::Code::Issue;
-use Net::Google::Code;
 
 has sync_source => (
     isa => 'App::SD::Replica::github',
