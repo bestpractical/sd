@@ -18,7 +18,7 @@ print <<EOF
       expressions are Perl regexes.
 
     ${cmd}ticket search -- status!=closed summary =~ http 
-      List all tickets with a status that does match closed
+      List all tickets with a status that does not match closed
       and a summary matching 'http'.
 
     ${cmd}ticket search --group owner
