@@ -60,7 +60,7 @@ by configuration file section):
 
     ticket.summary-format = %4s },\$luid | %-11.11s,status | %-60.60s,summary
       Specifies how to format ticket summaries (when listing tickets, e.g.).
-      (See also: help ticket-summary-format.)
+      (See also: '${cmd}help ticket.summary-format'.)
 
     ticket.common-props = id,summary,status,owner,created,original_replica
       A comma-separated list of ticket properties that are most-often

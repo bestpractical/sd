@@ -54,7 +54,7 @@ ${cmd}help sync        -  Publishing and importing ticket databases
 ${cmd}help history     -  Viewing repository history
 ${cmd}help environment -  Environment variables which affect sd
 ${cmd}help config      -  Local configuration variables
-${cmd}help ticket_summary_format  -  Details of this config variable
+${cmd}help ticket.summary_format  -  Details of this config variable
 ${cmd}help aliases     -  Command aliases
 ${cmd}help settings    -  Database configuration variables
 
