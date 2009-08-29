@@ -257,10 +257,11 @@ sub _set_uuid_for_remote_id {
 sub _url_based_uuid_for_remote_ticket_id {
     my $self = shift;
     my $id = shift;
-        return $self->uuid_for_url(
-                  $self->remote_url
-                . $self->remote_uri_path_for_id( $id) 
-        );
+
+    return $self->uuid_for_url(
+        $self->remote_url
+        . $self->remote_uri_path_for_id( $id )
+    );
 
 }
 
@@ -281,7 +282,7 @@ sub remote_id_for_uuid {
     $ticket->load( $uuid_or_luid =~ /^\d+$/? 'luid': 'uuid', $uuid_or_luid )
         or do {
             warn "couldn't load ticket #$uuid_or_luid";
-            return undef
+            return undef;
         };
 
     my $prop = $self->uuid . '-id';
