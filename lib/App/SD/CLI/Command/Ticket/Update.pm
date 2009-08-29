@@ -66,7 +66,11 @@ sub process_template {
             if (!exists $props_ref->{$prop} &&
                 # only delete props if they were actually presented
                 # for editing in the first place
-                grep { $_ eq $prop } $record->props_to_show( { update => 1 } ) );
+                grep { $_ eq $prop } $record->props_to_show( {
+                        update  => 1,
+                        verbose => $self->has_arg('all-props'),
+                    } )
+            );
     }
 
     # don't add props that didn't change to the changeset

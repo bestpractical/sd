@@ -19,10 +19,12 @@ Prophet::Test::Editor::edit(
         if ($option eq '--no-args') {
             s/(?<=^summary: ).*$/summary changed/;
             s/^owner:.*$//;               # deleting a prop
-            s/(?<=^due: ).*$/2050-01-25 23:11:42/; # adding a prop
+            # add a prop and an uncommon prop
+            s/(?<=^due: ).*$/2050-01-25 23:11:42\nfoobar: testing/;
         } elsif ($option eq '--all-props') {
             s/(?<=summary: ).*$/now we are checking --all-props/;
             s/^due:.*//;              # deleting a prop
+            s/^foobar:.*//;              # deleting an uncommon prop
             s/(?<=^owner: ).*$/$ENV{PROPHET_EMAIL}/; # adding a prop
         } elsif ($option eq '--verbose') {
             s/(?<=^summary: ).*$/now we are checking --verbose/;
