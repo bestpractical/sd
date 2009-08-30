@@ -1,6 +1,7 @@
 bin/darcs-sd
 bin/git-sd
 bin/sd
+Changes
 contrib/git-post-commit-close-ticket
 contrib/sdticket.vim
 doc/testing
@@ -105,6 +106,7 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
 README
+share/web/static/css/main.css
 share/web/static/images/gradient.png
 share/web/static/images/sd.png
 t/01-create.t
