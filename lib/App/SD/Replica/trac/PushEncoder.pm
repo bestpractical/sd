@@ -55,16 +55,9 @@ sub integrate_comment {
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
 
     my $ticket_id     = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
-    my $ticket = Net::Trac::Ticket->new( trac => $self->sync_source->trac, id => $ticket_id);
-
-    my %content = ( message => $props{'content'},   
-                );
-
-    if (  ($props{'type'} ||'') eq 'comment' ) {
-        $ticket->comment( %content);
-    } else {
-        $ticket->correspond(%content);
-    }
+    my $ticket = Net::Trac::Ticket->new( connection => $self->sync_source->trac);
+    $ticket->load($ticket_id);
+    $ticket->comment( $props{content});
     return $ticket_id;
 } 
 
