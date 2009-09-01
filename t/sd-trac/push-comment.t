@@ -14,7 +14,7 @@ unless (`which trac-admin`) { plan skip_all => 'You need trac installed to run t
 unless ( eval { require Net::Trac } ) {
     plan skip_all => 'You need Net::Trac installed to run the tests';
 }
-plan tests => 17;
+plan tests => 21;
 
 use_ok('Net::Trac::Connection');
 use_ok('Net::Trac::Ticket');
@@ -79,21 +79,46 @@ is( count_tickets_in_trac(), 0 );
 # push our ticket to trac
 #
 
-($ret,$out,$err) = run_script( 
-    'sd' , ['ticket' ,'comment', $yatta_id, '--content', "The text of the comment."]);
+test_push_of_comment();
+test_push_of_attachment();
 
+sub test_push_of_attachment {
 
-ok(!($?>>8), $err);
+	my ($fh, $filename) = File::Temp::tempfile(SUFFIX => '.txt');
+	print $fh "TIMTOWTDI\n";
+	close $fh;
+	sleep 2; # to make trac happy
+    ( $ret, $out, $err )
+        = run_script( 'sd', [ 'ticket', 'attachment', 'create', $yatta_id, '--file', $filename ] );
 
-($ret,$out,$err) = run_script( 'sd', [ 'push', '--to', $sd_trac_url ] );
-ok(!($?>>8), $err);
-diag($out);
-diag($err);
-is( count_tickets_in_trac(), 1 );
-my $tickets = Net::Trac::TicketSearch->new( connection => $trac );
-my $result  = $tickets->query( summary => { not => 'nonsense' } );
-like($tickets->results->[0]->comments->[0]->content, qr/The text of the comment./);
+    ok( !( $? >> 8 ), $err );
 
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_trac_url ] );
+    ok( !( $? >> 8 ), $err );
+    diag($out);
+    diag($err);
+    is( count_tickets_in_trac(), 1 );
+    my $tickets = Net::Trac::TicketSearch->new( connection => $trac );
+    my $result = $tickets->query( summary => { not => 'nonsense' } );
+    is( $tickets->results->[0]->attachments->[0]->content, 'TIMTOWTDI' );
+}
+
+sub test_push_of_comment {
+
+    ( $ret, $out, $err )
+        = run_script( 'sd', [ 'ticket', 'comment', $yatta_id, '--content', "The text of the comment." ] );
+
+    ok( !( $? >> 8 ), $err );
+
+    ( $ret, $out, $err ) = run_script( 'sd', [ 'push', '--to', $sd_trac_url ] );
+    ok( !( $? >> 8 ), $err );
+    diag($out);
+    diag($err);
+    is( count_tickets_in_trac(), 1 );
+    my $tickets = Net::Trac::TicketSearch->new( connection => $trac );
+    my $result = $tickets->query( summary => { not => 'nonsense' } );
+    like( $tickets->results->[0]->comments->[0]->content, qr/The text of the comment./ );
+}
 
 
 sub count_tickets_in_sd {

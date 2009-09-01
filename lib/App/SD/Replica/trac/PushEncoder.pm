@@ -62,20 +62,21 @@ sub integrate_comment {
 } 
 
 sub integrate_attachment {
-    my ($self, $change, $changeset ) = validate_pos( @_, { isa => 'App::SD::Replica::rt::PushEncoder'}, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' });
+    my ($self, $change, $changeset ) = validate_pos( @_, { isa => 'App::SD::Replica::trac::PushEncoder'}, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' });
 
 
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
-    my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'});
-    my $ticket = Net::Trac::Ticket->new( trac => $self->sync_source->trac, id => $ticket_id );
+
+    my $ticket_id     = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
+    my $ticket = Net::Trac::Ticket->new( connection => $self->sync_source->trac);
+    $ticket->load($ticket_id);
 
     my $tempdir = File::Temp::tempdir( CLEANUP => 1 );
     my $file = File::Spec->catfile( $tempdir, ( $props{'name'} || 'unnamed' ) );
     open my $fh, '>', $file or die $!;
     print $fh $props{content};
     close $fh;
-    my %content = ( message     => '(See attachments)', attachments => ["$file"]);
-    $ticket->correspond(%content);
+    $ticket->attach( file => $file) || die "Could not attach file for ticket $ticket_id";
     return $ticket_id;
 }
 
