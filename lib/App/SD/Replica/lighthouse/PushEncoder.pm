@@ -136,8 +136,33 @@ sub _recode_props_for_integrate {
         elsif ( $key eq 'status' ) {
             $attr{state} = $props{$key};
         }
-        elsif ( $key eq 'body' ) {
-            $attr{$key} = $props{$key} || '[no body]';
+        elsif ( $key eq 'content' ) {
+            $attr{body} = $props{$key} || '[no body]';
+        }
+        elsif ( $key eq 'milestone' ) {
+            my $milestone = $self->sync_source->lighthouse->milestone;
+            if ( $props{$key} ) {
+                eval { $milestone->load( $props{$key} ) };
+                if ( $@ ) {
+                    warn "no milestone $props{$key} exist";
+                }
+                else {
+                    $attr{milestone_id} = $milestone->id;
+                }
+            }
+            else {
+                $attr{milestone_id} = undef,
+            }
+        }
+        elsif ( $key eq 'owner' ) {
+            if ( $props{key} ) {
+                if ( $props{$key} =~ /\((\d+)\)/ ) {
+                    $attr{assigned_user_id} = $1;
+                }
+            }
+            else {
+                $attr{assigned_user_id} = undef;
+            }
         }
         else {
             $attr{$key} = $props{$key};
