@@ -29,7 +29,7 @@ sub BUILD {
     my ( $auth, $account, $project ) =
       $self->{url} =~ m{^lighthouse:(?:(.*)@)?(.*?)/(.*)}
       or die
-        "Can't parse Github server spec. Expected
+        "Can't parse lighthouse server spec. Expected
         lighthouse:user:password\@account/project or\n"
         ."lighthouse:token\@account/project.";
     my $server = "http://$account.lighthouseapp.com";
@@ -46,11 +46,19 @@ sub BUILD {
 
     unless ( $token || $password ) {
         if ($email) {
-            ( undef, $password ) =
-              $self->prompt_for_login( $server, $email );
+            ( undef, $password ) = $self->prompt_for_login(
+                uri            => $server,
+                username       => $email,
+            );
         }
         else {
-            ($token) = $self->prompt_for_login($server);
+            ( undef, $token ) = $self->prompt_for_login(
+                uri           => $server,
+                username      => 'not important',
+                secret_prompt => sub {
+                    "token for $server: ";
+                }
+            );
         }
     }
 
