@@ -126,6 +126,7 @@ sub database_settings {
             @{ $self->lighthouse->closed_states_list }
         ],
         milestones => [ '', map { $_->title } $self->lighthouse->milestones ],
+        default_milestone => '',
     };
 
 }
