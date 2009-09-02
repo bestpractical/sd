@@ -123,10 +123,26 @@ sub transcode_create_txn {
         }
     );
 
-    for my $prop (qw/title body state assigned_user_id milestone_id/) {
+    for my $prop (qw/title body state /) {
+        next unless $ticket->$prop;
         $change->add_prop_change(
             name => $PROP_MAP{$prop} || $prop,
             new => $ticket->$prop,
+        );
+    }
+     
+    if ( $ticket->assigned_user_id ) {
+        $change->add_prop_change(
+            name => 'owner',
+            new  => $ticket->assigned_user_name . '('
+              . $ticket->assigned_user_id . ')',
+        );
+    }
+
+    if ( $ticket->milestone_id ) {
+        $change->add_prop_change(
+            name => 'milestone',
+            new  => $ticket->milestone_title,
         );
     }
 
@@ -184,11 +200,62 @@ sub transcode_one_txn {
         for my $attr (keys %$diffable_attrs) {
             next unless $hash{$attr};
             my $method = $hash{$attr};
-            $change->add_prop_change(
-                name => $PROP_MAP{ $hash{$attr} } || $hash{$attr},
-                new  => $txn->$method,
-                old => $diffable_attrs->{$attr},
-            );
+
+            if ( $attr eq ':milestone' ) {
+                my $old = $diffable_attrs->{$attr};
+                my $old_title;
+                if ($old) {
+
+                    # find milestone title
+                    my $milestone = $self->sync_source->lighthouse->milestone;
+                    $milestone->load($old);
+                    $old_title = $milestone->title;
+                }
+                $change->add_prop_change(
+                    name => 'milestone',
+                    new  => $ticket->milestone_id
+                    ? $ticket->milestone_title
+                    : undef,
+                    old => $old_title || $old,
+                );
+            }
+            elsif ( $attr eq ':assigned_user' ) {
+                my $old = $diffable_attrs->{$attr};
+                my $old_with_name;
+                if ($old) {
+                    require Net::Lighthouse::User;
+                    my $user = Net::Lighthouse::User->new(
+                        map { $_ => $self->sync_source->lighthouse->$_ }
+                          grep { $self->sync_source->lighthouse->$_ }
+                          qw/account
+                          email password token/
+                    );
+                    eval { $user->load($old) };
+                    if ($@) {
+                        warn "can't load user $old on lighthouse";
+                    }
+                    else {
+                        $old_with_name = $user->name . '(' . $user->id . ')';
+                    }
+                }
+                $change->add_prop_change(
+                    name => 'owner',
+                    new  => $ticket->assigned_user_id
+                    ? ( $ticket->assigned_user_name . '('
+                          . $ticket->assigned_user_id
+                          . ')' )
+                    : undef,
+                    $old_with_name ? ( old => $old_with_name ) : (),
+                );
+            }
+            else {
+
+                $change->add_prop_change(
+                    name => $PROP_MAP{ $hash{$attr} } || $hash{$attr},
+                    new  => $txn->$method,
+                    old  => $diffable_attrs->{$attr},
+                );
+            }
         }
     }
 
