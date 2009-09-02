@@ -16,6 +16,8 @@ our @EXPORT = qw(create_ticket_ok update_ticket_ok
 delete $ENV{'PROPHET_APP_CONFIG'};
 $ENV{'EDITOR'} = '/bin/true';
 
+$Prophet::Test::CLI_CLASS = 'App::SD::CLI';
+
 our ($A, $B, $C, $D);
 
 BEGIN {

@@ -16,6 +16,16 @@ has project_name => (
     }
 );
 
+sub usage_msg {
+    my $self = shift;
+    my $cmd = $self->cli->get_script_name;
+
+    return <<"END_USAGE";
+usage: ${cmd}\[cmd]
+       ${cmd}--version | -V
+END_USAGE
+}
+
 sub preamble {
     my $self = shift;
     my @out  = (

@@ -20,6 +20,11 @@ on qr'^(?!help)' => sub {
     if ($self->context->has_arg('help')) {
         run("help $cmd", $self, @_);
     }
+    elsif ($self->context->has_arg('version')
+            || $self->context->has_arg('V') ) {
+        print "SD $App::SD::VERSION\n";
+        exit 0;
+    }
     else {
         next_rule;
     }
