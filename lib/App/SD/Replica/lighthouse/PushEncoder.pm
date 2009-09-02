@@ -97,7 +97,7 @@ sub integrate_comment {
     my $ticket = $self->sync_source->lighthouse->ticket;
     $ticket->load( $ticket_id );
 
-    my %content = ( body => $props{'content'} || '[no body]' );
+    my %content = ( body => $props{'content'} || '' );
 
     $ticket->update(%content);
     return $ticket_id;
@@ -137,7 +137,7 @@ sub _recode_props_for_integrate {
             $attr{state} = $props{$key};
         }
         elsif ( $key eq 'content' ) {
-            $attr{body} = $props{$key} || '[no body]';
+            $attr{body} = $props{$key};
         }
         elsif ( $key eq 'milestone' ) {
             my $milestone = $self->sync_source->lighthouse->milestone;
@@ -168,6 +168,7 @@ sub _recode_props_for_integrate {
             $attr{$key} = $props{$key};
         }
     }
+    $attr{body} ||= '';
     return \%attr;
 }
 
