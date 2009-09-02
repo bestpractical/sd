@@ -41,7 +41,7 @@ sub find_matching_tickets {
     my %query                  = (@_);
     my $last_changeset_seen_dt = $self->_only_pull_tickets_modified_after()
       || DateTime->from_epoch( epoch => 0 );
-    my @tickets = $self->sync_source->lighthouse->tickets;
+    my @tickets = $self->sync_source->lighthouse->tickets( query => 'all' );
     my @updated = map { $_->load( $_->number ); $_ }
       grep { $_->{updated_at} ge $last_changeset_seen_dt } @tickets;
     return \@updated;
