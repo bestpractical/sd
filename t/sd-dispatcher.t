@@ -2,7 +2,7 @@
 
 use strict;
 
-use Prophet::Test tests => 24;
+use Prophet::Test tests => 26;
 use App::SD::Test;
 no warnings 'once';
 
@@ -209,3 +209,9 @@ run_output_matches( 'sd', [ 'ticket', 'give', 'spang@bestpractical.com' ],
     [],
     [ 'Usage: give <id> <email>' ]
 );
+
+require App::SD;
+run_output_matches( 'sd', [ '-V' ],
+    [ "SD $App::SD::VERSION" ], 'version short' );
+run_output_matches( 'sd', [ '--version' ],
+    [ "SD $App::SD::VERSION" ], 'version long' );

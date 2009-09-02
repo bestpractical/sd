@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 
-use Prophet::Test tests => 22;
+use Prophet::Test tests => 24;
 use App::SD::Test;
 use App::SD::CLI;
 $Prophet::Test::CLI_CLASS = 'App::SD::CLI';
@@ -105,6 +105,14 @@ my @cmds = (
             '                             database',
         ],
         comment => 'clone usage',
+    },
+    {
+        cmd     => [ qw(-h) ],
+        error   => [
+            'usage: sd-usage.t [cmd]',
+            '       sd-usage.t --version | -V',
+        ],
+        comment => 'no-command usage',
     },
 );
 
