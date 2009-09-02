@@ -17,7 +17,6 @@ sub integrate_change {
     );
     my ( $id, $record );
 
-
     return
       if $self->sync_source->app_handle->handle->last_changeset_from_source(
         $changeset->original_source_uuid ) >= $changeset->original_sequence_no;
@@ -33,12 +32,12 @@ sub integrate_change {
                 remote_id => $id,
             );
         }
-        elsif (
-            ( $change->record_type eq 'ticket' )
-            || (    $change->record_type eq 'comment'
-                and $change->change_type eq 'add_file' )
-          )
+        elsif ( $change->record_type eq 'comment'
+            and $change->change_type eq 'add_file' )
         {
+            $id = $self->integrate_comment( $change, $changeset );
+        }
+        elsif ( $change->record_type eq 'ticket' ) {
             $id = $self->integrate_ticket_update( $change, $changeset );
         }
         else {
@@ -81,6 +80,27 @@ sub integrate_ticket_update {
           qw/title body state assigned_user_id milestone_id/
     );
     return $remote_ticket_id;
+}
+
+sub integrate_comment {
+    my $self = shift;
+    my ( $change, $changeset ) = validate_pos(
+        @_,
+        { isa => 'Prophet::Change' },
+        { isa => 'Prophet::ChangeSet' }
+    );
+
+    # Figure out the remote site's ticket ID for this change's record
+
+    my %props = map { $_->name => $_->new_value } $change->prop_changes;
+    my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
+    my $ticket = $self->sync_source->lighthouse->ticket;
+    $ticket->load( $ticket_id );
+
+    my %content = ( body => $props{'content'} || '[no body]' );
+
+    $ticket->update(%content);
+    return $ticket_id;
 }
 
 sub integrate_ticket_create {
