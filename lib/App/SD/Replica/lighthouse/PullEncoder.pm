@@ -101,6 +101,7 @@ sub transcode_create_txn {
     my $self        = shift;
     my $txn         = shift;
     my $ticket      = $txn->{object};
+
     my $ticket_uuid = 
           $self->sync_source->uuid_for_remote_id($ticket->number);
     my $creator = $self->resolve_user_id_to( undef, $ticket->creator_name );
@@ -108,7 +109,7 @@ sub transcode_create_txn {
     my $changeset = Prophet::ChangeSet->new(
         {
             original_source_uuid => $ticket_uuid,
-            original_sequence_no => 0,
+            original_sequence_no => $created->epoch,
             creator              => $creator,
             created              => $created->ymd . " " . $created->hms
         }
