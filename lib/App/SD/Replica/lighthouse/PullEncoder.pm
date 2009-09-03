@@ -66,8 +66,10 @@ Returns a reference to an array of all transactions (as hashes) on ticket $id af
 sub find_matching_transactions {
     my $self     = shift;
     my %args     = validate( @_, { ticket => 1, starting_transaction => 1 } );
-    my @raw_txns = @{$args{ticket}->versions};
+    my @raw_versions = @{ $args{ticket}->versions };
+    my @raw_attachments = @{ $args{ticket}->attachments|| [] };
 
+    my @raw_txns = ( @raw_versions, @raw_attachments );
     my @txns;
     for my $txn ( @raw_txns ) {
         my $txn_date = $txn->created_at->epoch;
@@ -173,97 +175,121 @@ sub transcode_one_txn {
     my $ticket_uuid =
       $self->sync_source->uuid_for_remote_id( $ticket->number );
 
-    my $changeset = Prophet::ChangeSet->new(
-        {
-            original_source_uuid => $ticket_uuid,
-            original_sequence_no => $txn->created_at->epoch,
-            creator => $self->resolve_user_id_to( undef, $txn->creator_name ),
-            created => $txn->created_at->ymd . " " . $txn->created_at->hms
-        }
-    );
+    my $changeset;
 
-    my $change = Prophet::Change->new(
-        {
-            record_type => 'ticket',
-            record_uuid => $ticket_uuid,
-            change_type => 'update_file'
-        }
-    );
-    my $diffable_attrs = $txn->diffable_attributes;
-    if (keys %$diffable_attrs) {
-        my %hash  = (
-            ':tag'           => 'tag',
-            ':milestone'     => 'milestone_id',
-            ':assigned_user' => 'assigned_user_id',
-            ':state'         => 'state',
+    if ( $txn->can('filename') ) {
+        $changeset = Prophet::ChangeSet->new(
+            {
+                original_source_uuid => $ticket_uuid,
+                original_sequence_no => $txn->created_at->epoch,
+                creator =>
+                  $self->resolve_user_id_to( undef, $txn->uploader_id ),
+                created => $txn->created_at->ymd . " " . $txn->created_at->hms
+            }
         );
-        for my $attr (keys %$diffable_attrs) {
-            next unless $hash{$attr};
-            my $method = $hash{$attr};
 
-            if ( $attr eq ':milestone' ) {
-                my $old = $diffable_attrs->{$attr};
-                my $old_title;
-                if ($old) {
-
-                    # find milestone title
-                    my $milestone = $self->sync_source->lighthouse->milestone;
-                    $milestone->load($old);
-                    $old_title = $milestone->title;
-                }
-                $change->add_prop_change(
-                    name => 'milestone',
-                    new  => $ticket->milestone_id
-                    ? $ticket->milestone_title
-                    : undef,
-                    old => $old_title || $old,
-                );
+        # it's an attachment
+        $self->_recode_attachment_create(
+            ticket_uuid => $ticket_uuid,
+            changeset   => $changeset,
+            attachment  => $txn,
+        );
+    }
+    else {
+        $changeset = Prophet::ChangeSet->new(
+            {
+                original_source_uuid => $ticket_uuid,
+                original_sequence_no => $txn->created_at->epoch,
+                creator =>
+                  $self->resolve_user_id_to( undef, $txn->creator_name ),
+                created => $txn->created_at->ymd . " " . $txn->created_at->hms
             }
-            elsif ( $attr eq ':assigned_user' ) {
-                my $old = $diffable_attrs->{$attr};
-                my $old_with_name;
-                if ($old) {
-                    require Net::Lighthouse::User;
-                    my $user = Net::Lighthouse::User->new(
-                        map { $_ => $self->sync_source->lighthouse->$_ }
-                          grep { $self->sync_source->lighthouse->$_ }
-                          qw/account
-                          email password token/
+        );
+
+        my $change = Prophet::Change->new(
+            {
+                record_type => 'ticket',
+                record_uuid => $ticket_uuid,
+                change_type => 'update_file'
+            }
+        );
+        my $diffable_attrs = $txn->diffable_attributes;
+        if ( keys %$diffable_attrs ) {
+            my %hash = (
+                ':tag'           => 'tag',
+                ':milestone'     => 'milestone_id',
+                ':assigned_user' => 'assigned_user_id',
+                ':state'         => 'state',
+            );
+            for my $attr ( keys %$diffable_attrs ) {
+                next unless $hash{$attr};
+                my $method = $hash{$attr};
+
+                if ( $attr eq ':milestone' ) {
+                    my $old = $diffable_attrs->{$attr};
+                    my $old_title;
+                    if ($old) {
+
+                        # find milestone title
+                        my $milestone =
+                          $self->sync_source->lighthouse->milestone;
+                        $milestone->load($old);
+                        $old_title = $milestone->title;
+                    }
+                    $change->add_prop_change(
+                        name => 'milestone',
+                        new  => $ticket->milestone_id
+                        ? $ticket->milestone_title
+                        : undef,
+                        old => $old_title || $old,
                     );
-                    eval { $user->load($old) };
-                    if ($@) {
-                        warn "can't load user $old on lighthouse";
-                    }
-                    else {
-                        $old_with_name = $user->name . '(' . $user->id . ')';
-                    }
                 }
-                $change->add_prop_change(
-                    name => 'owner',
-                    new  => $ticket->assigned_user_id
-                    ? ( $ticket->assigned_user_name . '('
-                          . $ticket->assigned_user_id
-                          . ')' )
-                    : undef,
-                    $old_with_name ? ( old => $old_with_name ) : (),
-                );
-            }
-            else {
+                elsif ( $attr eq ':assigned_user' ) {
+                    my $old = $diffable_attrs->{$attr};
+                    my $old_with_name;
+                    if ($old) {
+                        require Net::Lighthouse::User;
+                        my $user = Net::Lighthouse::User->new(
+                            map { $_ => $self->sync_source->lighthouse->$_ }
+                              grep { $self->sync_source->lighthouse->$_ }
+                              qw/account
+                              email password token/
+                        );
+                        eval { $user->load($old) };
+                        if ($@) {
+                            warn "can't load user $old on lighthouse";
+                        }
+                        else {
+                            $old_with_name =
+                              $user->name . '(' . $user->id . ')';
+                        }
+                    }
+                    $change->add_prop_change(
+                        name => 'owner',
+                        new  => $ticket->assigned_user_id
+                        ? ( $ticket->assigned_user_name . '('
+                              . $ticket->assigned_user_id
+                              . ')' )
+                        : undef,
+                        $old_with_name ? ( old => $old_with_name ) : (),
+                    );
+                }
+                else {
 
-                $change->add_prop_change(
-                    name => $PROP_MAP{ $hash{$attr} } || $hash{$attr},
-                    new  => $txn->$method,
-                    old  => $diffable_attrs->{$attr},
-                );
+                    $change->add_prop_change(
+                        name => $PROP_MAP{ $hash{$attr} } || $hash{$attr},
+                        new  => $txn->$method,
+                        old  => $diffable_attrs->{$attr},
+                    );
+                }
             }
         }
+
+        $changeset->add_change( { change => $change } )
+          if $change->has_prop_changes;
+
+        $self->_include_change_comment( $changeset, $ticket_uuid, $txn );
     }
-
-    $changeset->add_change( { change => $change } )
-      if $change->has_prop_changes;
-
-
-    $self->_include_change_comment( $changeset, $ticket_uuid, $txn );
 
     return unless $changeset->has_changes;
     return $changeset;
@@ -296,6 +322,61 @@ sub _include_change_comment {
             $changeset->add_change( { change => $comment } );
         }
     }
+}
+
+sub _recode_attachment_create {
+    my $self = shift;
+    my %args =
+      validate( @_,
+        { ticket_uuid => 1, changeset => 1, attachment => 1 } );
+    my $change = Prophet::Change->new(
+        {
+            record_type => 'attachment',
+            record_uuid => $self->sync_source->uuid_for_url(
+                    $self->sync_source->remote_url
+                  . "/attachment/"
+                  . $args{'attachment'}->id,
+            ),
+            change_type => 'add_file',
+        }
+    );
+
+    $change->add_prop_change(
+        name => 'content_type',
+        old  => undef,
+        new  => $args{'attachment'}->content_type,
+    );
+
+    $change->add_prop_change(
+        name => 'created',
+        old  => undef,
+        new  => $args{attachment}->created_at->ymd . ' '
+          . $args{attachment}->created_at->hms,
+    );
+    $change->add_prop_change(
+        name => 'creator',
+        old  => undef,
+        new =>
+          $self->resolve_user_id_to( email_address =>
+              $args{'attachment'}->uploader_id )
+    );
+
+    $change->add_prop_change(
+        name => 'content',
+        old  => undef,
+        new  => $args{'attachment'}->content,
+    );
+    $change->add_prop_change(
+        name => 'name',
+        old  => undef,
+        new  => $args{'attachment'}->filename,
+    );
+    $change->add_prop_change(
+        name => 'ticket',
+        old  => undef,
+        new  => $args{ticket_uuid},
+    );
+    $args{'changeset'}->add_change( { change => $change } );
 }
 
 sub translate_prop_status {

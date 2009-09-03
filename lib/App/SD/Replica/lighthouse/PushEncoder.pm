@@ -32,6 +32,11 @@ sub integrate_change {
                 remote_id => $id,
             );
         }
+        elsif ( $change->record_type eq 'attachment'
+            and $change->change_type eq 'add_file' )
+        {
+            $id = $self->integrate_attachment( $change, $changeset );
+        }
         elsif ( $change->record_type eq 'comment'
             and $change->change_type eq 'add_file' )
         {
@@ -103,6 +108,21 @@ sub integrate_comment {
     return $ticket_id;
 }
 
+sub integrate_ticket_attachment {
+    my $self = shift;
+    my ( $change, $changeset ) = validate_pos(
+        @_,
+        { isa => 'Prophet::Change' },
+        { isa => 'Prophet::ChangeSet' }
+    );
+    my %props     = map { $_->name => $_->new_value } $change->prop_changes;
+    my $ticket_id = $self->sync_source->remote_id_for_uuid( $props{'ticket'} );
+
+    $self->sync_source->log(
+        'Warn: Net::Lighthouse does *not* support attachment yet');
+    return $ticket_id;
+}
+
 sub integrate_ticket_create {
     my $self = shift;
     my ( $change, $changeset ) = validate_pos(
@@ -144,7 +164,8 @@ sub _recode_props_for_integrate {
             if ( $props{$key} ) {
                 eval { $milestone->load( $props{$key} ) };
                 if ( $@ ) {
-                    warn "no milestone $props{$key} exist";
+                    $self->sync_source->log(
+                        "Warn: no milestone $props{$key} exist");
                 }
                 else {
                     $attr{milestone_id} = $milestone->id;
