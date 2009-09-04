@@ -87,6 +87,9 @@ lib/App/SD/Replica/github/PushEncoder.pm
 lib/App/SD/Replica/hm.pm
 lib/App/SD/Replica/hm/PullEncoder.pm
 lib/App/SD/Replica/hm/PushEncoder.pm
+lib/App/SD/Replica/lighthouse.pm
+lib/App/SD/Replica/lighthouse/PullEncoder.pm
+lib/App/SD/Replica/lighthouse/PushEncoder.pm
 lib/App/SD/Replica/redmine.pm
 lib/App/SD/Replica/redmine/PullEncoder.pm
 lib/App/SD/Replica/redmine/PushEncoder.pm
@@ -143,6 +146,8 @@ t/sd-hm/push-reporter-not-pro.t
 t/sd-hm/push-reporter-pro.t
 t/sd-hm/tag.t
 t/sd-hm/update.t
+t/sd-lighthouse/basic.t
+t/sd-lighthouse/real-push.t
 t/sd-log.t
 t/sd-redmine/basic.t
 t/sd-redmine/clone.t
@@ -159,6 +164,7 @@ t/sd-rt/sd-rt-hm.t
 t/sd-rt/sd-rt-n-foreign-sync.t
 t/sd-rt/sd-rt-permission.t
 t/sd-trac/basic.t
+t/sd-trac/push-comment.t
 t/sd-trac/push-new-ticket-to-trac-then-pull.t
 t/sd-trac/setup_trac.pl
 t/sd-usage.t
