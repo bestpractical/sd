@@ -212,6 +212,6 @@ run_output_matches( 'sd', [ 'ticket', 'give', 'spang@bestpractical.com' ],
 
 require App::SD;
 run_output_matches( 'sd', [ '-V' ],
-    [ "SD $App::SD::VERSION" ], 'version short' );
+    [ "sd $App::SD::VERSION" ], 'version short' );
 run_output_matches( 'sd', [ '--version' ],
-    [ "SD $App::SD::VERSION" ], 'version long' );
+    [ "sd $App::SD::VERSION" ], 'version long' );

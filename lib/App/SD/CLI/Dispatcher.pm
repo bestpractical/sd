@@ -22,8 +22,9 @@ on qr'^(?!help)' => sub {
     }
     elsif ($self->context->has_arg('version')
             || $self->context->has_arg('V') ) {
-        print "SD $App::SD::VERSION\n";
-        exit 0;
+        $self->context->delete_arg('version');
+        $self->context->delete_arg('V');
+        run("version", $self);
     }
     else {
         next_rule;
