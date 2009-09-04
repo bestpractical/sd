@@ -19,7 +19,8 @@ BEGIN {
     diag "export SD_REPO=" . $ENV{'PROPHET_REPO'} . "\n";
 }
 
-my $sd_lighthouseg_url = 'lighthouse:312fe439f2116f1592fe629c2fc7481a98df0177@sunnavy/sd';
+my $sd_lighthouseg_url =
+  'lighthouse:312fe439f2116f1592fe629c2fc7481a98df0177@sunnavy/sd/tagged:sd';
 
 my ( $ret, $out, $err );
 ( $ret, $out, $err ) =
