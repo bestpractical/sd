@@ -6,6 +6,7 @@ use Params::Validate qw(:all);
 use Memoize;
 use Time::Progress;
 use DateTime;
+use Net::Lighthouse::User;
 
 has sync_source => (
     isa => 'App::SD::Replica::lighthouse',
@@ -391,7 +392,18 @@ sub resolve_user_id_to {
     my $self = shift;
     shift;
     my $id   = shift;
-    return $id;
+    if ( $id =~ /^\d+$/ ) {
+        my $user = Net::Lighthouse::User->new(
+            map { $_ => $self->sync_source->lighthouse->$_ }
+              grep { $self->sync_source->lighthouse->$_ }
+              qw/account email password token/
+        );
+        $user->load( $id );
+        return $user->name;
+    }
+    else {
+        return $id;
+    }
 }
 
 __PACKAGE__->meta->make_immutable;

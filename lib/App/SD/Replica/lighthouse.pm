@@ -8,6 +8,7 @@ use Memoize;
 use URI;
 use Memoize;
 use Net::Lighthouse::Project;
+use Net::Lighthouse::User;
 
 use Prophet::ChangeSet;
 
@@ -96,7 +97,30 @@ sub get_txn_list_by_date {
 
 sub foreign_username {
     my $self = shift;
-    return $self->lighthouse->email;
+    my $user =
+      Net::Lighthouse::User->new( map { $_ => $self->lighthouse->$_ }
+          grep { $self->lighthouse->$_ } qw/account email password token/ );
+
+    if ( $user->token ) {
+        # so we use token, let's try to find user's name
+        require Net::Lighthouse::Token;
+        my $token = Net::Lighthouse::Token->new(
+            map { $_ => $self->lighthouse->$_ }
+              grep { $self->lighthouse->$_ } qw/account token/
+        );
+        $token->load( $self->lighthouse->token );
+        my $user = Net::Lighthouse::User->new(
+            map { $_ => $self->lighthouse->$_ }
+              grep { $self->lighthouse->$_ } qw/account token/
+        );
+        $user->load( $token->user_id );
+        return $user->name;
+    }
+    else {
+        # TODO we can't get user's name via email :/
+        # wish they augment the api so we can load via email
+        return $1 if $user->email =~ /(.*?)@/;
+    }
 }
 
 sub uuid {
