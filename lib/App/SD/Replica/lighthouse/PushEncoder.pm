@@ -82,7 +82,7 @@ sub integrate_ticket_update {
     $ticket->update(
         map { $_ => $attr->{$_} }
           grep { exists $attr->{$_} }
-          qw/title body state assigned_user_id milestone_id/
+          qw/title body state assigned_user_id milestone_id tag/
     );
     return $remote_ticket_id;
 }
@@ -137,7 +137,7 @@ sub integrate_ticket_create {
     $ticket->create(
         map { $_ => $attr->{$_} }
           grep { exists $attr->{$_} }
-          qw/title body state assigned_user_id milestone_id/
+          qw/title body state assigned_user_id milestone_id tag/
     );
     return $ticket->number;
 }
@@ -155,6 +155,9 @@ sub _recode_props_for_integrate {
         }
         elsif ( $key eq 'status' ) {
             $attr{state} = $props{$key};
+        }
+        elsif ( $key eq 'tag' ) {
+            $attr{tag} = $props{$key};
         }
         elsif ( $key eq 'content' ) {
             $attr{body} = $props{$key};
