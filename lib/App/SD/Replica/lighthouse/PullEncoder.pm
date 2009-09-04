@@ -66,7 +66,10 @@ Returns a reference to an array of all transactions (as hashes) on ticket $id af
 sub find_matching_transactions {
     my $self     = shift;
     my %args     = validate( @_, { ticket => 1, starting_transaction => 1 } );
-    my @raw_versions = @{ $args{ticket}->versions };
+    my $sequence = 0;
+    # hack, let's add sequence for comments
+    my @raw_versions =
+      map { $_->{sequence} = $sequence++; $_ } @{ $args{ticket}->versions };
     my @raw_attachments = @{ $args{ticket}->attachments|| [] };
 
     my @raw_txns = ( @raw_versions, @raw_attachments );
@@ -78,9 +81,11 @@ sub find_matching_transactions {
         next if $txn_date < ( $args{'starting_transaction'} || 0 );
 
         # Skip things we've pushed
-        next if (
+        next
+          if (
             $self->sync_source->foreign_transaction_originated_locally(
-                $txn_date, $args{'ticket'}->number
+                ( defined $txn->{sequence} ? $txn->{sequence} : $txn->id ),
+                $args{'ticket'}->number
             )
           );
 
@@ -88,10 +93,7 @@ sub find_matching_transactions {
           {
             timestamp => $txn->created_at,
             object    => $txn,
-            serial    => $txn->created_at->epoch,
-            $txn->created_at == $args{ticket}->created_at
-            ? ( is_create => 1 )
-            : (),
+            serial    => defined $txn->{sequence} ? $txn->{sequence} : $txn->id,
           };
     }
 
@@ -111,7 +113,7 @@ sub transcode_create_txn {
     my $changeset = Prophet::ChangeSet->new(
         {
             original_source_uuid => $ticket_uuid,
-            original_sequence_no => $created->epoch,
+            original_sequence_no => $ticket->{sequence},
             creator              => $creator,
             created              => $created->ymd . " " . $created->hms
         }
@@ -168,7 +170,7 @@ sub transcode_one_txn {
     my $ticket = shift;
 
     my $txn = $txn_wrapper->{object};
-    if ( $txn_wrapper->{is_create} ) {
+    if ( defined $txn->{sequence} && $txn->{sequence} == 0 ) {
         return $self->transcode_create_txn($txn_wrapper);
     }
 
@@ -181,7 +183,7 @@ sub transcode_one_txn {
         $changeset = Prophet::ChangeSet->new(
             {
                 original_source_uuid => $ticket_uuid,
-                original_sequence_no => $txn->created_at->epoch,
+                original_sequence_no => $txn->id,
                 creator =>
                   $self->resolve_user_id_to( undef, $txn->uploader_id ),
                 created => $txn->created_at->ymd . " " . $txn->created_at->hms
@@ -199,7 +201,7 @@ sub transcode_one_txn {
         $changeset = Prophet::ChangeSet->new(
             {
                 original_source_uuid => $ticket_uuid,
-                original_sequence_no => $txn->created_at->epoch,
+                original_sequence_no => $txn->{sequence},
                 creator =>
                   $self->resolve_user_id_to( undef, $txn->creator_name ),
                 created => $txn->created_at->ymd . " " . $txn->created_at->hms
@@ -390,7 +392,6 @@ sub resolve_user_id_to {
     shift;
     my $id   = shift;
     return $id;
-#    return $id . '@lighthouse';
 }
 
 __PACKAGE__->meta->make_immutable;

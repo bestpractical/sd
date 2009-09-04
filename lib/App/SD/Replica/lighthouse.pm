@@ -82,14 +82,15 @@ sub get_txn_list_by_date {
     my $ticket_obj = $self->lighthouse->ticket;
     $ticket_obj->load($ticket);
         
+    my $sequence = 0;
     my @txns = map {
         {
-            id      => $_->number,
+            id      => $sequence++,
             creator => $_->creator_name,
             created => $_->created_at->epoch,
         }
       }
-      sort { $b->created_at <=> $a->created_at } @{ $ticket_obj->versions };
+      @{ $ticket_obj->versions };
     return @txns;
 }
 
