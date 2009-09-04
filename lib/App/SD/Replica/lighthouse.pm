@@ -27,13 +27,14 @@ our %PROP_MAP = ( state => 'status', title => 'summary' );
 sub BUILD {
     my $self = shift;
 
-    my ( $auth, $account, $project ) =
-      $self->{url} =~ m{^lighthouse:(?:(.*)@)?(.*?)/(.*)}
+    my ( $auth, $account, $project, $query ) =
+      $self->{url} =~ m{^lighthouse:(?:(.*)@)?(.*?)/(.*?)(?:/(.*))?$}
       or die
         "Can't parse lighthouse server spec. Expected
-        lighthouse:user:password\@account/project or\n"
-        ."lighthouse:token\@account/project.";
+        lighthouse:email:password\@account/project/query or\n"
+        ."lighthouse:token\@account/project/query.";
     my $server = "http://$account.lighthouseapp.com";
+    $self->query( $query || 'all' );
 
     my ( $email, $password, $token );
     if ($auth) {
