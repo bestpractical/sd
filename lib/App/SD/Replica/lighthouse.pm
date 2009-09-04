@@ -90,8 +90,25 @@ sub get_txn_list_by_date {
             creator => $_->creator_name,
             created => $_->created_at->epoch,
         }
-      }
-      @{ $ticket_obj->versions };
+    } @{ $ticket_obj->versions };
+
+    if ( $ticket_obj->attachments ) {
+        my $user = Net::Lighthouse::User->new(
+            map { $_ => $self->sync_source->lighthouse->$_ }
+              grep { $self->sync_source->lighthouse->$_ }
+              qw/account email password token/
+        );
+        for my $att ( @{ $ticket_obj->attachments } ) {
+            $user->load( $att->uploader_id );
+            push @txns,
+              {
+                id      => $att->id,
+                creator => $user->name,
+                created => $att->created_at->epoch,
+              };
+        }
+        @txns = sort { $a->created <=> $b->created } @txns;
+    }
     return @txns;
 }
 
