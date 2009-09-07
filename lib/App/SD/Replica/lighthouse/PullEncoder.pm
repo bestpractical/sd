@@ -71,8 +71,8 @@ sub find_matching_transactions {
     my $sequence = 0;
     # hack, let's add sequence for comments
     my @raw_versions =
-      map { $_->{sequence} = $sequence++; $_ } @{ $args{ticket}->versions };
-    my @raw_attachments = @{ $args{ticket}->attachments|| [] };
+      map { $_->{sequence} = $sequence++; $_ } $args{ticket}->versions;
+    my @raw_attachments = $args{ticket}->attachments;
 
     my @raw_txns = ( @raw_versions, @raw_attachments );
     my @txns;
@@ -256,8 +256,7 @@ sub transcode_one_txn {
                         my $user = Net::Lighthouse::User->new(
                             map { $_ => $self->sync_source->lighthouse->$_ }
                               grep { $self->sync_source->lighthouse->$_ }
-                              qw/account
-                              email password token/
+                              qw/account auth/
                         );
                         eval { $user->load($old) };
                         if ($@) {
@@ -397,7 +396,7 @@ sub resolve_user_id_to {
         my $user = Net::Lighthouse::User->new(
             map { $_ => $self->sync_source->lighthouse->$_ }
               grep { $self->sync_source->lighthouse->$_ }
-              qw/account email password token/
+              qw/account auth/
         );
         $user->load( $id );
         return $user->name;
