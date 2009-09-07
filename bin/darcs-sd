@@ -17,4 +17,4 @@ fi
 
 replica="$darcsdir/_darcs/prefs/sd"
 
-SD_REPO=$replica exec sd $@
+SD_REPO=$replica exec sd "$@"
