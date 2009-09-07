@@ -34,7 +34,7 @@ sub run {
     return [ sort { App::SD::Util::string_to_datetime($a->created) <=> App::SD::Util::string_to_datetime( $b->created) } @changesets];
 }
 
-sub ticket_last_modified { undef}
+sub ticket_last_modified { undef }
 
 sub transcode_ticket {
     my $self          = shift;
@@ -93,6 +93,13 @@ sub transcode_history {
     return ( $last_modified, \@changesets );
 }
 
+sub find_matching_tickets {
+    die 'find_matching_transactions must be implemented';
+}
+
+sub find_matching_transactions {
+    die 'find_matching_transactions must be implemented';
+}
 
 sub translate_ticket_state {
     die 'translate_ticket_state must be implemented';
