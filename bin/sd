@@ -6,7 +6,7 @@ BEGIN { $ENV{'CLASS_MOP_NO_XS'} = 1 if ($^V == 5.0010); }
 
 use App::SD::CLI;
 
-$ENV{'PROPHET_REPO'} ||= $ENV{'SD_REPO'};
+$ENV{'PROPHET_REPO'} ||= $ENV{'SD_REPO'} if $ENV{'SD_REPO'};
 
 # Moose likes generating very noisy backtraces. Most users don't need to see
 # anything more than the root cause of the failure. Developers and the curious
