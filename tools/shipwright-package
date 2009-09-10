@@ -4,7 +4,7 @@ export REPO=${HOME}/shipwright-sd-${TODAY}.git/
 
 export GIT_PATH="git:file://$REPO"
 export MIN_PERL=5.008006
-export SKIP="--skip=Pod::Simple,Module::Signature,Test::Pod,Test::Pod::Coverage,Test::Distribution,Pod::Readme,Archive::Tar,HTML::Lint,Prophet,Encode,Date::Calc,Test::Cukes,Quantum::Superpositions,Test::Memory::Cycle,Text::Greeking,Test::HTTP::Server::Simple,Test::WWW::Mechanize,Config::GitLike,Module::Build,Test::Warn,Test::MockTime,Test::MockModule,Test::MockObject,Test::Warn"
+export SKIP="--skip=Pod::Simple,Module::Signature,Test::Pod,Test::Pod::Coverage,Test::Distribution,Pod::Readme,Archive::Tar,HTML::Lint,Prophet,Encode,Date::Calc,Test::Cukes,Quantum::Superpositions,Test::Memory::Cycle,Text::Greeking,Test::HTTP::Server::Simple,Test::WWW::Mechanize,Module::Build,Test::Warn,Test::MockTime,Test::MockModule,Test::MockObject,Test::Warn"
 export IMPORT="shipwright import --min-perl-version=$MIN_PERL $SKIP -r $GIT_PATH --log-file - --log-level debug"
 rm -rf $REPO
 
@@ -22,7 +22,7 @@ $IMPORT \
  cpan:JSON::XS \
  cpan:Net::Bonjour \
  cpan:Term::ReadKey \
- git://github.com/bestpractical/config-gitlike.git \
+ cpan:Config::GitLike \
  git:git+ssh://fsck.com/git/prophet.git \
  cpan:RT::Client::REST \
  cpan:Email::Address \
@@ -32,10 +32,9 @@ $IMPORT \
  git:git+ssh://fsck.com/git/sd.git
 
 cd /tmp
-rm -rf sdex
 #shipwright update -r $GIT_PATH cpan-Module-Build --add-deps cpan-Pod-Simple
 #shipwright update -r $GIT_PATH cpan-IO-Compress-Base --add-deps cpan-Scalar-List-Utils
-shipwright update -r $GIT_PATH prophet.git      --add-deps cpan-Term-ReadLine-Perl,cpan-TermReadKey,cpan-DBD-SQLite,cpan-File-ShareDir,cpan-HTTP-Server-Simple,cpan-JSON-XS,config-gitlike.git
+shipwright update -r $GIT_PATH prophet.git      --add-deps cpan-Term-ReadLine-Perl,cpan-TermReadKey,cpan-DBD-SQLite,cpan-File-ShareDir,cpan-HTTP-Server-Simple,cpan-JSON-XS,cpan-Config::GitLike
 shipwright update -r $GIT_PATH sd.git           --add-deps prophet.git,cpan-Net-Bonjour,cpan-Email-Address,cpan-Net-Trac,cpan-RT-Client-REST,cpan-Net-Google-Code
 shipwright maintain -r $GIT_PATH --update-order
 
