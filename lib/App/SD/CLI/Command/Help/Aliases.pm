@@ -20,10 +20,20 @@ to you with the alias 'mine':
 
     mine = ticket list -- owner=you\@domain.com status !~closed|rejected
 
-To create aliases that take additional arguments, use the argument
-number prefixed with a '\$' to refer to them, like this:
+By default, any additional arguments to aliases are appended to the
+replacement text, so you can write something like
 
-    ts = ticket show \$1
+    alias tl = ticket list
+
+and
+
+    tl -- owner=you\@domain.com
+
+will work like you expect. In order to do more complicated things with
+arguemnts, you can use the number of an argument, prefixed by a '\$',
+like this:
+
+    ts = ticket show \$1 -s
 
 SD also provides a command for managing aliases: '${cmd}aliases'. If
 given no arguments, the aliases command will print the active aliases

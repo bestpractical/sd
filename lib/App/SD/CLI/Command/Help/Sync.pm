@@ -86,6 +86,13 @@ The RT server is specified as as rt:serveraddress|Queue|Query
 
     ${cmd}clone --from github:miyagawa/remedie
 
+SD uses LWP for HTTP access, so it supports any form of authentication
+LWP can use. For instance, you can push and pull from a remote trac
+that uses x509 client certificates by setting the HTTPS_CERT_FILE and
+HTTPS_KEY_FILE environment variables, and specifying an empty password
+when SD prompts you. For more information, see the documentation for
+LWP and Crypt::SSLeay.
+
 SD also supports naming replicas, so you can push, pull, and publish
 to short, human-friendly names instead of URLs. When a replica is
 initialized, cloned, or published, a [replica "name"] section is created in

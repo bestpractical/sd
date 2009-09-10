@@ -62,6 +62,11 @@ feature 'Redmine sync (experimental)' => (
     'Net::Redmine' => 0.08,
 );
 
+feature 'Lighthouse sync' => (
+    -default          => 0,
+    'Net::Lighthouse' => 0.01,
+);
+
 install_script('bin/sd');
 install_script('bin/git-sd');
 install_script('bin/darcs-sd');
