@@ -1,3 +1,14 @@
+0.73
+
+ * updates to the shipwright packager - Jesse Vincent
+ * fix an uninitialized value warning  in bin/sd - sunnavy
+ * Document using x509 client certificates with trac. - Nelson Elhage
+ * Document new alias behavior in 'help aliases' - Nelson Elhage
+ * add feature lighthouse to Makefile.PL - sunnavy
+ * fix quoted args in darcs-sd - Christine Spang
+ * update lighthouse replica: use auth; versions and attachments can return arra
+y - sunnavy
+
 0.72
 
  * Initial cut of a lighthouse sync - attachment support for lighthouse, but push only has skeleton: waiting for their api updates - sunnavy
