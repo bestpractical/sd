@@ -2,13 +2,14 @@ export TODAY=`date +%Y-%m-%d`
 export REPO=${HOME}/shipwright-sd-min-${TODAY}
 export GIT_PATH="git:file://$REPO"
 export MIN_PERL=5.008006
-export SKIP="--skip=Pod::Simple,Module::Signature,Test::Pod,Test::Pod::Coverage,Test::Distribution,Pod::Readme,Archive::Tar,HTML::Lint,Encode,Date::Calc,Test::Cukes,Quantum::Superpositions,Test::Memory::Cycle,Text::Greeking,Test::HTTP::Server::Simple,Test::WWW::Mechanize,Module::Build,Test::Warn,Test::MockTime,Test::MockModule,Test::MockObject,Test::Warn,Compress::Raw::Bzip2,Digest::SHA1,Compress::Raw::Zlib,Test::Script::Run,Test::Exception,Test::Simple,Test::More"
+export SKIP="--skip=Pod::Simple,Module::Signature,Test::Pod,Test::Pod::Coverage,Test::Distribution,Pod::Readme,Archive::Tar,HTML::Lint,Encode,Date::Calc,Test::Cukes,Quantum::Superpositions,Test::Memory::Cycle,Text::Greeking,Test::HTTP::Server::Simple,Test::WWW::Mechanize,Module::Build,Test::Warn,Test::MockTime,Test::MockModule,Test::MockObject,Test::Warn,Compress::Raw::Bzip2,Digest::SHA1,Compress::Raw::Zlib,Test::Script::Run,Test::Exception,Test::Simple,Test::More,Compress::Zlib"
 export IMPORT="shipwright import --min-perl-version=$MIN_PERL $SKIP -r $GIT_PATH --log-file - --log-level debug --skip-all-recommends"
 rm -rf $REPO
 mkdir $REPO
 shipwright create -r $GIT_PATH
 # Optional deps we still want
 $IMPORT \
+ cpan:Digest::SHA::PurePerl \
  cpan:App::SD
 
 cd /tmp
