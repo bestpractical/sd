@@ -2,7 +2,6 @@ package App::SD::Replica::hm;
 use Any::Moose;
 extends 'App::SD::ForeignReplica';
 use Params::Validate qw(:all);
-use UNIVERSAL::require;
 use URI;
 use Memoize;
 use Prophet::ChangeSet;
