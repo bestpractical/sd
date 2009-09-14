@@ -1,5 +1,9 @@
 package App::SD::Replica::redmine;
 use Any::Moose;
+
+# XXX
+use YAML::Syck;
+
 extends 'App::SD::ForeignReplica';
 
 use constant scheme => 'redmine';
@@ -44,6 +48,8 @@ sub BUILD {
         ));
 
 }
+
+sub record_pushed_transactions {}
 
 sub uuid {
     my $self = shift;
