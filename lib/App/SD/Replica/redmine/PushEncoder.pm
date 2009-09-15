@@ -129,7 +129,6 @@ sub _recode_props_for_integrate {
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
     my %attr;
 
-    # TODO fixme
     for my $key ( keys %props ) {
         if ( $key eq 'summary' ) {
             $attr{subject} = $props{$key};
