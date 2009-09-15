@@ -2,7 +2,6 @@ package App::SD::Replica::redmine::PushEncoder;
 
 use Any::Moose;
 use Params::Validate;
-use YAML::Syck;
 
 has sync_source => (
     isa => 'App::SD::Replica::redmine',

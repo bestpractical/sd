@@ -1,9 +1,6 @@
 package App::SD::Replica::redmine;
 use Any::Moose;
 
-# XXX
-use YAML::Syck;
-
 extends 'App::SD::ForeignReplica';
 
 use constant scheme => 'redmine';
