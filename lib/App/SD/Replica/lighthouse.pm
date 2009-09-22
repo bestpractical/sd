@@ -165,7 +165,7 @@ sub database_settings {
     my $self = shift;
     return {
         project_name    => $self->account . '/' . $self->project,
-        active_statuses => $self->lighthouse->open_states_list,
+        active_statuses => [ $self->lighthouse->open_states_list ],
         statuses        => [
             @{ $self->lighthouse->open_states_list },
             @{ $self->lighthouse->closed_states_list }
