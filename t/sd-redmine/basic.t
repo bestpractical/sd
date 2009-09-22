@@ -20,7 +20,7 @@ require 't/sd-redmine/net_redmine_test.pl';
 
 my $r = new_redmine();
 
-plan tests => 1;
+plan tests => 2;
 
 note "create 5 new tickets in redmine.";
 my @tickets = new_tickets($r, 5);
@@ -53,11 +53,7 @@ diag($err);
 note "verify the update with Net::Redmine";
 my $ticket = $r->lookup(ticket => { id => $tickets[0]->id });
 
-TODO: {
-    local $TODO = 'write support is not yet implemented';
-
-    is($ticket->status, "Closed");
-};
+is($ticket->status, "Closed");
 
 ##
 sub count_tickets_in_sd {
