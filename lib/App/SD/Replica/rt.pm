@@ -55,7 +55,13 @@ sub BUILD {
 
     $self->rt_username($username);
 
-    $self->rt->login( username => $username, password => $password );
+    eval {
+        $self->rt->login( username => $username, password => $password );
+    };
+    if ($@) {
+        die "Login to '$server' with username '$username' failed!\n"
+            ."Error was: $@.\n";
+    }
 }
 
 sub foreign_username { return shift->rt_username(@_)}
