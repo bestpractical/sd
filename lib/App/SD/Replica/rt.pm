@@ -23,9 +23,15 @@ sub BUILD {
     my $self = shift;
 
     # Require rather than use to defer load
-    require RT::Client::REST;
-    require RT::Client::REST::User;
-    require RT::Client::REST::Ticket;
+    eval {
+        require RT::Client::REST;
+        require RT::Client::REST::User;
+        require RT::Client::REST::Ticket;
+    };
+    if ($@) {
+        warn $@ if $ENV{PROPHET_DEBUG};
+        die "RT::Client::REST is required to sync with RT foreign replicas.\n";
+    }
 
     my ( $server, $type, $query ) = $self->{url} =~ m/^rt:(.*?)\|(.*?)\|(.*)$/
         or die "Can't parse RT server spec. Expected rt:http://example.com|QUEUE|QUERY. Try: rt:http://example.com/|General|";
