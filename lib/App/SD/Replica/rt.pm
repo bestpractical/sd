@@ -33,7 +33,7 @@ sub BUILD {
         die "RT::Client::REST is required to sync with RT foreign replicas.\n";
     }
 
-    my ( $server, $type, $query ) = $self->{url} =~ m{^rt:(http://.*?)\|(.*?)\|(.*)$}
+    my ( $server, $type, $query ) = $self->{url} =~ m{^rt:(https?://.*?)\|(.*?)\|(.*)$}
         or die "Can't parse RT server spec. Expected 'rt:http://example.com|QUEUE|QUERY'.\n"
                 ."Try: 'rt:http://example.com/|General|'.\n";
     my $uri = URI->new($server);
