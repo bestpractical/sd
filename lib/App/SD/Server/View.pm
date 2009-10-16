@@ -3,7 +3,7 @@ use strict;
 
 package App::SD::Server::View;
 use base 'Prophet::Server::View';
-
+use File::Spec::Unix;
 use Template::Declare::Tags;
 use Prophet::Server::ViewHelpers;
 
@@ -90,7 +90,7 @@ template 'property_list' => sub {
                     };};
                         outs ( ($counts{$prop} ||'0') . " - ");
                     a {
-                        { href is '/' . $property_name . '/' . ($prop ||'') }
+                        { href is link_to( '/' . $property_name . '/' . ($prop ||'')) }
                         ( $prop ? $prop : 'None' ) 
                     }
 
@@ -464,10 +464,10 @@ content {
     my $nav = sub {
     div {{ class is 'nav'};
         if ($end > 1 ) {
-            a {{  class is 'prev', href is '/history/'.($end-1) };  'Earlier'  };
+            a {{  class is 'prev', href is link_to('/history/'.($end-1)) };  'Earlier'  };
         }
         if ($start < $latest) {
-            a {{ class is 'next', href is '/history/'.(( $start+21 < $latest) ? ($start+21) : $latest) };  'Later'  };
+            a {{ class is 'next', href is link_to ( '/history/'.(( $start+21 < $latest) ? ($start+21) : $latest)) };  'Later'  };
         }
         }
     };
@@ -489,8 +489,16 @@ content {
                 $ticket->load( uuid => $change->record_uuid );
 
                 h2 {
-                    a {{ href is '/ticket/' . $ticket->uuid; class is 'ticket-summary'; }; $ticket->prop('summary') };
-                   span { { class is 'ticket-id'};  ' (' . ($ticket->luid || '') . ')'};
+                    a {
+                        { href is link_to( '/ticket/' . $ticket->uuid ); 
+							class is 'ticket-summary';
+						};
+                        $ticket->prop('summary');
+                    };
+                    span {
+                        { class is 'ticket-id' };
+                        ' (' . ( $ticket->luid || '' ) . ')';
+                    };
                 }
             } elsif ($change->record_type eq 'comment') {
                 my $ticket = App::SD::Model::Ticket->new(
@@ -509,7 +517,7 @@ content {
 
                 h2 {
                      outs('Comment on: ');
-                     a {{ href is '/ticket/' . $ticket->uuid; class is 'ticket-summary'; }; $ticket->prop('summary') };
+                     a {{ href is link_to('/ticket/' . $ticket->uuid); class is 'ticket-summary' }; $ticket->prop('summary') };
                    span { { class is 'ticket-id'};  ' (' . ($ticket->luid ||''). ')'};
                 }
 
@@ -560,6 +568,8 @@ template 'show_ticket' => page {
 
        $ticket->luid.": ".($ticket->prop('summary') ||'(No summary)');
     } content {
+
+
         my $self = shift;
         my $id = shift;
         my $ticket = App::SD::Model::Ticket->new(
@@ -583,9 +593,9 @@ sub ticket_page_actions {
     my $ticket = shift;
 
     ul { {class is 'actions'};
-        li { a {{ href is '/ticket/'.$ticket->uuid.'/view'}; 'Show'}; };
-        li { a {{ href is '/ticket/'.$ticket->uuid.'/edit'}; 'Update'}; } unless($self->server->static);
-        li { a {{ href is '/ticket/'.$ticket->uuid.'/history'}; 'History'}; };
+        li { a {{ href is link_to('/ticket/'.$ticket->uuid.'/view')}; 'Show'}; };
+        li { a {{ href is link_to('/ticket/'.$ticket->uuid.'/edit')}; 'Update'}; } unless($self->server->static);
+        li { a {{ href is link_to('/ticket/'.$ticket->uuid.'/history')}; 'History'}; };
     };
 
 
@@ -771,10 +781,30 @@ sub ticket_link {
         a {
             {
                 class is 'ticket';
-                href is '/ticket/' . $ticket->uuid."/view";
+                href is link_to( '/ticket/' . $ticket->uuid."/view");
             };
             $label;
         }
     };
 }
+
+=head2 link_to PATH
+
+This routine does its best to convert a URI path from absolute ( starts at / ) to
+relative. (Starts at .).
+
+I bet it needs work
+
+=cut
+
+sub link_to ($) {
+	my $href = shift;
+
+	my $base = $ENV{'REQUEST_URI'};
+	$base =~ s/[\#\?].*$//;
+	my $edited = File::Spec::Unix->abs2rel($href, $base);
+	$edited =~ s/^\.\.\///;
+	return $edited;
+}
+
 1;
