@@ -3,7 +3,7 @@ use strict;
 
 package App::SD::Server::View;
 use base 'Prophet::Server::View';
-use File::Spec::Unix;
+use URI::file;
 use Template::Declare::Tags;
 use Prophet::Server::ViewHelpers;
 
@@ -798,13 +798,9 @@ I bet it needs work
 =cut
 
 sub link_to ($) {
-	my $href = shift;
+	my $link = shift;
+    return URI::file->new($link)->rel("file://".$ENV{REQUEST_URI});
 
-	my $base = $ENV{'REQUEST_URI'};
-	$base =~ s/[\#\?].*$//;
-	my $edited = File::Spec::Unix->abs2rel($href, $base);
-	$edited =~ s/^\.\.\///;
-	return $edited;
 }
 
 1;
