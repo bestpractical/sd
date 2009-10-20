@@ -68,20 +68,71 @@ Returns a array of all tickets found matching your QUERY hash.
 
 sub find_matching_tickets {
     my $self                   = shift;
-    my %query                  = (@_);
+    my %args  = (@_);
+    my $query = $args{query};
+    my %query;
+    if ($query) {
+        if ( $query =~ /=/ ) {
+            %query = map { /(.+)=(.*)/; $1 => $2 }
+              split /&/, $query;
+        }
+        else {
+            $query{q} = $query;
+        }
+    }
+
     my $last_changeset_seen_dt = $self->_only_pull_tickets_modified_after()
       || DateTime->from_epoch( epoch => 0 );
     $self->sync_source->log("Searching for tickets. This can take a very long time on initial sync or if you haven't synced in a long time.");
-    require Net::Google::Code::Issue::Search;
-    my $search = Net::Google::Code::Issue::Search->new(
-        project => $self->sync_source->project,
-    );
+    require Net::Google::Code;
 
-    if ( $search->updated_after( $last_changeset_seen_dt ) ) {
-        return $search->results;
+    if ( $Net::Google::Code::VERSION lt '0.15' ) {
+        die
+"query support is only for Net::Google::Code version not less than 0.15"
+          if $args{query};
+        require Net::Google::Code::Issue::Search;
+        my $search =
+          Net::Google::Code::Issue::Search->new(
+            project => $self->sync_source->project, );
+
+        if ( $search->updated_after($last_changeset_seen_dt) ) {
+            return $search->results;
+        }
+        else {
+            return [];
+        }
     }
     else {
-        return [];
+        my $issue = Net::Google::Code::Issue->new(
+            map { $_ => $self->sync_source->gcode->$_ }
+              grep { $self->sync_source->gcode->$_ }
+              qw/project email password/ );
+
+        if ( $last_changeset_seen_dt->epoch == 0 && keys %query == 0 ) {
+
+            # so it's clone, we can use old updated_after method here
+            # load issue with the scrapping way, which is more effective
+            local $Net::Google::Code::Issue::USE_HYBRID = 0;
+            require Net::Google::Code::Issue::Search;
+            my $search =
+              Net::Google::Code::Issue::Search->new(
+                project => $self->sync_source->project, );
+            if ( $search->updated_after( $last_changeset_seen_dt, 0 ) ) {
+                return $search->results;
+            }
+        }
+
+        $query{can} ||= 'all';
+        $query{max_results} ||= 1_000_000_000;
+        delete $query{q} unless defined $query{q};
+        my $results = $issue->list( %query,
+            updated_min => $query{updated_min}
+              && $query{updated_min} gt "$last_changeset_seen_dt"
+            ? $query{updated_min}
+            : "$last_changeset_seen_dt" );
+
+        $_->load for @$results;
+        return $results;
     }
 }
 
