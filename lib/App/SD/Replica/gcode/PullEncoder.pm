@@ -108,15 +108,18 @@ sub find_matching_tickets {
               grep { $self->sync_source->gcode->$_ }
               qw/project email password/ );
 
-        if ( $last_changeset_seen_dt->epoch == 0 && keys %query == 0 ) {
+        if ( keys %query == 0 ) {
 
-            # so it's clone, we can use old updated_after method here
-            # load issue with the scrapping way, which is more effective
+            # we can use old updated_after method here if no query strings
+            # loading issue by checking feeds update is more effective, if
+            # possible
             local $Net::Google::Code::Issue::USE_HYBRID = 0;
             require Net::Google::Code::Issue::Search;
             my $search =
               Net::Google::Code::Issue::Search->new(
                 project => $self->sync_source->project, );
+
+            # 0 here is to not fallback to ->search method
             if ( $search->updated_after( $last_changeset_seen_dt, 0 ) ) {
                 return $search->results;
             }
