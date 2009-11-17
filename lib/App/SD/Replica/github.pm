@@ -27,7 +27,7 @@ sub BUILD {
     my $self = shift;
 
     my ( $server, $owner, $repo ) =
-      $self->{url} =~ m{^github:(http://.*?github.com/)?(.*?)/(.*)}
+      $self->{url} =~ m{^github:(http://.*?github.com/)?(.*?)/([^/]+)/?}
       or die
         "Can't parse Github server spec. Expected github:owner/repository or\n"
         ."github:http://github.com/owner/repository.";
