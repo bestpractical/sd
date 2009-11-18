@@ -37,10 +37,17 @@ sub BUILD {
     my $self = shift;
     # Require rather than use to defer load
     require Net::Google::Code;
+    require Net::Google::Code::Issue;
 
-    my ( $userinfo, $project ) = $self->{url} =~ m/^gcode:(.*@)?(.*?)$/
-        or die "Can't parse Google::Code server spec. Expected gcode:user:password\@k9mail";
+    $Net::Google::Code::Issue::USE_HYBRID = 1
+      if $Net::Google::Code::VERSION ge '0.15';
+
+    my ( $userinfo, $project, $query ) =
+      $self->{url} =~ m!^gcode:(.*@)?(.*?)(?:/(.*))?$!
+      or die
+"Can't parse Google::Code server spec. Expected gcode:k9mail or gcode:user:password\@k9mail or gcode:user:password\@k9mail/q=string&can=all";
     $self->project($project);
+    $self->query($query) if defined $query;
     my ( $email, $password );
     # ask password only if there is userinfo but not password
     if ( $userinfo ) {

@@ -30,9 +30,7 @@ sub BUILD {
     my ( $auth, $account, $project, $query ) =
       $self->{url} =~ m{^lighthouse:(?:(.*)@)?(.*?)/(.*?)(?:/(.*))?$}
       or die
-        "Can't parse lighthouse server spec. Expected
-        lighthouse:email:password\@account/project/query or\n"
-        ."lighthouse:token\@account/project/query.";
+"Can't parse lighthouse server spec. Expected lighthouse:email:password\@account/project/query or lighthouse:token\@account/project/query.";
     my $server = "http://$account.lighthouseapp.com";
     $self->query( $query || 'all' );
 
