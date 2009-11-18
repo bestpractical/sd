@@ -44,6 +44,7 @@ sub render_templates_into {
         my $seen  = {};
         while ( my $file = shift @links ) {
             next if $seen->{$file};
+			local $ENV{'REQUEST_URI'} = $file;
             eval {
                 $cgi->path_info($file);
                 my $content = $server->handle_request($cgi);

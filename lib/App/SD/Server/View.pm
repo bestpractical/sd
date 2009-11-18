@@ -90,7 +90,7 @@ template 'property_list' => sub {
                     };};
                         outs ( ($counts{$prop} ||'0') . " - ");
                     a {
-                        { href is link_to( '/' . $property_name . '/' . ($prop ||'')) }
+                        { href is $self->server->make_link_relative( '/' . $property_name . '/' . ($prop ||'')) }
                         ( $prop ? $prop : 'None' ) 
                     }
 
@@ -464,10 +464,10 @@ content {
     my $nav = sub {
     div {{ class is 'nav'};
         if ($end > 1 ) {
-            a {{  class is 'prev', href is link_to('/history/'.($end-1)) };  'Earlier'  };
+            a {{  class is 'prev', href is $self->server->make_link_relative('/history/'.($end-1)) };  'Earlier'  };
         }
         if ($start < $latest) {
-            a {{ class is 'next', href is link_to ( '/history/'.(( $start+21 < $latest) ? ($start+21) : $latest)) };  'Later'  };
+            a {{ class is 'next', href is $self->server->make_link_relative ( '/history/'.(( $start+21 < $latest) ? ($start+21) : $latest)) };  'Later'  };
         }
         }
     };
@@ -490,7 +490,7 @@ content {
 
                 h2 {
                     a {
-                        { href is link_to( '/ticket/' . $ticket->uuid ); 
+                        { href is $self->server->make_link_relative( '/ticket/' . $ticket->uuid ); 
 							class is 'ticket-summary';
 						};
                         $ticket->prop('summary');
@@ -517,7 +517,7 @@ content {
 
                 h2 {
                      outs('Comment on: ');
-                     a {{ href is link_to('/ticket/' . $ticket->uuid); class is 'ticket-summary' }; $ticket->prop('summary') };
+                     a {{ href is $self->server->make_link_relative('/ticket/' . $ticket->uuid); class is 'ticket-summary' }; $ticket->prop('summary') };
                    span { { class is 'ticket-id'};  ' (' . ($ticket->luid ||''). ')'};
                 }
 
@@ -593,9 +593,9 @@ sub ticket_page_actions {
     my $ticket = shift;
 
     ul { {class is 'actions'};
-        li { a {{ href is link_to('/ticket/'.$ticket->uuid.'/view')}; 'Show'}; };
-        li { a {{ href is link_to('/ticket/'.$ticket->uuid.'/edit')}; 'Update'}; } unless($self->server->static);
-        li { a {{ href is link_to('/ticket/'.$ticket->uuid.'/history')}; 'History'}; };
+        li { a {{ href is $self->server->make_link_relative('/ticket/'.$ticket->uuid.'/view')}; 'Show'}; };
+        li { a {{ href is $self->server->make_link_relative('/ticket/'.$ticket->uuid.'/edit')}; 'Update'}; } unless($self->server->static);
+        li { a {{ href is $self->server->make_link_relative('/ticket/'.$ticket->uuid.'/history')}; 'History'}; };
     };
 
 
@@ -781,26 +781,11 @@ sub ticket_link {
         a {
             {
                 class is 'ticket';
-                href is link_to( '/ticket/' . $ticket->uuid."/view");
+                href is $self->server->make_link_relative( '/ticket/' . $ticket->uuid."/view");
             };
             $label;
         }
     };
-}
-
-=head2 link_to PATH
-
-This routine does its best to convert a URI path from absolute ( starts at / ) to
-relative. (Starts at .).
-
-I bet it needs work
-
-=cut
-
-sub link_to ($) {
-	my $link = shift;
-    return URI::file->new($link)->rel("file://".$ENV{REQUEST_URI});
-
 }
 
 1;
