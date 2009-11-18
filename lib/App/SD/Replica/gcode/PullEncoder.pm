@@ -353,12 +353,12 @@ sub transcode_one_txn {
 
     my $props = $txn->updates;
     foreach my $prop ( keys %{ $props || {} } ) {
+        $prop = lc $prop;
         $change->add_prop_change(
-            name => $PROP_MAP{$prop},
+            name => $PROP_MAP{$prop} || $prop,
             old  => $txn_wrapper->{pre_state}->{$PROP_MAP{$prop}},
             new  => $txn_wrapper->{post_state}->{$PROP_MAP{$prop}}
         );
-
     }
 
     $changeset->add_change( { change => $change } )
