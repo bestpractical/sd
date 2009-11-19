@@ -413,12 +413,12 @@ private template 'ticket_list' => sub {
         tbody {
             for my $ticket (@$tickets) {
                 row {
-                    cell { class is 'id'; ticket_link( $ticket => $ticket->luid ); };
+                    cell { class is 'id'; $self->ticket_link( $ticket => $ticket->luid ); };
                     for (qw|status milestone component owner reporter due created|) {
                     
                         cell { class is $_; $ticket->prop($_) };
                     }
-                    cell { class is 'summary'; ticket_link( $ticket => $ticket->prop('summary') ); };
+                    cell { class is 'summary'; $self->ticket_link( $ticket => $ticket->prop('summary') ); };
                 }
 
             }
@@ -774,6 +774,7 @@ template ticket_comment => sub {
                 };
 
 sub ticket_link {
+    my $self = shift;
     my $ticket   = shift;
     my $label = shift;
     span {
