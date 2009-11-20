@@ -161,7 +161,7 @@ sub transcode_one_txn {
         && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/
     ) {
         warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'} .' vs '. $ticket->{$self->sync_source->uuid . '-id'};
-        next;
+        return;
     }
 
     delete $txn->{'OldValue'} if ( $txn->{'OldValue'} eq '');
