@@ -66,7 +66,7 @@ ok( $ticket->update( summary => 'The product does not contain a pony' ),
     "updated!" );
 unlike( $ticket->summary, qr/moose/, "The summary does not look like a moose" );
 
-my ($fh, $filename) = File::Temp::tempfile(SUFFIX => '.txt');
+my ($fh, $filename) = File::Temp::tempfile(SUFFIX => '.txt', UNLINK => 1);
 print $fh "TIMTOWTDI\n";
 close $fh;
 sleep 2; # to make trac happy

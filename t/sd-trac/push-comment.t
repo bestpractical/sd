@@ -84,7 +84,7 @@ test_push_of_attachment();
 
 sub test_push_of_attachment {
 
-	my ($fh, $filename) = File::Temp::tempfile(SUFFIX => '.txt');
+	my ($fh, $filename) = File::Temp::tempfile(SUFFIX => '.txt', UNLINK => 1);
 	print $fh "TIMTOWTDI\n";
 	close $fh;
 	sleep 2; # to make trac happy

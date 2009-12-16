@@ -29,7 +29,7 @@ my @tickets;
 my $the_ticket_with_histories;
 
 Given qr/a clean sd repo/ => sub {
-    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 0 ) . '/_svb';
+    $ENV{'PROPHET_REPO'} = $ENV{'SD_REPO'} = File::Temp::tempdir( CLEANUP => 1 ) . '/_svb';
     diag "export SD_REPO=" . $ENV{'PROPHET_REPO'} . "\n";
 };
 
