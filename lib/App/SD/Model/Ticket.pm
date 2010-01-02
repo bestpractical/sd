@@ -6,7 +6,7 @@ use Term::ANSIColor;
 use App::SD::Util;
 
 use constant collection_class => 'App::SD::Collection::Ticket';
-has type => ( default => 'ticket');
+has '+type' => ( default => 'ticket');
 
 our $ACTIVE_STATUSES;
 

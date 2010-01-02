@@ -3,7 +3,7 @@ use Any::Moose;
 extends 'App::SD::Record';
 
 use constant collection_class => 'App::SD::Collection::Comment';
-has type => ( default => 'comment');
+has '+type' => ( default => 'comment');
 
 
 sub _default_summary_format { '%s,$uuid | %s,content'}
