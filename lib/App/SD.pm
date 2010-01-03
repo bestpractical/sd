@@ -4,7 +4,7 @@ use App::SD::Config;
 
 extends 'Prophet::App';
 
-our $VERSION = '0.73';
+our $VERSION = '0.74';
 
 has '+config' => (
     default => sub {

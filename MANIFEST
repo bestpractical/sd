@@ -171,6 +171,7 @@ t/sd-usage.t
 t/sd-validation.t
 t/server.t
 tools/shipwright-package
+tools/shipwright-package-minimal
 xt/00-dependencies.t
 xt/99-pod-coverage.t
 xt/99-pod.t

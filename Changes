@@ -1,3 +1,26 @@
+0.74
+
+User-visible highlights for this release (not all commits are listed here):
+ * Make tests clean up after themselves - Alex Vandiver
+ * friendlier error message if user tries to sync with RT without RT::Client::REST - Christine Spang
+ * Check for http:// in RT URL regex since RT::Client::REST expects it - Christine Spang
+ * Report back errors on login failure in RT sync - Christine Spang
+ * Three minor tweaks for Moose compatibility - Christine Spang
+ * Shipwright packaging - Jesse Vincent
+ * UNIVERSAL::require is neither a dependency of prophet nor required - Jesse Vincent
+ * Update SD to use the new database_bonjour_name API provided by prophet - Jesse Vincent
+ * Make hyperlinks in SD relative - Jesse Vincent
+ * RT servers can run on https:// servers - Kevin Falcone
+ * redmine test: do require test inside BEGIN block - Sam Vilain
+ * Redmine test improvements - franck cuny
+ * if there is a trailing slash at the end of the URI, the github api will fail to fetch the data  - franck cuny
+ * fix: lighthouse->open_states_list auto deref - sunnavy
+ * add query string support and increase performance for gcode sync - sunnavy
+
+Thanks to the following people who contributed to this release:
+Alex Vandiver, Christine Spang, Jesse Vincent, Kevin Falcone, Sam Vilain,
+franck cuny, and sunnavy.
+
 0.73
 
  * updates to the shipwright packager - Jesse Vincent
