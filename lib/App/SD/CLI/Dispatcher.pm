@@ -74,7 +74,8 @@ on help => run_command('Help');
 on qr'.*' => sub {
     my $self = shift;
 
-    unless ( $self->cli->app_handle->local_replica_url ) {
+    unless ( $self->cli->app_handle->local_replica_url ||
+        $self->cli->context->has_arg('h') ) {
 
         print join "\n",
             "",
