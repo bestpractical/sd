@@ -5,6 +5,7 @@ with 'App::SD::CLI::NewReplicaCommand';
 
 sub ARG_TRANSLATIONS {
     shift->SUPER::ARG_TRANSLATIONS(),
+    # this arg is used in the new_replica_wizard sub
     n => 'non-interactive',
 };
 
@@ -34,6 +35,9 @@ override run => sub {
 
     Prophet::CLI->end_pager();
 
+    # Prompt for SD setup (specifically email address for changes) after the
+    # clone, but *don't* immediately edit the database's settings, since a
+    # cloned database should have already been setup previously.
     $self->new_replica_wizard( edit_settings => 0 );
 };
 
