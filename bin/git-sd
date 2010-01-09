@@ -1,6 +1,5 @@
 #!/bin/sh
 
-sdsetup=0
 replica=$(git config --get sd.local-replica)
 if [ -z "$replica" ]; then
     gitdir=$(git rev-parse --git-dir 2>/dev/null)
@@ -21,21 +20,24 @@ if [ -z "$replica" ]; then
     echo "  git config --add sd.local-replica $replica"
     echo ""
     git config --add sd.local-replica "$replica"
-    sdsetup=1
 fi
 
-if [ \( "$1" = "init" \) -o \( "$1" = "clone" \) ]; then
+if [ "$1" = "init" ] || [ "$1" = "clone" ] && [ "$2" != "-h" ] \
+    && [ "$2" != "--help" ]; then
     gitemail=$(git config --get user.email)
-    if [ ! -z $gitemail ]; then
+    # It shouldn't happen very often that we're using init or clone from
+    # an already-existing db, but don't mess around with peoples' configs
+    # once they've already been created anyway.
+    if [ -n "$gitemail" ] && [ ! -e "$replica/config" ]; then
         echo "Setting your SD email address to your git email:"
         echo ""
         echo "  git config --get user.email"
-        if [ ! -d $replica ]; then
-            mkdir $replica
+        if [ ! -d "$replica" ]; then
+            mkdir "$replica"
         fi
         echo "  sd config user.email-address $gitemail"
         echo ""
-        SD_REPO="$replica" sd config user.email-address $gitemail
+        SD_REPO="$replica" sd config user.email-address "$gitemail"
     fi
 fi
 
