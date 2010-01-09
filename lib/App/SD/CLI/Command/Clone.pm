@@ -13,11 +13,15 @@ sub usage_msg {
     my $cmd = $self->cli->get_script_name;
 
     return <<"END_USAGE";
-usage: ${cmd}clone --from <url> [--non-interactive]
+usage: ${cmd}clone --from <url> [--as <alias>] [--non-interactive] | --local
 
 Options:
     -n | --non-interactive - Don't prompt to specify email address for new
                              database
+    --as                   - Save an alias for this source, which can later be
+                             used instead of the URL.
+    --local                - Probe the local network for mDNS-advertised
+                             replicas and list them.
 END_USAGE
 }
 
