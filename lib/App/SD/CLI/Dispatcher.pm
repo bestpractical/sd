@@ -130,6 +130,7 @@ under ticket => sub {
     on [ [ 'show'   , 'display' ] ]   => run_command('Ticket::Show');
     on [ [ 'update' , 'edit' ] ]      => run_command('Ticket::Update');
     on [ [ 'search', 'list', 'ls' ] ] => run_command('Ticket::Search');
+    on review   => run_command('Ticket::Review');
     on details  => run_command('Ticket::Details');
     on basics   => run_command('Ticket::Basics');
     on comment  => run_command('Ticket::Comment');
