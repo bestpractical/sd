@@ -25,3 +25,19 @@ unless ($ENV{SD_VERBOSE_ERROR} || $ENV{'TEST_VERBOSE'}) {
 my $cli = App::SD::CLI->new;
 $cli->run_one_command(@ARGV);
 
+__END__
+
+=head1 NAME
+
+sd - a distributed ticket tracking system
+
+=head1 DESCRIPTION
+
+SD is a peer to peer ticket tracking system built on the Prophet
+distributed database. SD is designed to make it easy to work with tickets
+and to share ticket databases with your collaborators.
+
+Please run C<sd help> for documentation and C<sd help intro> for an
+introduction to SD.
+
+=cut
