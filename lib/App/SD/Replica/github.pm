@@ -8,7 +8,7 @@ use Memoize;
 use URI;
 use Memoize;
 use Net::GitHub;
-
+use Config::GitLike::Git;
 use Prophet::ChangeSet;
 
 use constant scheme => 'github';
@@ -43,6 +43,14 @@ sub BUILD {
     }
     else {
         $uri = 'http://github.com/';
+    }
+
+    # see http://github.com/blog/180-local-github-config
+    if ( !$api_token ) {
+        my $config = Config::GitLike::Git->new;
+        $config->load;
+        $username  = $config->get(key => 'github.user');
+        $api_token = $config->get(key => 'github.token');
     }
 
     ( $username, $api_token )
