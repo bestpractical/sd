@@ -32,7 +32,7 @@ on qr'^(?!help)' => sub {
 };
 
 under help => sub {
-    on [ [ 'intro', 'init', 'clone' ] ]   => run_command('Help::Intro');
+    on [ [ 'intro', 'init' ] ]   => run_command('Help::Intro');
     on about   => run_command('Help::About');
     on config  => run_command('Help::Config');
     on copying => run_command('Help::Copying');
