@@ -1,4 +1,4 @@
-package App::SD::Replica::gcode;
+ package App::SD::Replica::gcode;
 use Any::Moose;
 extends qw/App::SD::ForeignReplica/;
 
@@ -36,8 +36,16 @@ sub foreign_username { return shift->gcode->email(@_) }
 sub BUILD {
     my $self = shift;
     # Require rather than use to defer load
-    require Net::Google::Code;
-    require Net::Google::Code::Issue;
+    eval {
+        require Net::Google::Code;
+        require Net::Google::Code::Issue;
+    };
+
+    if ($@) {
+        die "SD requires Net::Google::Code to sync with Google Code.\n".
+        "'cpan Net::Google::Code' may sort this out for you.\n";
+    }
+
 
     $Net::Google::Code::Issue::USE_HYBRID = 1
       if $Net::Google::Code::VERSION ge '0.15';

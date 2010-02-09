@@ -22,7 +22,13 @@ sub BUILD {
     my $self = shift;
 
     # Require rather than use to defer load
-    require Net::Trac;
+    eval {
+        require Net::Trac;
+    };
+    if ($@) {
+        die "SD requires Net::Trac to sync with a Trac server.\n".
+        "'cpan Net::Trac' may sort this out for you.\n";
+    }
 
     my ( $server, $type, $query ) = $self->{url} =~ m/^trac:(.*?)$/
         or die

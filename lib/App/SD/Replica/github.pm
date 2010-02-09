@@ -7,7 +7,6 @@ use Memoize;
 
 use URI;
 use Memoize;
-use Net::GitHub;
 use Config::GitLike::Git;
 use Prophet::ChangeSet;
 
@@ -25,6 +24,15 @@ our %PROP_MAP = ( state => 'status', title => 'summary' );
 
 sub BUILD {
     my $self = shift;
+
+    eval {
+        require Net::GitHub;
+    };
+
+    if ($@) {
+        die "SD requires Net::GitHub to sync with a GitHub server.\n".
+        "'cpan Net::GitHub' may sort this out for you";
+    }
 
     my ( $server, $owner, $repo ) =
       $self->{url} =~ m{^github:(http://.*?github.com/)?(.*?)/([^/]+)/?}

@@ -7,8 +7,6 @@ use Memoize;
 
 use URI;
 use Memoize;
-use Net::Lighthouse::Project;
-use Net::Lighthouse::User;
 
 use Prophet::ChangeSet;
 
@@ -26,6 +24,16 @@ our %PROP_MAP = ( state => 'status', title => 'summary' );
 
 sub BUILD {
     my $self = shift;
+
+    eval {
+        require Net::Lighthouse::Project;
+        require Net::Lighthouse::User;
+    };
+    if ($@) {
+        die "SD requires Net::Lighthouse to sync with a Lighthouse server.\n".
+        "'cpan Net::Lighthouse' may sort this out for you";
+    }
+
 
     my ( $auth, $account, $project, $query ) =
       $self->{url} =~ m{^lighthouse:(?:(.*)@)?(.*?)/(.*?)(?:/(.*))?$}

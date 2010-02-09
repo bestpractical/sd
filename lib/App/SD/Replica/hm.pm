@@ -1,4 +1,4 @@
-package App::SD::Replica::hm;
+cpackage App::SD::Replica::hm;
 use Any::Moose;
 extends 'App::SD::ForeignReplica';
 use Params::Validate qw(:all);
@@ -29,7 +29,15 @@ Open a connection to the source identified by C<$self->{url}>.
 
 sub BUILD {
     my $self = shift;
-    require Net::Jifty;
+    eval {
+        require Net::Jifty;
+    };
+
+    if ($@) {
+        die "SD requires Net::Jifty to sync with a Hiveminder server.\n".
+        "'cpan Net::Jifty' may sort this out for you";
+    }
+
     my ( $server, $props ) = $self->{url} =~ m/^hm:(.*?)(?:\|(.*))?$/
         or die
         "Can't parse Hiveminder server spec. Expected hm:http://hiveminder.com or hm:http://hiveminder.com|props";

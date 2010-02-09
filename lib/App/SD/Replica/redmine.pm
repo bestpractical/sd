@@ -14,10 +14,19 @@ has query => ( isa => 'Str', is => 'rw');
 has redmine => (isa => 'Net::Redmine', is => 'rw');
 
 use URI;
-use Net::Redmine;
 
 sub BUILD {
     my $self = shift;
+
+    eval {
+        require Net::Redmine;
+    };
+    if ($@) {
+        die "SD requires Net::Redmine to sync with a Redmine server.\n".
+        "'cpan Net::Redmine' may sort this out for you";
+    }
+
+
 
     my ( $server, $type, $query ) = $self->{url} =~ m/^redmine:(.*?)$/
         or die "Can't parse Redmine server spec. Expected something like redmine:http://example.com/projects/project_name\n";
