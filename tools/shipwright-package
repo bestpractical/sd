@@ -34,17 +34,20 @@ $IMPORT \
 cd /tmp
 #shipwright update cpan-Module-Build --add-deps cpan-Pod-Simple
 #shipwright update cpan-IO-Compress-Base --add-deps cpan-Scalar-List-Utils
-shipwright update prophet.git      --add-deps cpan-Term-ReadLine-Perl,cpan-TermReadKey,cpan-DBD-SQLite,cpan-File-ShareDir,cpan-HTTP-Server-Simple,cpan-JSON-XS,cpan-Config::GitLike
+shipwright update prophet.git      --add-deps cpan-Term-ReadLine-Perl,cpan-TermReadKey,cpan-DBD-SQLite,cpan-File-ShareDir,cpan-HTTP-Server-Simple,cpan-JSON-XS,cpan-Config-GitLike
 shipwright update sd.git           --add-deps prophet.git,cpan-Net-Bonjour,cpan-Email-Address,cpan-Net-Trac,cpan-RT-Client-REST,cpan-Net-Google-Code
 shipwright maintain --update-order
 
 cd /tmp
 
 git clone file://${REPO} hack-$$
-cd hack-$$/scripts/cpan-DateTime-Format-Natural
+cd /tmp/hack-$$/sources/cpan-Lingua-EN-Inflect
+git mv Build.pl Build.PL
+cd /tmp/hack-$$/scripts/cpan-DateTime-Format-Natural
 perl -pi -e s'/Build test/Build/g' build
 git config push.default matching
 git commit -m 'Made DTFN not run its tests which add a slew of deps' build
+
 git push
 cd /tmp/
 rm -rf hack-$$
