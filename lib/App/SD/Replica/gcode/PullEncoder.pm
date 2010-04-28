@@ -395,7 +395,7 @@ sub transcode_one_txn {
         $change->add_prop_change(
             name => $prop,
             new  => $new,
-            old  => $old,
+            old  => defined $old ? $old : '',
         ) unless $new eq $old;
     }
 
