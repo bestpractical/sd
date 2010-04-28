@@ -168,7 +168,7 @@ sub translate_ticket_state {
 
         my $updates = $txn->{object}->updates;
 
-        for my $prop (qw(owner status summary cc)) {
+        for my $prop (qw(owner status summary)) {
             next unless exists $updates->{$prop};
             my $value = delete $updates->{$prop};
             $value = '' if ($value eq '----');
@@ -182,6 +182,18 @@ sub translate_ticket_state {
             $txn->{post_state}{ $PROP_MAP{$prop} } = $value;
         }
 
+        if ( $updates->{cc} ) {
+            my $value = delete $updates->{cc};
+            my $is_delete;
+            if ( $value =~ /^-(.*)$/ ) {
+                $is_delete = 1;
+                $value     = $1;
+            }
+
+            $earlier_state{ $PROP_MAP{cc} } =
+              $self->warp_list_to_old_value( $earlier_state{cc},
+                $is_delete ? ( undef, $value ) : ( $value, undef ) );
+        }
 
         if ( $updates->{mergedinto} ) {
             my $value = delete $updates->{mergedinto};
@@ -237,7 +249,7 @@ sub translate_ticket_state {
 # then we can set comment 4 and 5's summary to 'foo'
     my @sorted = sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions;
     for ( my $i = 0 ; $i < @sorted ; $i++ ) {
-        for my $prop (qw(owner status summary cc)) {
+        for my $prop (qw(owner status summary)) {
             if ( !$sorted[$i]->{post_state}{ $PROP_MAP{$prop} } ) {
                 ( $sorted[$i]->{post_state}{ $PROP_MAP{$prop} } ) =
                   grep { $_ }
