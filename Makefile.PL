@@ -53,7 +53,7 @@ recommends 'Net::Google::Code' => 0.14;
 feature 'GitHub sync (experimental)' => (
     -default => 0,
     'Net::GitHub' => 0.18,
-    'Config::GitLike ' => 1.03,
+    'Config::GitLike' => 1.03,
 );
 
 recommends 'Net::GitHub' => 0.18;
