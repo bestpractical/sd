@@ -185,14 +185,17 @@ sub translate_ticket_state {
         if ( $updates->{cc} ) {
             my $value = delete $updates->{cc};
             my $is_delete;
-            if ( $value =~ /^-(.*)$/ ) {
-                $is_delete = 1;
-                $value     = $1;
-            }
+            my @cc = split /\s+/, $value;
+            for my $value (@cc) {
+                if ( $value =~ /^-(.*)$/ ) {
+                    $is_delete = 1;
+                    $value     = $1;
+                }
 
-            $earlier_state{ $PROP_MAP{cc} } =
-              $self->warp_list_to_old_value( $earlier_state{cc},
-                $is_delete ? ( undef, $value ) : ( $value, undef ) );
+                $earlier_state{ $PROP_MAP{cc} } =
+                  $self->warp_list_to_old_value( $earlier_state{cc},
+                    $is_delete ? ( undef, $value ) : ( $value, undef ) );
+            }
         }
 
         if ( $updates->{mergedinto} ) {
