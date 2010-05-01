@@ -157,6 +157,7 @@ sub translate_ticket_state {
     my $final_state   = $self->_translate_final_ticket_state($ticket);
     my %earlier_state = %{$final_state};
 
+    my $pre_txn;
     for my $txn ( sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions ) {
         $txn->{post_state} = {%earlier_state};
 
@@ -167,7 +168,7 @@ sub translate_ticket_state {
 
         my $updates = $txn->{object}->updates;
 
-        for my $prop (qw(owner status cc summary)) {
+        for my $prop (qw(owner status summary)) {
             next unless exists $updates->{$prop};
             my $value = delete $updates->{$prop};
             $value = '' if ($value eq '----');
@@ -178,6 +179,38 @@ sub translate_ticket_state {
             $earlier_state{ $PROP_MAP{$prop} } =
               $self->warp_list_to_old_value( $earlier_state{ $PROP_MAP{$prop} },
                 $value, undef );
+            $txn->{post_state}{ $PROP_MAP{$prop} } = $value;
+        }
+
+        if ( $updates->{cc} ) {
+            my $value = delete $updates->{cc};
+            my $is_delete;
+            my @cc = split /\s+/, $value;
+            for my $value (@cc) {
+                if ( $value =~ /^-(.*)$/ ) {
+                    $is_delete = 1;
+                    $value     = $1;
+                }
+
+                $earlier_state{ $PROP_MAP{cc} } =
+                  $self->warp_list_to_old_value( $earlier_state{cc},
+                    $is_delete ? ( undef, $value ) : ( $value, undef ) );
+            }
+        }
+
+        if ( $updates->{mergedinto} ) {
+            my $value = delete $updates->{mergedinto};
+            my $is_delete;
+            if ( $value =~ /^-(.*)$/ ) {
+                $is_delete = 1;
+                $value     = $1;
+            }
+
+            $earlier_state{ $PROP_MAP{mergedinto} } =
+              $self->warp_list_to_old_value( $earlier_state{mergedinto},
+                $is_delete ? ( undef, $value ) : ( $value, undef ) );
+            $txn->{post_state}{ $PROP_MAP{mergedinto} } = $value
+              unless $is_delete;
         }
 
         if ( $updates->{labels} ) {
@@ -207,6 +240,27 @@ sub translate_ticket_state {
         }
 
         $txn->{pre_state} = {%earlier_state};
+        $pre_txn->{pre_state} = $txn->{post_state} if $pre_txn;
+        $pre_txn = $txn;
+    }
+
+# XXX try our best to find historical info
+# e.g. 
+# comemnt 3 has summary: "foo"
+# comment 4 and 5 don't have summary changes
+# comment 6 has summary: "bar"
+# then we can set comment 4 and 5's summary to 'foo'
+    my @sorted = sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions;
+    for ( my $i = 0 ; $i < @sorted ; $i++ ) {
+        for my $prop (qw(owner status summary)) {
+            if ( !$sorted[$i]->{post_state}{ $PROP_MAP{$prop} } ) {
+                ( $sorted[$i]->{post_state}{ $PROP_MAP{$prop} } ) =
+                  grep { $_ }
+                  map  { $_->{post_state}{ $PROP_MAP{$prop} } }
+                  @sorted[ $i + 1 .. $#sorted ];
+                $sorted[$i]->{post_state}{ $PROP_MAP{$prop} } ||= '';
+            }
+        }
     }
 
     return \%earlier_state, $final_state;
@@ -344,7 +398,7 @@ sub transcode_one_txn {
         $change->add_prop_change(
             name => $prop,
             new  => $new,
-            old  => $old,
+            old  => defined $old ? $old : '',
         ) unless $new eq $old;
     }
 
