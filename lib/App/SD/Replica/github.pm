@@ -30,18 +30,19 @@ sub BUILD {
     };
 
     if ($@) {
-        die "SD requires Net::GitHub to sync with a GitHub server.\n".
-        "'cpan Net::GitHub' may sort this out for you";
+        die "SD requires Net::GitHub to sync with a GitHub server. "
+            . "'cpan Net::GitHub' may sort this out for you\n";
     }
 
-    my ( $server, $owner, $repo ) =
-      $self->{url} =~ m{^github:(http://.*?github.com/)?(.*?)/([^/]+)/?}
+    my ( $server, $owner, $repo )
+        = $self->{url}
+        =~ m{^github:((?:http://.*?github.com/|git\@github.com:))?(.*?)/([^/\.]+)(?:(/|\.git))?}
         or die
         "Can't parse Github server spec. Expected github:owner/repository or github:http://github.com/owner/repository.\n";
 
     my ( $uri, $username, $api_token );
 
-    if ($server) {
+    if ($server && $server =~ m!http!) {
         $uri = URI->new($server);
         if ( my $auth = $uri->userinfo ) {
             ( $username, $api_token ) = split /:/, $auth, 2;
