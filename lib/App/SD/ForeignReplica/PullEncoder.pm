@@ -89,7 +89,7 @@ sub transcode_history {
 
 
 sub translate_ticket_state {
-    die 'translate_ticket_state must be mplemented';
+    die 'translate_ticket_state must be implemented';
 }
 
 sub warp_list_to_old_value {

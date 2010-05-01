@@ -39,6 +39,14 @@ if [ "$1" = "init" ] || [ "$1" = "clone" ] && [ "$2" != "-h" ] \
         echo ""
         SD_REPO="$replica" sd config user.email-address "$gitemail"
     fi
+    gitorigin=$(git config remote.origin.url 2>/dev/null)
+    if [ `echo $gitorigin | grep github` ]; then
+	echo "Cloning issues from $gitorigin:"
+	echo ""
+        echo "  sd clone --from github:$gitorigin"
+	echo ""
+        SD_REPO="$replica" sd clone --from "github:$gitorigin"
+    fi
 fi
 
 SD_REPO="$replica" exec sd "$@"
