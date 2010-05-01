@@ -36,9 +36,8 @@ sub BUILD {
 
     my ( $server, $owner, $repo ) =
       $self->{url} =~ m{^github:(http://.*?github.com/)?(.*?)/([^/]+)/?}
-      or die
-        "Can't parse Github server spec. Expected github:owner/repository or\n"
-        ."github:http://github.com/owner/repository.";
+        or die
+        "Can't parse Github server spec. Expected github:owner/repository or github:http://github.com/owner/repository.\n";
 
     my ( $uri, $username, $api_token );
 
