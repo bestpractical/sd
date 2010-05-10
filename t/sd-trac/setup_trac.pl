@@ -31,7 +31,7 @@ sub _did_server_start {
     my $self = shift;
     for ( 1 .. 200 ) {
         return 1 if eval { get( $self->url ) };
-        usleep 5000;
+        usleep 15000;
     }
     die "Server didn't start";
 }
