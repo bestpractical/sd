@@ -26,7 +26,7 @@ sub integrate_ticket_update {
       $self->sync_source->remote_id_for_uuid( $change->record_uuid );
     my $ticket = Net::Trac::Ticket->new( connection => $self->sync_source->trac);
     $ticket->load($remote_ticket_id);
-    $ticket->update( %{ $self->_recode_props_for_integrate($change) }, no_auto_status => 1);
+    $ticket->update( %{ $self->_recode_props_for_integrate($change) } );
     return $remote_ticket_id;
 }
 
