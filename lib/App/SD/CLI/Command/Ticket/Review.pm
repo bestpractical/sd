@@ -51,7 +51,7 @@ after out_record => sub {
     foreach my $do ( @list ) {
         my $action = $ACTIONS{ $do };
         unless ( $action ) {
-            print "No action binded to '$do', try again...\n";
+            print "No action bound to '$do', try again...\n";
             $ask_again = 1; next;
         }
         next unless $action->{'action'};
