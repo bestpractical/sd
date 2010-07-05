@@ -52,12 +52,10 @@ override run => sub {
 
     print "\n= METADATA\n\n";
     super();
-
     my @history = sort by_creation_date ( @{ $record->comments }, $record->changesets );
 
     my @attachments = sort by_creation_date @{ $record->attachments };
     if (@attachments) {
-        warn ref($_);
         print "\n= ATTACHMENTS\n\n";
         $self->show_attachment($_) for @attachments;
     }
@@ -84,6 +82,17 @@ override run => sub {
     };
 
 
+sub format_prop {
+    my $self  = shift;
+    my $field = shift;
+    my $value = shift;
+    if ($self->has_arg('batch')) {
+        return "$field: $value\n";
+    } else {
+        return sprintf("%18.18s: %s\n",$field, $value);
+    }
+}
+
 sub show_history_entry {
     my $self      = shift;
     my $ticket    = shift;
@@ -92,7 +101,8 @@ sub show_history_entry {
     
     for my $change ( $changeset->changes ) {
         next if $change->record_uuid ne $ticket->uuid;
-        $body .= $change->as_string() ||next;
+
+        $body .= App::SD::CLI->format_change(change => $change) || next;
         $body .= "\n";
     }
 
@@ -116,17 +126,28 @@ sub show_attachment {
 }
 
 sub show_comment {
-    my $self    = shift;
+    my $self = shift;
     my $comment = shift;
-
     my $creator      = $comment->prop('creator');
     my $created      = $comment->prop('created');
     my $content_type = $comment->prop('content_type') || 'text/plain';
+    my $content = $comment->prop('content') || '';
 
 
     my ($creation) = $comment->changesets(limit => 1);
 
-    my $content = $comment->prop('content') || '';
+    $self->history_entry_header($creator,
+        $created,$creation->original_sequence_no, $self->app_handle->display_name_for_replica($creation->original_source_uuid));
+
+    print $self->format_comment($content_type, $content);
+    print "\n\n";
+}
+
+sub format_comment {
+    my $self         = shift;
+    my $content_type = shift;
+    my $content      = shift;
+
     if ( $content_type =~ m{text/html}i ) {
 
         $content =~ s|<p.*?>|\n|gismx;
@@ -138,21 +159,22 @@ sub show_comment {
         $content =~ s|\n\n|\n|gismx;
     }
 
-    $self->history_entry_header($creator,
-        $created,$creation->original_sequence_no, $self->app_handle->display_name_for_replica($creation->original_source_uuid));
-    print $content;
-    print "\n\n";
+    return $content;
 }
 
 
 sub history_entry_header {
     my $self = shift;
     my ($creator, $created, $sequence, $source) = (@_);
-     printf "%s at %s\t\(%d@%s)\n\n",
+    print "="x80;
+    print "\n";
+     printf "%s at %s\t\(%d@%s)\n",
         ( $creator || '(unknown)' ),
         $created,
         $sequence,
         $source;
+    print "-"x80;
+    print "\n";
     }
 
 __PACKAGE__->meta->make_immutable;

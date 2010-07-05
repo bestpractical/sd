@@ -1,7 +1,7 @@
 use inc::Module::Install;
 name('App-SD');
 author('Jesse Vincent and Chia-Liang Kao');
-copyright('2008-2009 Best Practical Solutions, LLC');
+#copyright('2008-2009 Best Practical Solutions, LLC');
 license('MIT');
 version_from('lib/App/SD.pm');
 

@@ -70,8 +70,8 @@ run_output_matches(
 diag($err) if ($err);
 diag($out);
 
-like( $out, qr/"content" set to "comment from sd"/, 'comment pushed' );
-like( $out, qr/"summary" set to "YATTA"/, 'ticket yatta pushed' );
+like( $out, qr/content set to comment from sd/i, 'comment pushed' );
+like( $out, qr/summary set to YATTA/i, 'ticket yatta pushed' );
 unlike( $out, qr/test for sd/, 'pulled tickets not pushed' );
 unlike( $out, qr/first comment.*second comment/s, 'pulled comments not pushed' );
 

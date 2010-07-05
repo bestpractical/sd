@@ -24,18 +24,22 @@ my $replica_uuid = replica_uuid;
 my ($log_id, $log_uuid) = create_ticket_ok( '--', 'summary', 'logs rock!');
 # check the log
 
-run_output_matches_unordered( 'sd', [ 'log', 'LATEST' ],
+run_output_matches( 'sd', [ 'log', 'LATEST' ],
     [
+        qr/^$/,
+        qr/^=+$/,
         qr/^\d{4}-\d{2}-\d{2}.+ - $ENV{PROPHET_EMAIL} : \d+\@\Q$ENV{PROPHET_REPO}\E$/,
-        qr/^ # Ticket \d+ \(logs rock!\)$/,
-        '  + "original_replica" set to "'.$replica_uuid.'"',
-        '  + "creator" set to "'.$ENV{PROPHET_EMAIL}.'"',
-        '  + "status" set to "new"',
-        '  + "reporter" set to "'.$ENV{PROPHET_EMAIL}.'"',
-        qr/^  \+ "created" set to "\d{4}-\d{2}-\d{2}.+"$/,
-        '  + "component" set to "core"',
-        '  + "summary" set to "logs rock!"',
-        '  + "milestone" set to "alpha"',
+        qr/^Ticket \d+ \(logs rock!\)$/,
+        qr/^-+$/,
+        qr/created: set to \d{4}-\d{2}-\d{2}.+/,
+        qr/original_replica: set to $replica_uuid/,
+        qr/creator: set to $ENV{PROPHET_EMAIL}/,
+        qr/component: set to core/,
+        qr/summary: set to logs rock!/,
+        qr/status: set to new/,
+        qr/milestone: set to alpha/,
+        qr/reporter: set to $ENV{PROPHET_EMAIL}/,
+        qr/^$/,
     ], [], "log output is correct",
 );
 # change a prop
@@ -49,9 +53,12 @@ run_output_matches( 'sd', [ 'ticket',
 # check the log
 run_output_matches( 'sd', [ 'log', 'LATEST' ],
     [
+        '',
+        qr/^=+/,
         qr/^\d{4}-\d{2}-\d{2}.+ - $ENV{PROPHET_EMAIL} : \d+\@\Q$ENV{PROPHET_REPO}\E$/,
-        qr/^ # Ticket \d+ \(logs rock!\)$/,
-        '  > "reporter" changed from "'.$ENV{PROPHET_EMAIL}.'" to "foo@bar.com".',
+        qr/^Ticket \d+ \(logs rock!\)$/,
+        qr/^-+/,
+        qr/reporter: changed from $ENV{PROPHET_EMAIL} to foo\@bar.com/,
         '',
     ], [], "log output is correct",
 );
