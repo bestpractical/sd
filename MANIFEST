@@ -172,6 +172,6 @@ t/sd-validation.t
 t/server.t
 tools/shipwright-package
 tools/shipwright-package-minimal
-xt/00-dependencies.t
-xt/99-pod-coverage.t
-xt/99-pod.t
+xt/release/00-dependencies.t
+xt/release/99-pod-coverage.t
+xt/release/99-pod.t
