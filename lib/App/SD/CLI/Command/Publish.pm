@@ -75,6 +75,8 @@ sub work_with_urls {
     my $current_url = shift;
     my $content  = shift;
 
+    my $current_depth = () = $current_url =~ m{.+?/}g;
+
     #Extract Links from the file
     my $h = HTML::TreeBuilder->new;
     $h->no_space_compacting(1);
@@ -94,7 +96,7 @@ sub work_with_urls {
 
         $all_links->{$link}++;
         
-        my $url = URI::file->new($link)->rel("file://$current_url");
+        my $url = $link;
 
         if ( $url =~ m|/$| ) {
             $url .= "index.html" 
@@ -102,18 +104,48 @@ sub work_with_urls {
             $url .= ".html";
         }
 
-
+        # if $url is absolute, let's make it relative
+        if ( $current_depth && $url =~ s{^/}{} ) {
+            $url = ( '../' x $current_depth ) . $url;
+        }
 
         my ($attr)
             = grep { defined $element->attr($_) and $link eq $element->attr($_) }
             @{ $HTML::Tagset::linkElements{ $element->tag } };
 
-        #Re-write the attribute in the HTML::Element Tree
         $element->attr( $attr, $url );
-
     }
 
-    return $h->as_HTML, [ keys %$all_links ];
+    my @links;
+
+    # we nned to turn every link into absolute, here is to find out dir info
+    # e.g. if $current_url is '/foo/bar/baz.html', @dirs will be qw/foo bar/
+    my @dirs = grep { $_ } split m{/}, $current_url;
+    # pop the page name like history.html
+    pop @dirs;
+
+    for my $link ( keys %$all_links ) {
+        next unless $link;
+
+        # we don't use ./ and file: link in pages, so they are bogus for us
+        # more worse thing is './' will overwride some page with nothing
+        next if $link eq './' || $link =~ /^file:/;
+
+        # generally, if the link is not absolute, we need to find it.
+        if ( $link !~ m{^/} ) {
+            my $depth = $link =~ s{\.\./}{}g;
+            my @tmp_dirs = @dirs;
+            # remove trailing dirs according to $depth
+            if ($depth) {
+                pop @tmp_dirs while $depth--;
+            }
+            $link = '/' . join '/', @tmp_dirs, $link;
+        }
+
+        push @links, $link;
+    }
+
+    return $h->as_HTML, \@links;
 }
 
 sub handle_redirect {
