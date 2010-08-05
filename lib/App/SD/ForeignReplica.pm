@@ -76,32 +76,32 @@ sub record_pushed_transactions {
     my $earliest_valid_txn_date;
 
     # walk through every transaction on the ticket, starting with the latest
-    
+
     for my $txn ( $self->get_txn_list_by_date($args{ticket}) ) {
-       
+
         # walk backwards through all transactions on the ticket we just updated
         # Skip any transaction where the remote user isn't me, this might include any transaction
         # RT created with a scrip on your behalf
-   
+
         next unless $txn->{creator} eq $self->foreign_username;
 
         # get the completion time _after_ we do our next round trip to rt to try to make sure
         # a bit of lag doesn't skew us to the wrong side of a 1s boundary
-      
-     
+
+
        if (!$earliest_valid_txn_date){
             my $change_window =  time() - $args{start_time};
             # skip any transaction created more than 5 seconds before the push started.
             # I can't think of any reason that number shouldn't be 1, but clocks are fickle
-            $earliest_valid_txn_date = $txn->{created} - ($change_window + 5); 
-        }      
+            $earliest_valid_txn_date = $txn->{created} - ($change_window + 5);
+        }
 
         last if $txn->{created} < $earliest_valid_txn_date;
 
         # if the transaction id is older than the id of the last changeset
         # we got from the original source of this changeset, we're done
         last if $txn->{id} <= $self->app_handle->handle->last_changeset_from_source($args{changeset}->original_source_uuid);
-        
+
         # if the transaction from RT is more recent than the most recent
         # transaction we got from the original source of the changeset
         # then we should record that we sent that transaction upstream
@@ -113,11 +113,11 @@ sub record_pushed_transactions {
         );
     }
 }
-    
+
 
 =head2 record_pushed_transaction $foreign_transaction_id, $changeset
 
-Record that this replica was the original source of $foreign_transaction_id 
+Record that this replica was the original source of $foreign_transaction_id
 (with changeset $changeset)
 
 =cut
@@ -149,7 +149,7 @@ once we've done a pull from the remote replica, we can safely expire
 all records of this type for the remote replica (they'll be
 obsolete)
 
-We use this cache to avoid integrating changesets we've pushed to the 
+We use this cache to avoid integrating changesets we've pushed to the
 remote replica when doing a subsequent pull
 
 =cut
@@ -226,7 +226,7 @@ sub remote_uri_path_for_id {
 
 =head2 uuid_for_remote_id $id
 
-lookup the uuid for the remote record id. If we don't find it, 
+lookup the uuid for the remote record id. If we don't find it,
 construct it out of the remote url and the remote uri path for the record id;
 
 =cut
