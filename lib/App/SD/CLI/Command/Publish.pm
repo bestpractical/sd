@@ -105,7 +105,7 @@ sub work_with_urls {
         }
 
         # if $url is absolute, let's make it relative
-        if ( $current_depth && $url =~ s{^/}{} ) {
+        if ( $url =~ s{^/}{} && $current_depth ) {
             $url = ( '../' x $current_depth ) . $url;
         }
 
