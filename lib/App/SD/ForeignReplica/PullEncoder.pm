@@ -36,6 +36,17 @@ sub run {
 
 sub ticket_last_modified { undef }
 
+=head2 transcode_ticket $ticket, $last_modified
+
+Morph a ticket's history into changesets.
+
+XXX what is last_modified for? currently it is always passed in as undef
+and seems to do nothing
+
+Return ($last_modified, $changesets).
+
+=cut
+
 sub transcode_ticket {
     my $self          = shift;
     my $ticket        = shift;
@@ -62,14 +73,21 @@ sub transcode_ticket {
     return ( $last_modified, $changesets );
 }
 
+=head2 transcode_history $ticket $transactions $last_modified
+
+Translates transactions from the foreign source for the given ticket and
+returns an updated last_modified date and a set of Prophet::ChangeSet objects
+that correspond to the transactions.
+
+=cut
 
 sub transcode_history {
     my $self          = shift;
     my $ticket        = shift;
     my $transactions  = shift;
     my $last_modified = shift;
-    my $ticket_id     = $self->ticket_id($ticket);
 
+    my $ticket_id     = $self->ticket_id($ticket);
     my @changesets;
 
     # Walk transactions newest to oldest.
@@ -81,14 +99,17 @@ sub transcode_history {
     for my $txn ( sort { $b->{'serial'} <=> $a->{'serial'} } @$transactions ) {
         $last_modified = $txn->{timestamp}
             if ( !$last_modified || ( $txn->{timestamp} > $last_modified ) );
+
         $self->sync_source->log_debug( "$ticket_id Transcoding transaction "
             . ++$txn_counter . " of " . scalar @$transactions );
 
-        my $changeset = $self->transcode_one_txn( $txn, $initial_state, $final_state );
-        next unless $changeset && $changeset->has_changes;
-
-        # the changesets are older than the ones that came before, so they goes first
-        unshift @changesets, $changeset;
+        my $changeset = $self->transcode_one_txn(
+            $txn, $initial_state, $final_state );
+        if ( $changeset && $changeset->has_changes ) {
+            # the new changeset is older than the ones that came before, so it
+            # goes first
+            unshift @changesets, $changeset;
+        }
     }
     return ( $last_modified, \@changesets );
 }
@@ -103,6 +124,10 @@ sub find_matching_transactions {
 
 sub translate_ticket_state {
     die 'translate_ticket_state must be implemented';
+}
+
+sub transcode_one_txn {
+    die 'transcode_one_txn must be implemented';
 }
 
 sub warp_list_to_old_value {
