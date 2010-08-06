@@ -330,6 +330,12 @@ sub _transcode_create_txn {
         new => $txn->{submitter},
     );
 
+    $change->add_prop_change(
+        name => 'status',
+        old => '',
+        new => 'open',
+    );
+
     $changeset->add_change( { change => $change } );
 
     # creates basically always have comments too
@@ -347,7 +353,7 @@ sub _create_changeset {
 
     my $changeset = Prophet::ChangeSet->new(
         {   original_source_uuid => $ticket_uuid,
-            original_sequence_no => $txn->{id},
+            original_sequence_no => $txn->{log_entry_num},
             creator => $creator,
             created => $txn->{date}->ymd . " " . $txn->{date}->hms
         }
