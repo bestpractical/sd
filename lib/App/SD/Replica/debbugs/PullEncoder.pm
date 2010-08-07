@@ -22,9 +22,8 @@ my $DEBUG = 1;
 
 =head2 ticket_last_modified $ticket
 
-Given a ticket, returns when it was last modified.
-
-XXX what format should this be in?
+Given a ticket, returns when it was last modified
+as a unix epoch.
 
 =cut
 
@@ -37,7 +36,7 @@ sub ticket_last_modified {
 
 =head2 ticket_id $ticket
 
-Given a ticket, returns its ID. In the case of Debbugs,
+Given a ticket, returns its ID from the foreign source. In the case of Debbugs,
 this is the bug's bug number.
 
 =cut
@@ -146,8 +145,8 @@ sub find_matching_transactions {
                       object => $txn};
     }
     $self->sync_source->log_debug('Done looking at pulled txns');
-    return \@txns;
 
+    return \@txns;
 }
 
 =head2 translate_ticket_state
@@ -180,13 +179,13 @@ sub translate_ticket_state {
         tags        => ( $ticket_object->{tags} || undef ),
         package     => ( $ticket_object->{package} || undef ),
         severity    => ( $ticket_object->{severity} || undef ),
+        id          => ( $ticket_object->{id} || undef ),
     };
 
-    # # delete undefined and empty fields
-    # delete $ticket_data->{$_}
-    #     for grep !defined $ticket_data->{$_} || $ticket_data->{$_} eq '', keys %$ticket_data;
-
-    return ($ticket_object, $ticket_data);
+    # $ticket will be updated as we walk backwards through log entries.
+    # Eventually, $ticket should be the beginning state of the ticket
+    # (just after create).
+    return ($ticket_data, $ticket_data);
 }
 
 =head2 transcode_one_txn $txn_wrapper, $ticket, $ticket_final
@@ -212,15 +211,15 @@ sub transcode_one_txn {
     # incoming message that creates the bug, which is a slight
     # complexity that we'd prefer to ignore for now.
 
-    # return if ( $txn->{type} eq 'outgoing-message' );
+    return if ( $txn->{type} eq 'outgoing-message' );
 
     # XXX testing
-    if ( $DEBUG ) {
-        unless ( $txn->{type} eq 'create' ) {
-            warn "- skipping txn with type $txn->{type}\n";
-            return;
-        }
-    }
+    # if ( $DEBUG ) {
+    #     unless ( $txn->{type} eq 'create' ) {
+    #         warn "- skipping txn with type $txn->{type}\n";
+    #         return;
+    #     }
+    # }
 
     # my $ticket_uuid = $self->sync_source->uuid_for_remote_id(
     #     $ticket->{ $self->sync_source->uuid . '-id' } );
@@ -254,9 +253,9 @@ Custom settings for this foreign replica.
 sub database_settings {
     my $self = shift;
 
-    my @resolutions = qw(fixed wontfix);
+    my @resolutions = qw(closed wontfix);
 
-    my @active_statuses = qw(open pending blocked);
+    my @active_statuses = qw(open pending stalled);
 
     return {
         active_statuses => [@active_statuses],
@@ -279,10 +278,10 @@ sub _determine_bug_status {
         return 'archived';
     }
     elsif ( $ticket_obj->{fixed} ) {
-        return 'fixed';
+        return 'closed';
     }
     elsif ( $ticket_obj->{blockedby} ) {
-        return 'blocked';
+        return 'stalled';
     }
     elsif ( $ticket_obj->{pending} eq 'pending-fixed' ) {
         return 'pending';
@@ -295,8 +294,8 @@ sub _determine_bug_status {
 sub _transcode_create_txn {
     my ($self, $txn, $ticket, $ticket_final, $ticket_uuid) = @_;
 
-    use Data::Dump qw(pp);
-    warn pp $txn;
+    # use Data::Dump qw(pp);
+    # warn pp $txn;
 
     my $changeset = $self->_create_changeset(
         $txn, $ticket_uuid,
@@ -319,7 +318,7 @@ sub _transcode_create_txn {
     }
 
     $change->add_prop_change(
-        name => 'subject',
+        name => 'summary',
         old => '',
         new => $txn->{title},
     );
@@ -336,10 +335,17 @@ sub _transcode_create_txn {
         new => 'open',
     );
 
+    $change->add_prop_change(
+        name => 'debian-id',
+        old => '',
+        new => $ticket->{id},
+    );
+
     $changeset->add_change( { change => $change } );
 
     # creates basically always have comments too
-    my $comment = $self->_create_new_comment( $txn, $ticket_uuid );
+    my $comment = $self->_create_new_comment( $txn, $ticket_uuid,
+        $self->resolve_user_id_to_email( $txn->{submitter} ) );
 
     if ( $comment ) {
         $changeset->add_change( { change => $comment } );
@@ -365,15 +371,23 @@ sub _create_changeset {
 sub _transcode_comment_txn {
     my ($self, $txn, $ticket, $ticket_final, $ticket_uuid) = @_;
 
+    my %to_hash = map { $_ => 1 } @{ $txn->{to} };
+
+    # don't record control messages; their data should be recorded
+    # elsewhere
+    return if $to_hash{'control@bugs.debian.org'};
+
     my $changeset = $self->_create_changeset(
         $txn, $ticket_uuid,
         $self->resolve_user_id_to_email( $txn->{from} ),
     );
 
-    my $comment = $self->_create_new_comment( $txn, $ticket_uuid );
+    my $comment = $self->_create_new_comment( $txn, $ticket_uuid,
+        $self->resolve_user_id_to_email( $txn->{from} ) );
 
     if ( $comment ) {
         $changeset->add_change( { change => $comment } );
+        return $changeset;
     }
 }
 
@@ -385,7 +399,7 @@ body. May return undef if the message was blank.
 =cut
 
 sub _create_new_comment {
-    my ($self, $txn, $ticket_uuid) = @_;
+    my ($self, $txn, $ticket_uuid, $creator) = @_;
 
     my $message = $txn->{body};
     my $comment = $self->new_comment_creation_change();
@@ -397,7 +411,7 @@ sub _create_new_comment {
         );
         $comment->add_prop_change(
             name => 'creator',
-            new => $self->resolve_user_id_to_email( $txn->{from} ),
+            new => $creator,
         );
         $comment->add_prop_change( name => 'content', new => $message );
         $comment->add_prop_change(
@@ -427,15 +441,18 @@ sub _transcode_close_txn {
 
     $change->add_prop_change(
         name => 'status',
-        # XXX how to determine the previous state of this bug?
+        # XXX how to determine the previous state of this bug? we
+        # don't really know it
         old => 'unknown',
-        new => 'fixed',
+        new => 'closed',
     );
+    $ticket->{status} = 'closed';
 
     # mails to nnnnnn-close@ always contain a comment too, but
     # there's also the BTS close command -- this stuff should
     # be abstracted away by the server-side code in the SOAP call
-    my $comment = $self->_create_new_comment( $txn, $ticket_uuid );
+    my $comment = $self->_create_new_comment( $txn, $ticket_uuid,
+        $self->resolve_user_id_to_email( $txn->{from} ) );
 
     if ( $comment ) {
         $changeset->add_change( { change => $comment } );
@@ -451,12 +468,9 @@ sub _transcode_change_txn {
     # for now, because they're a pain to parse (and if you go back far enough,
     # nothing at all is actually recorded)
     if ( $txn->{command} ) {
-        my $changeset = Prophet::ChangeSet->new(
-            {   original_source_uuid => $ticket_uuid,
-                original_sequence_no => $txn->{id},
-                creator => $self->resolve_user_id_to_email( $txn->{from} ),
-                created => $txn->{date}->ymd . " " . $txn->{date}->hms
-            }
+        my $changeset = $self->_create_changeset(
+            $txn, $ticket_uuid,
+            $self->resolve_user_id_to_email( $txn->{requester} ),
         );
 
         my $change = Prophet::Change->new(
@@ -466,16 +480,38 @@ sub _transcode_change_txn {
             }
         );
 
-        for my $prop ( keys %{ $txn->{old_data} } ) {
-            $prop = lc $prop;
-            $change->add_prop_change(
-                # XXX are we doing any translation between debbugs and SD
-                # with %PROP_MAP?
-                name => $prop,
-                old  => $txn->{old_data}->{$prop},
-                new  => $txn->{new_data}->{$prop},
-            );
+        # it turns out we probably want to do different things
+        # for each available command
+        my %transcode_change_dispatch = (
+            'tag'           => \&_transcode_tag_change,
+            'package'       => \&_transcode_package_change,
+            'submitter'     => \&_transcode_submitter_change,
+        );
+
+        my $sub = $transcode_change_dispatch{ $txn->{command} };
+
+        if ( $sub ) {
+            warn "- dispatching to $txn->{command}\n";
+            $sub->( $self, $txn, $ticket, $ticket_final, $change);
         }
+        else {
+            use Data::Dump qw(pp);
+            pp $txn;
+            die "Attempt to transcode unknown change command ".
+                "'$txn->{command}'. Please update debbugs bridge for ".
+                "changed API!\n";
+        }
+
+        # for my $prop ( keys %{ $txn->{old_data} } ) {
+        #     $prop = lc $prop;
+        #     $change->add_prop_change(
+        #         # XXX are we doing any translation between debbugs and SD
+        #         # with %PROP_MAP?
+        #         name => $prop,
+        #         old  => $txn->{old_data}->{$prop},
+        #         new  => $txn->{new_data}->{$prop},
+        #     );
+        # }
 
         $changeset->add_change( { change => $change } )
             if $change->has_prop_changes;
@@ -484,24 +520,98 @@ sub _transcode_change_txn {
     }
 }
 
+sub _transcode_tag_change {
+    my ($self, $txn, $ticket, $ticket_final, $change) = @_;
+
+    my %old_keywords = map { $_ => 1 }
+        split( / /, $txn->{old_data}->{keywords} );
+    my %new_keywords = map { $_ => 1 }
+        split( / /, $txn->{new_data}->{keywords} );
+
+    my (%additions, %subtractions);
+    for my $new_keyword ( keys %new_keywords ) {
+        $additions{ $new_keyword } = 1 unless $old_keywords{ $new_keyword };
+    }
+    for my $old_keyword ( keys %old_keywords ) {
+        $subtractions{ $old_keyword } = 1 unless $new_keywords{ $old_keyword };
+    }
+
+    # sometimes we need to do special things based on keywords, e.g.
+    # for 'pending', which affects status, not keywords
+    if ( $additions{pending} ) {
+        $change->add_prop_change(
+            name => 'status',
+            # XXX how to determine previous status?
+            old  => 'unknown',
+            new  => 'pending',
+        );
+        $ticket->{status} = 'pending';
+        delete $new_keywords{pending};
+    }
+    elsif ( $subtractions{pending} ) {
+        my $old_status = $ticket->{status};
+        $ticket->{status} = 'pending';
+        $change->add_prop_change(
+            name => 'status',
+            old  => $old_status,
+            new  => $self->_determine_bug_status( $ticket ),
+        );
+        delete $old_keywords{pending};
+    }
+
+    # pending can change at the same time as other keyword
+    # additions / subtractions, so add those too if they exist
+    if ( keys %old_keywords || keys %new_keywords ) {
+        $change->add_prop_change(
+            name => 'tags',
+            old  => join( ' ', sort keys %old_keywords ),
+            new  => join( ' ', sort keys %new_keywords ),
+        );
+        $ticket->{tags} = join( ' ', sort keys %new_keywords );
+    }
+}
+
+# this happens when a bug is reassigned to a different package
+sub _transcode_package_change {
+    my ($self, $txn, $ticket, $ticket_final, $change) = @_;
+
+    $change->add_prop_change(
+        name => 'package',
+        old => $txn->{old_data}->{package},
+        new => $txn->{new_data}->{package},
+    );
+    $ticket->{package} = $txn->{new_data}->{package};
+}
+
+sub _transcode_submitter_change {
+    my ($self, $txn, $ticket, $ticket_final, $change) = @_;
+
+    $change->add_prop_change(
+        name => 'reporter',
+        old => $txn->{old_data}->{originator},
+        new => $txn->{new_data}->{originator},
+    );
+    $ticket->{reporter} = $txn->{old_data}->{originator};
+}
+
 # our %PROP_MAP = (
 #     package                 => 'component',
 #     originator              => 'reporter',
 #     # remote_prop => 'sd_prop',
 # );
 
-=head2 translate_prop_names L<Prophet::ChangeSet>
+# =head2 translate_prop_names L<Prophet::ChangeSet>
 
-=cut
+# =cut
 
-sub translate_prop_names {
-    my $self      = shift;
-    my $changeset = shift;
+# sub translate_prop_names {
+#     my $self      = shift;
+#     my $changeset = shift;
 
-    # ...
+#     # ...
 
-    return $changeset;
-}
+#     return $changeset;
+# }
 
 =head2 resolve_user_id_to_email ID
 
@@ -515,11 +625,10 @@ sub resolve_user_id_to_email {
     my $self = shift;
     my $id   = shift;
 
+    my @addrs = Mail::Address->parse( $id );
+
     # we'll throw away the name for now
-    my $email = Mail::Address->parse( $id );
-
-    return $email;
-
+    return $addrs[0]->address;
 }
 
 memoize 'resolve_user_id_to_email';
