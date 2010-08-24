@@ -1,4 +1,3 @@
-export CWD=`pwd`
 export TODAY=`date +%Y-%m-%d`
 export REPO=${HOME}/shipwright-sd-min-${TODAY}
 export GIT_PATH="git:file://$REPO"
@@ -53,4 +52,3 @@ echo "# one argument per line
 ./bin/shipwright-utility --generate-tar-file /tmp/sd-image-${TODAY}.bin
 
 rm -rf /tmp/sdex-$$
-cd $CWD

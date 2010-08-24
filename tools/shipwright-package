@@ -1,4 +1,3 @@
-export CWD=`pwd`
 export TODAY=`date +%Y-%m-%d`
 export REPO=${HOME}/shipwright-sd-${TODAY}.git/
 #export REPO=/tmp/shipwright-sd-${TODAY}.git/
@@ -69,4 +68,3 @@ echo "# one argument per line
 ./bin/shipwright-utility --generate-tar-file /tmp/sd-image-${TODAY}.bin
 
 rm -rf /tmp/sdex-$$
-cd $CWD
