@@ -15,8 +15,11 @@ $IMPORT \
 cd /tmp
 shipwright maintain -r $GIT_PATH --update-order
 cd /tmp
+
 git clone file://${REPO} hack-$$
-cd hack-$$/scripts/cpan-DateTime-Format-Natural
+cd /tmp/hack-$$/sources/cpan-Lingua-EN-Inflect/vendor
+git mv Build.pl Build.PL
+cd /tmp/hack-$$/scripts/cpan-DateTime-Format-Natural
 perl -pi -e 's/Build test/Build/g' build
 
 cd /tmp/hack-$$/scripts/cpan-Params-Util
