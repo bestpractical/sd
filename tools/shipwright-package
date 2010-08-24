@@ -23,14 +23,14 @@ $IMPORT \
  cpan:Term::ReadKey \
  cpan:Config::GitLike \
  cpan:XSLoader \
- git:git+ssh://fsck.com/git/prophet.git \
+ git:http://github.com/bestpractical/prophet.git \
  cpan:RT::Client::REST \
  cpan:Email::Address \
  cpan:Net::GitHub \
  cpan:Net::Jifty \
  cpan:Net::Trac \
  cpan:Net::Google::Code \
- git:git+ssh://fsck.com/git/sd.git
+ git:http://github.com/bestpractical/sd.git 
 
 cd /tmp
 #shipwright update cpan-Module-Build --add-deps cpan-Pod-Simple
