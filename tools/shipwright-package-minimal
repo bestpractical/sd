@@ -1,3 +1,4 @@
+export CWD=`pwd`
 export TODAY=`date +%Y-%m-%d`
 export REPO=${HOME}/shipwright-sd-min-${TODAY}
 export GIT_PATH="git:file://$REPO"
@@ -42,9 +43,14 @@ rm -rf hack-$$
 
 git clone file://$REPO /tmp/sdex-$$
 cd /tmp/sdex-$$ 
+rm -rf .git
+
 echo "# one argument per line
 --skip-man-pages
 --skip-test
 --install-base=~/sd
 " > __default_builder_options 
 ./bin/shipwright-utility --generate-tar-file /tmp/sd-image-${TODAY}.bin
+
+rm -rf /tmp/sdex-$$
+cd $CWD
