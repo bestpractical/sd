@@ -22,6 +22,10 @@ git mv Build.pl Build.PL
 cd /tmp/hack-$$/scripts/cpan-DateTime-Format-Natural
 perl -pi -e 's/Build test/Build/g' build
 
+cd /tmp/hack-$$/scripts/cpan-Net-DNS
+perl -pi -e 's/make:/make: COMMAND_MODE=unix2003/' build
+git commit -m 'hack COMMAND_MODE to make Net-DNS happy on mac' build
+
 cd /tmp/hack-$$/scripts/cpan-Params-Util
 perl -pi -e 's/Makefile.PL/Makefile.PL -pm/g' build
 

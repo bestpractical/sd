@@ -46,9 +46,13 @@ git clone file://${REPO} hack-$$
 cd /tmp/hack-$$/sources/cpan-Lingua-EN-Inflect/vendor
 git mv Build.pl Build.PL
 cd /tmp/hack-$$/scripts/cpan-DateTime-Format-Natural
-perl -pi -e s'/Build test/Build/g' build
+perl -pi -e 's/Build test/Build/g' build
 git config push.default matching
 git commit -m 'Made DTFN not run its tests which add a slew of deps' build
+
+cd /tmp/hack-$$/scripts/cpan-Net-DNS
+perl -pi -e 's/make:/make: COMMAND_MODE=unix2003/' build
+git commit -m 'hack COMMAND_MODE to make Net-DNS happy on mac' build
 
 git push
 cd /tmp/
