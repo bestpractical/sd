@@ -72,15 +72,15 @@ sub BUILD {
     );
 }
 
-=head2 uuid
+=head2 _uuid_url
 
 Return the replica's UUID
 
 =cut
 
-sub uuid {
+sub _uuid_url {
     my $self = shift;
-    return $self->uuid_for_url( join( '/', $self->remote_url, $self->foreign_username ) );
+    return  join( '/', $self->remote_url, $self->foreign_username ) ;
 }
 
 sub get_txn_list_by_date {

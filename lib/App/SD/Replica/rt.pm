@@ -90,9 +90,9 @@ Return the replica's UUID
 
 =cut
 
-sub uuid {
+sub _uuid_url {
     my $self = shift;
-    return $self->uuid_for_url( join( '/', $self->remote_url, $self->query ) );
+    return join( '/', $self->remote_url, $self->query );
 
 }
 

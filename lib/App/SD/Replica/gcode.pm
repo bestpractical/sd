@@ -95,17 +95,6 @@ sub get_txn_list_by_date {
     return @txns;
 }
 
-=head2 uuid
-
-Return the replica's UUID
-
-=cut
-
-sub uuid {
-    my $self = shift;
-    return $self->uuid_for_url( $self->remote_url);
-}
-
 sub remote_uri_path_for_comment {
     my $self = shift;
     my $id = shift;
@@ -139,6 +128,11 @@ sub database_settings {
             ],
         ),
     };
+}
+
+sub _uuid_url {
+    my $self = shift;
+    return $self->remote_url;
 }
 
 __PACKAGE__->meta->make_immutable;

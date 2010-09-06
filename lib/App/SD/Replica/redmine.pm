@@ -57,10 +57,10 @@ sub BUILD {
 
 sub record_pushed_transactions {}
 
-sub uuid {
+sub _uuid_url {
     my $self = shift;
     Carp::cluck "- can't make a uuid for this" unless ($self->remote_url);
-    return $self->uuid_for_url($self->remote_url);
+    return $self->remote_url;
 }
 
 sub remote_uri_path_for_id {

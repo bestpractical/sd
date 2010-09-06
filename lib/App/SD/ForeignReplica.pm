@@ -3,6 +3,19 @@ use Any::Moose;
 use Params::Validate qw/:all/;
 
 extends 'Prophet::ForeignReplica';
+
+
+has uuid => (
+    lazy    => 1,
+    isa     => 'Str',
+    is      => 'ro',
+    default => sub {
+        my $self = shift;
+        $self->uuid_for_url( $self->_uuid_url );
+    }
+);
+
+
 sub integrate_changeset {
     my $self = shift;
     my %args = validate(

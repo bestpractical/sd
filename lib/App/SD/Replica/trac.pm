@@ -76,9 +76,9 @@ Return the replica's UUID
 
 =cut
 
-sub uuid {
+sub _uuid_url {
     my $self = shift;
-    return $self->uuid_for_url( $self->remote_url);
+    return $self->remote_url;
 }
 
 sub remote_uri_path_for_comment {

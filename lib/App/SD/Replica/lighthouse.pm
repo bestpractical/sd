@@ -149,10 +149,10 @@ sub foreign_username {
     }
 }
 
-sub uuid {
+sub _uuid_url {
     my $self = shift;
     Carp::cluck "- can't make a uuid for this" unless ($self->remote_url && $self->account && $self->project );
-    return $self->uuid_for_url( join( '/', $self->remote_url, $self->project ) );
+    return  join( '/', $self->remote_url, $self->project );
 }
 
 sub remote_uri_path_for_comment {

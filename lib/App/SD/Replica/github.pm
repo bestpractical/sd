@@ -86,10 +86,10 @@ sub BUILD {
 
 sub record_pushed_transactions {}
 
-sub uuid {
+sub _uuid_url {
     my $self = shift;
     Carp::cluck "- can't make a uuid for this" unless ($self->remote_url && $self->owner && $self->repo );
-    return $self->uuid_for_url( join( '/', $self->remote_url, $self->owner , $self->repo ) );
+    return join( '/', $self->remote_url, $self->owner , $self->repo ) ;
 }
 
 sub remote_uri_path_for_comment {
