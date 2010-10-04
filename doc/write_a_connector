@@ -1,0 +1,67 @@
+we need connectors to connect outside bug trackers and SD.
+currently we have a few of them in lib/App/SD/Replica/
+
+If you want to write another one, here is a simple introduction to the
+skeleton of what a connector looks like.
+You can also refer to those existed ones to get the example code.
+
+Let's call the outside bug tracker( also named "Foreign Replica" in SD ) Foo here,
+then the module is named App::SD::Replica::foo.
+Assuming the client library of Foo is Net::Foo, by which we can communicate
+with Foo.
+
+App::SD::Replica::foo: some important attributes/methods:
+
+    scheme: the scheme to indicate the url is a foo replica
+        normally, it's the same as the package name's last part: 'foo'
+
+    pull_encoder: 
+        class name for pulling(importing data from outside)
+        normally, it's App::SD::Replica::foo::PullEncoder
+
+    push_encoder:
+        class name for pushing(exporting data to outside)
+        normally, it's App::SD::Replica::foo::PushEncoder
+
+    query: query string parsed from url
+
+    foo: instance of Net::Foo if you want
+
+    uuid(): uuid of the replica, may be calculated from the url
+    
+    database_settings(): you can customize database settings here
+
+    get_txn_list_by_date($ticket):
+        returns transactions(ordered from latest to earliest) of the $ticket.
+        it's used to record transactions we pushed from SD.
+
+When creating an object of App::SD::Replica::foo, we need to parse the url(
+e.g. foo:/project/ticket/list/query, which is read from user's input ) and init
+things, e.g. init foo attribute with Net::Foo.
+We suggest use Any::Moose and do this job in BUILD method
+
+App::SD::Replica::foo::PullEncoder: some important attributes/methods:
+
+    sync_source: the object of App::SD::Replica::foo
+
+    ticket_id( $ticket ): returns the ticket's remote id
+
+    find_matching_tickets( query => $query ):
+        returns an arrayref of tickets we want to traverse
+
+    find_matching_transactions( ticket => $id, starting_transaction => $num )
+        returns an arrayref of all transactions (as hashes) on ticket $id after transaction $num.
+
+    translate_ticket_state( $ticket, $transactions ):
+        returns a list with 2 elements, first is initial state, last is final state
+
+    transcode_one_txn( $txn, $initial_state, $final_state ):
+        returns an object of Prophet::ChangeSet
+
+App::SD::Replica::foo::PushEncoder:
+
+    sync_source: the object of App::SD::Replica::foo
+
+    integrate_change( $change, $changeset ):
+        pushes to remote Foo
+
