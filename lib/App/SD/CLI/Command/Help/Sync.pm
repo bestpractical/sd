@@ -43,6 +43,9 @@ print <<EOF
 
       Adjust port to the server, and notice the /replica/ path.
 
+    ${cmd}browser --port 9876
+      Do the same as the server command, but also open up the server's
+      front page in your browser.
 
 SD can sync to external systems as well as itself. Currently, there 
 are foreign replica types for:
