@@ -8,4 +8,4 @@ Makefile.old
 .prove
 MANIFEST.bak
 cover_db/
-
+t/tmp
