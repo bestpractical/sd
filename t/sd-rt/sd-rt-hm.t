@@ -1,8 +1,7 @@
 #!/usr/bin/perl -w
 
 # to run:
-#
-# RT_DBA_USER=root RT_DBA_PASSWORD= prove -lv -I/Users/clkao/work/bps/rt-3.7/lib t/sd-rt.t
+# RT_DBA_USER=root RT_DBA_PASSWORD= prove -lv -I/opt/rt3/lib t/sd-rt-hm.t
 use strict;
 
 # setup for rt

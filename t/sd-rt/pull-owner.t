@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
-# RT_DBA_USER=root RT_DBA_PASSWORD= prove -lv -I/Users/clkao/work/bps/rt-3.7/lib t/sd-rt.t
+# to run:
+# RT_DBA_USER=root RT_DBA_PASSWORD= prove -lv -I/opt/rt3/lib t/pull-owner.t
 use strict;
 use warnings;
 

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 # to run:
-# RT_DBA_USER=root RT_DBA_PASSWORD= prove -lv -I/Users/clkao/work/bps/rt-3.7/lib t/sd-rt.t
+# RT_DBA_USER=root RT_DBA_PASSWORD= prove -lv -I/opt/rt3/lib t/big-hm-rt.t
 
 use Prophet::Test;
 use App::SD::Test;
