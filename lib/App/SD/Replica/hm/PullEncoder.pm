@@ -151,7 +151,7 @@ sub recode_create {
         for qw(id record_locator);
 
     while ( my ( $k, $v ) = each %{ $args{'task'} } ) {
-        $res->add_prop_change( { name => $k, old => undef, new => $v } );
+        $res->add_prop_change( name => $k, old => undef, new => $v );
     }
     return $res;
 }
