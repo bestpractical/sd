@@ -87,6 +87,11 @@ by configuration file section):
       reporter field. (Overrides the EMAIL environmental variable if
       that is also set.)
 
+    server.default-port = 8080
+      Specifies a default port to use for the 'server' and 'browser'
+      commands. Can still be overridden by passing '--port' to these
+      commands.
+
 For information on environmental variables that can affect SD, see
 '${cmd}help environment'.
 EOF
