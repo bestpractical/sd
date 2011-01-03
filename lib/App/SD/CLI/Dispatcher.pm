@@ -36,6 +36,7 @@ under help => sub {
     on about   => run_command('Help::About');
     on config  => run_command('Help::Config');
     on copying => run_command('Help::Copying');
+    on commands => run_command('Help::Commands');
     on [ ['summary-format', 'ticket.summary-format', 'ticket_summary_format'] ]
         => run_command('Help::ticket_summary_format');
 
