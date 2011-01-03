@@ -61,6 +61,9 @@ ${cmd}help settings    -  Database configuration variables
 Running '${cmd}help' on a specific command should also redirect you
 to the proper help file.
 
+You can also get a brief summary of usage (options and arguments) for
+a given command with '${cmd}<command> -h'.
+
 EOF
 
 }
