@@ -157,8 +157,9 @@ sub handle_redirect {
     my $redirected_to   = File::Spec->catfile( $dir => $new_file );
     {
         my $parent = Prophet::Util->updir($redirected_from);
-        unless ( -d $parent ) {
-            eval { mkpath( [$parent] ) };
+        # mkpath succeeds (but returns nothing) if a directory already exists
+        eval { mkpath( [$parent] ) };
+        if ( $@ ) {
             die "Failed to create directory " . $parent . " - for $redirected_to " . $@;
         }
     }
