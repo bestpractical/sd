@@ -9,7 +9,8 @@ requires 'Prophet'; # URI Params::Validate Class::Accessor Template::Declare::Ta
 
 requires('DateTime');
 requires('Time::Progress');
-requires('HTML::TreeBuilder');
+# versions < 4.1 are buggy handling utf8
+requires('HTML::TreeBuilder' => '4.1');
 requires('DateTime::Format::Natural');
 requires('HTML::Tree');
 requires('URI::file');
