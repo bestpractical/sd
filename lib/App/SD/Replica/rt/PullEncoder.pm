@@ -160,7 +160,7 @@ sub transcode_one_txn {
     if ( $txn->{'Ticket'} ne $ticket->{$self->sync_source->uuid . '-id'}
         && $txn->{'Type'} !~ /^(?:Comment|Correspond)$/
     ) {
-        warn "Skipping a data change from a merged ticket" . $txn->{'Ticket'} .' vs '. $ticket->{$self->sync_source->uuid . '-id'};
+        warn "Skipping a data change from a merged ticket " . $txn->{'Ticket'} .' vs '. $ticket->{$self->sync_source->uuid . '-id'} . "\n";
         return;
     }
 
