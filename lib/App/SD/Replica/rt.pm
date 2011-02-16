@@ -108,7 +108,7 @@ If the remote storage (RT) can not represent a whole changeset along with the pr
 create a seperate locally(?) stored map of:
     remote-subchangeset-identifier to changeset uuid.
     remote id to prophet record uuid
-    
+
 
 For each sync of the same remote source (RT), we need a unique prophet database domain.
 
@@ -127,12 +127,12 @@ apply a single changeset that's part of the push:
              - if it is _not_ from the changeset we just pushed, then 
                 do we just ignore it?
                 how do we mark an out-of-order transaction as not-pulled?
-                
+
 
 
 Changesets we want to push from SD to RT and how they map
 
-    
+
 what do we do with cfs rt doesn't know about?
 
 
