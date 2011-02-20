@@ -3,6 +3,8 @@ use Any::Moose;
 use App::SD::Util;
 use Params::Validate qw/validate/;
 
+with 'Prophet::CLI::ProgressBar';
+
 sub run {
     my $self = shift;
     my %args = validate( @_, { after => 1});
@@ -20,13 +22,15 @@ sub run {
 
     my ( $last_modified, $last_txn, @changesets );
 
-    my $progress = Time::Progress->new();
-    $progress->attr( max => $#$tickets );
+    my $progress = $self->progress_bar(
+        max => $#$tickets,
+        format => "Fetching ticket history %30b %p Est: %E\r",
+    );
 
     for my $ticket (@$tickets) {
         $counter++;
         my $changesets;
-        print $progress->report( "Fetching ticket history %30b %p Est: %E\r", $counter );
+        print $progress->();
         $self->sync_source->log_debug( "Fetching $counter of " . scalar @$tickets  . " tickets");
         ( $last_modified, $changesets ) = $self->transcode_ticket( $ticket, $last_modified );
         unshift @changesets, @$changesets;
