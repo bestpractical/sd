@@ -4,7 +4,6 @@ extends 'App::SD::ForeignReplica::PullEncoder';
 
 use Params::Validate qw(:all);
 use Memoize;
-use Time::Progress;
 use DateTime;
 use Net::Lighthouse::User;
 

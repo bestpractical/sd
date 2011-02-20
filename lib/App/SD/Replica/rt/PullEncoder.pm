@@ -4,7 +4,6 @@ extends 'App::SD::ForeignReplica::PullEncoder';
 
 use Params::Validate qw(:all);
 use Memoize;
-use Time::Progress;
 use App::SD::Util;
 
 has sync_source => 
