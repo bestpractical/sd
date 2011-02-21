@@ -85,7 +85,8 @@ sub transcode_history {
         my $changeset = $self->transcode_one_txn( $txn, $initial_state, $final_state );
         next unless $changeset && $changeset->has_changes;
 
-        # the changesets are older than the ones that came before, so they goes first
+        # the changesets are older than the ones that came before, so they go
+        # first
         unshift @changesets, $changeset;
     }
     return ( $last_modified, \@changesets );
