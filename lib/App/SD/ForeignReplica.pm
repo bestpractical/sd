@@ -15,6 +15,37 @@ has uuid => (
     }
 );
 
+=head2 save_username_and_token( $username, $token )
+
+Saves the given username and token to the replica-specific config file,
+so the user doesn't have to enter it every time.
+
+=cut
+
+sub save_username_and_token {
+    my ($self, $username, $password) = @_;
+
+    # make sure replica is initialized
+    $self->app_handle->handle->initialize;
+
+    my $replica_username_key = 'replica.' . $self->scheme . ":" . $self->{url} . '.username';
+    my $replica_token_key    = 'replica.' . $self->scheme . ":" . $self->{url} . '.secret_token';
+
+    if ( !$self->app_handle->config->get( key => $replica_username_key ) ) {
+        print "Setting replica's username and token in the config file";
+        $self->app_handle->config->group_set(
+            $self->app_handle->config->replica_config_file,
+         [ {
+            key      => $replica_username_key,
+            value    => $username,
+         }, {
+            key      => $replica_token_key,
+            value    => $password,
+         } ],
+        );
+    }
+}
+
 
 sub integrate_changeset {
     my $self = shift;

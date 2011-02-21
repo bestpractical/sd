@@ -14,6 +14,7 @@ requires('HTML::TreeBuilder' => '4.1');
 requires('DateTime::Format::Natural');
 requires('HTML::Tree');
 requires('URI::file');
+requires('Try::Tiny' => '0.02');
 
 build_requires('Test::Script::Run' => '0.02');
 

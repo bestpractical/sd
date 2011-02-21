@@ -6,6 +6,7 @@ use URI;
 use Memoize;
 use Prophet::ChangeSet;
 use File::Temp 'tempdir';
+use Try::Tiny
 
 has hm               => ( isa => 'Net::Jifty', is => 'rw' );
 has remote_url       => ( isa => 'Str',        is => 'rw' );
@@ -50,27 +51,49 @@ sub BUILD {
     }
     $self->remote_url("$uri");
 
-    ( $username, $password )
-        = $self->prompt_for_login(
-            uri      => $uri,
-            username => $username,
-        ) unless $password;
+    my $login_successful = 0;
 
-    $self->foreign_username($username) if ($username);
+    while (!$login_successful) {
+        ( $username, $password )
+            = $self->prompt_for_login(
+                uri      => $uri,
+                username => $username,
+                # remind the user that hiveminder logins are email addresses
+                username_prompt => sub {
+                    my $uri = shift;
+                    return "Login email for $uri: ";
+                },
+            ) unless $password;
+
+        $self->foreign_username($username) if ($username);
+
+        try {
+            $self->hm(
+                Net::Jifty->new(
+                    site        => $self->remote_url,
+                    cookie_name => 'JIFTY_SID_HIVEMINDER',
+
+                    email    => $username,
+                    password => $password
+                )
+            );
+            $login_successful = 1;
+        } catch {
+            # Net::Jifty uses Carp::confess to deal with login problems :(
+            ($username, $password) = (undef, undef);
+            my $error_message = (split /\n/, $_)[0];
+            $error_message =~ s/ at .* line [0-9]+$//;
+            warn "\n$error_message\n\n";
+        };
+    }
 
     if ($props) {
         my %props = split /=|;/, $props;
         $self->props( \%props );
     }
-    $self->hm(
-        Net::Jifty->new(
-            site        => $self->remote_url,
-            cookie_name => 'JIFTY_SID_HIVEMINDER',
 
-            email    => $username,
-            password => $password
-        )
-    );
+    # only save username/password if login was successful
+    $self->save_username_and_token( $username, $password );
 }
 
 =head2 _uuid_url
