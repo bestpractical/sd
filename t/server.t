@@ -89,11 +89,10 @@ $ua->title_like(qr/^(\d+): Test ticket/);
 
 sub start_server {
     my $server_cli = App::SD::CLI->new();
-    my $s          = App::SD::Server->new();
+    my $s          = App::SD::Server->new( app_handle => $server_cli->app_handle );
     unshift @App::SD::Server::ISA, 'Test::HTTP::Server::Simple';
     $server_cli->handle()->initialize;
     $s->port( int( rand(10000) + 1024 ) );
-    $s->app_handle( $server_cli->app_handle );
     my $url_root = $s->started_ok("start up my web server");
     return $url_root;
 }
