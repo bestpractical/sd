@@ -82,6 +82,9 @@ sub find_matching_tickets {
         $self->sync_source->log( "Skipping all tickets not updated since " . $before->iso8601 );
     }
     return [map {
+        Prophet::CLI->end_pager();
+        # squelch chatty RT::Client::REST "Unknown key" warnings unless debugging turned on
+        local $SIG{__WARN__} = sub { $self->sync_source->log_debug(@_) };
         my $hash = $self->sync_source->rt->show( type => 'ticket', id => $_ );
         $hash->{id} =~ s|^ticket/||g;
         $hash
@@ -425,7 +428,12 @@ sub resolve_user_id_to {
     return undef unless $id;
 
     local $@;
-    my $user = eval { RT::Client::REST::User->new( rt => $self->sync_source->rt, id => $id )->retrieve};
+    my $user = eval {
+       Prophet::CLI->end_pager();
+       # squelch chatty RT::Client::REST "Unknown key" warnings
+       local $SIG{__WARN__} = sub { $self->sync_source->log_debug(@_) };
+       RT::Client::REST::User->new( rt => $self->sync_source->rt, id => $id )->retrieve;
+    };
     if ( my $err = $@ ) {
         warn $err;
         return $attr eq 'name' ? 'Unknown user' : 'unknown@localhost';
