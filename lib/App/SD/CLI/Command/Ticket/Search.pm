@@ -50,10 +50,16 @@ override run => sub {
     if ( $self->has_arg('sort') && $self->arg('sort')
             && ( $self->arg('sort') ne 'none' ) ) {
 
+        my $sort_prop = $self->arg('sort');
+
+        my $sort_undef_last = $self->app_handle->config->get(
+            key => $self->type . ".$sort_prop.sort-undef-last" );
+
         $self->sort_routine(
             sub {
                 my $records = shift;
-                return $self->sort_by_prop( $self->arg('sort') => $records );
+                return $self->sort_by_prop( $sort_prop, $records,
+                                            $sort_undef_last );
             }
         );
     }
