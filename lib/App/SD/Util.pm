@@ -9,6 +9,9 @@ my %MONTHS = ( jan => 1, feb => 2, mar => 3, apr => 4, may => 5, jun => 6, jul =
 
 sub string_to_datetime {
     my ($date)= validate_pos(@_, { type => SCALAR | UNDEF} );
+
+    return unless defined($date);
+
     if ($date =~ /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{1,2}):(\d{2}):(\d{2})Z?$/ ){
         my ($year,$month,$day, $hour,$min,$sec) = ($1,$2,$3,$4,$5,$6);
         my $dt = DateTime->new( year => $year,

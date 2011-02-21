@@ -120,7 +120,7 @@ sub add_prop_change {
     my $self = shift;
     my %args = validate( @_, { history_entry => 1, previous_state => 1, change => 1 } );
 
-
+    no warnings 'uninitialized';
     my $field = qq{$args{'history_entry'}{'field'}} ||'';
     my $old   = qq{$args{'history_entry'}{'old_value'}} ||'';
     my $new   = qq{$args{'history_entry'}{'new_value'}} ||'';
@@ -197,6 +197,7 @@ sub translate_props {
             }
 
             if ($prop->name =~ /^(?:due|completed_at|created_at)$/) {
+                no warnings 'uninitialized';
                 $prop->old_value(App::SD::Util::string_to_datetime($prop->old_value)."");
                 $prop->new_value(App::SD::Util::string_to_datetime($prop->new_value)."");
 
