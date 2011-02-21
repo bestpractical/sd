@@ -121,9 +121,9 @@ sub add_prop_change {
     my %args = validate( @_, { history_entry => 1, previous_state => 1, change => 1 } );
 
 
-    my $field = $args{'history_entry'}{'field'} ||'';
-    my $old   = $args{'history_entry'}{'old_value'} ||'';
-    my $new   = $args{'history_entry'}{'new_value'} ||'';
+    my $field = qq{$args{'history_entry'}{'field'}} ||'';
+    my $old   = qq{$args{'history_entry'}{'old_value'}} ||'';
+    my $new   = qq{$args{'history_entry'}{'new_value'}} ||'';
 
     if ( $args{'previous_state'}->{$field} eq $new ) {
         $args{'previous_state'}->{$field} = $old;
@@ -197,8 +197,8 @@ sub translate_props {
             }
 
             if ($prop->name =~ /^(?:due|completed_at|created_at)$/) {
-                $prop->old_value(App::SD::Util::string_to_datetime($prop->old_value));
-                $prop->new_value(App::SD::Util::string_to_datetime($prop->new_value));
+                $prop->old_value(App::SD::Util::string_to_datetime($prop->old_value)."");
+                $prop->new_value(App::SD::Util::string_to_datetime($prop->new_value)."");
 
              }
 
