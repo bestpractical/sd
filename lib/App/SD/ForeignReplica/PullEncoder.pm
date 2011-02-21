@@ -35,7 +35,9 @@ sub run {
         ( $last_modified, $changesets ) = $self->transcode_ticket( $ticket, $last_modified );
         unshift @changesets, @$changesets;
     }
-    return [ sort { App::SD::Util::string_to_datetime($a->created) <=> App::SD::Util::string_to_datetime( $b->created) } @changesets];
+    my $sorted_changesets = [ sort {
+        $a->original_sequence_no <=> $b->original_sequence_no } @changesets ];
+    return $sorted_changesets;
 }
 
 sub ticket_last_modified { undef}
