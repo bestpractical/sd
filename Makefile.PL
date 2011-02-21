@@ -30,6 +30,7 @@ feature 'Hiveminder sync' => (
     -default => 0,
     'Net::Jifty' => 0.09,
     'Email::Address' => 0,
+    'Path::Class' => 0,
 );
 
 recommends 'Net::Jifty';
