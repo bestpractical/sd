@@ -73,6 +73,12 @@ by configuration file section):
       Bug property to determine order of display when displaying lists of
       tickets. (Can be any property; will be compared lexically.)
 
+    ticket.<prop>.sort-undef-last = true
+      When sorting on <prop>, setting this will make tickets where
+      the property is undefined sort *after* any records where the
+      property *is* defined. (The default is the opposite.)
+      Useful for e.g. due dates.
+
     ticket.default-group = milestone
       Bug property to group tickets by when displaying lists of tickets. (Can
       be any property.)
