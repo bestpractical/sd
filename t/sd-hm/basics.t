@@ -22,6 +22,7 @@ eval 'use BTDT::Test; 1;' or die "$@";
 
 my $server = BTDT::Test->make_server;
 my $URL    = $server->started_ok;
+# specify username and password in URL
 $URL =~ s|http://|http://onlooker\@example.com:something@|;
 
 my $GOODUSER;

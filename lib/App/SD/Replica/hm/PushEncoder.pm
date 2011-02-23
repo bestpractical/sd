@@ -59,11 +59,13 @@ sub integrate_ticket_create {
     }
 
     my $task = $self->sync_source->hm->create( 'Task', %args );
-    unless ( $task->{'success'} ) {
-        die "Couldn't create a task: " . $self->decode_error($task);
+    # a successful create just returns the task's data, and doesn't
+    # have a 'success' member at all
+    if ( $self->sync_source->request_failed($task) ) {
+        die "Couldn't create a task: " . $self->sync_source->decode_error($task);
     }
 
-    my $tid = $task->{content}->{id};
+    my $tid = $task->{id};
 
     if (@requesters) {
         my $email = $self->comment_as_email(
@@ -77,7 +79,7 @@ sub integrate_ticket_create {
             message => $email->as_string,
         );
         warn "Couldn't add a comment on the recently created HM task"
-            unless $status->{'success'};
+            if $self->sync_source->request_failed($status);
     }
 
     my $txns = $self->sync_source->hm->search( 'TaskTransaction', task_id => $tid );
@@ -90,19 +92,6 @@ sub integrate_ticket_create {
     );
 
     return $tid;
-}
-
-sub decode_error {
-    my $self   = shift;
-    my $status = shift;
-    my $msg    = '';
-    $msg .= $status->{'error'} if defined $status->{'error'};
-    if ( $status->{'field_errors'} ) {
-        while ( my ( $k, $v ) = each %{ $status->{'field_errors'} } ) {
-            $msg .= "field '$k' - '$v'\n";
-        }
-    }
-    return $msg;
 }
 
 sub integrate_comment {
@@ -121,9 +110,9 @@ sub integrate_comment {
         task_id => $ticket_id,
         message => $email->as_string,
     );
-    return $status->{'content'}{'id'} if $status->{'success'};
+    return $status->{'id'} unless $self->sync_source->request_failed($status);
 
-    die "Couldn't integrate comment: " . $self->decode_error($status);
+    die "Couldn't integrate comment: " . $self->sync_source->decode_error($status);
 }
 
 sub integrate_ticket_update {
@@ -172,9 +161,9 @@ sub integrate_ticket_update {
             id => $tid,
             %args,
         );
-        die "Couldn't integrate ticket update: " . $self->decode_error($status)
-            unless $status->{'success'};
-        $txn_id = $status->{'content'}{'id'};
+        die "Couldn't integrate ticket update: " . $self->sync_source->decode_error($status)
+            if $self->sync_source->request_failed($status);
+        $txn_id = $status->{'id'};
     }
 
     if (@new_requestors) {
@@ -212,8 +201,8 @@ sub record_comment {
         message => $email->as_string,
     );
     warn "Couldn't add a comment on the recently created HM task"
-        unless $status->{'success'};
-    return $status->{'content'}{'id'};
+        if $self->sync_source->request_failed($status);
+    return $status->{'id'};
 }
 
 sub integrate_attachment {
@@ -241,9 +230,9 @@ sub integrate_attachment {
         task_id => $ticket_id,
         %props,
     );
-    return $status->{'content'}{'id'} if $status->{'success'};
+    return $status->{'id'} unless $self->sync_source->request_failed($status);
 
-    die "Couldn't integrate attachment: " . $self->decode_error($status);
+    die "Couldn't integrate attachment: " . $self->sync_source->decode_error($status);
 }
 
 sub _recode_props_for_create {

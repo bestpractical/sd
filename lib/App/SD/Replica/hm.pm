@@ -6,7 +6,8 @@ use URI;
 use Memoize;
 use Prophet::ChangeSet;
 use File::Temp 'tempdir';
-use Try::Tiny
+use Try::Tiny;
+use Carp;
 
 has hm               => ( isa => 'Net::Jifty', is => 'rw' );
 has remote_url       => ( isa => 'Str',        is => 'rw' );
@@ -96,6 +97,25 @@ sub BUILD {
     $self->save_username_and_token( $username, $password );
 }
 
+sub request_failed {
+    my ($self, $response) = @_;
+
+    return defined($response->{success}) && $response->{success} == 0;
+}
+
+sub decode_error {
+    my $self   = shift;
+    my $status = shift;
+    my $msg    = '';
+    $msg .= $status->{'error'} if defined $status->{'error'};
+    if ( $status->{'field_errors'} ) {
+        while ( my ( $k, $v ) = each %{ $status->{'field_errors'} } ) {
+            $msg .= "field '$k' - '$v'\n";
+        }
+    }
+    return $msg;
+}
+
 =head2 _uuid_url
 
 Return the replica's UUID
@@ -138,7 +158,11 @@ sub _user_info {
     my $value = shift;
     return undef unless defined $value;
     my $status = $self->hm->search('User', $key => $value);
-    die $status->{'error'} unless $status->[0]->{'id'};
+    unless ( $status->[0]->{'id'} ) {
+        # some weird error
+        warn "fatal error in _user_info\n";
+        Carp::confess;
+    }
     return $status->[0];
 }
 memoize '_user_info';
