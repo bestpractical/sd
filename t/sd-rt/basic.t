@@ -244,7 +244,7 @@ ok( $ret, $out );
 ( $ret, $out, $err )
     = run_script( 'sd', [ 'ticket', 'show', '--verbose', '--id', $yatta_id ] );
 
-like( $out, qr/"cc"\s+set\s+to\s+"hiro\@example.com"/ );
+like( $out, qr/cc:\s+set\s+to\s+hiro\@example.com/ );
 
 diag("resolve and comment on a ticket");
 
