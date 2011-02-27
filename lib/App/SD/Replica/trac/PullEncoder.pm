@@ -5,6 +5,9 @@ extends 'App::SD::ForeignReplica::PullEncoder';
 use Params::Validate qw(:all);
 use Memoize;
 
+use Prophet::ChangeSet;
+use Prophet::Change;
+
 has sync_source => (
     isa => 'App::SD::Replica::trac',
     is  => 'rw',
@@ -26,7 +29,7 @@ sub ticket_last_modified {
 sub translate_ticket_state {
     my $self          = shift;
     my $ticket_object = shift;
-    my $transactions = shift;    
+    my $transactions = shift;
     my $content = $ticket_object->description;
     my $ticket_data = {
 
@@ -47,9 +50,6 @@ sub translate_ticket_state {
         cc          => ( $ticket_object->cc || undef ),
     };
 
-
-
-
     # delete undefined and empty fields
     delete $ticket_data->{$_}
         for grep !defined $ticket_data->{$_} || $ticket_data->{$_} eq '', keys %$ticket_data;
@@ -66,27 +66,29 @@ Returns a array of all tickets found matching your QUERY hash.
 sub find_matching_tickets {
     my $self  = shift;
     my %query = (@_);
-   my $last_changeset_seen_dt =   $self->_only_pull_tickets_modified_after();
+    my $last_changeset_seen_dt =   $self->_only_pull_tickets_modified_after();
     $self->sync_source->log("Searching for tickets");
 
-    my $search = Net::Trac::TicketSearch->new( connection => $self->sync_source->trac, limit => 9999 );
+    my $search = Net::Trac::TicketSearch->new(
+        connection => $self->sync_source->trac, limit => 9999 );
     $search->query(%query);
     my @results = @{$search->results};
      $self->sync_source->log("Trimming things after our last pull");
     if ($last_changeset_seen_dt) {
         # >= is wasteful but may catch race conditions
-        @results = grep {$_->last_modified >= $last_changeset_seen_dt} @results; 
+        @results = grep {$_->last_modified >= $last_changeset_seen_dt} @results;
     }
     return \@results;
 }
 
 =head2 find_matching_transactions { ticket => $id, starting_transaction => $num  }
 
-Returns a reference to an array of all transactions (as hashes) on ticket $id after transaction $num.
+Returns a reference to an array of all transactions (as hashes) on ticket $id
+after transaction $num.
 
 =cut
 
-sub find_matching_transactions { 
+sub find_matching_transactions {
     my $self = shift;
     my %args = validate( @_, { ticket => 1, starting_transaction => 1 } );
     my @raw_txns = @{$args{ticket}->history->entries};
@@ -139,10 +141,10 @@ sub transcode_create_txn {
     my $create_data = shift;
     my $final_data = shift;
     my $ticket      = $txn->ticket;
-             # this sequence_no only works because trac tickets only allow one update 
-             # per ticket per second.
-             # we decrement by 1 on the off chance that someone created and 
-             # updated the ticket in the first second
+    # this sequence_no only works because trac tickets only allow one update
+    # per ticket per second.
+    # we decrement by 1 on the off chance that someone created and
+    # updated the ticket in the first second
     my $changeset = Prophet::ChangeSet->new(
         {   original_source_uuid => $self->sync_source->uuid_for_remote_id( $ticket->id ),
             original_sequence_no => ( $ticket->created->epoch-1),

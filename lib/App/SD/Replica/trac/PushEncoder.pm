@@ -1,16 +1,16 @@
 package App::SD::Replica::trac::PushEncoder;
-use Any::Moose; 
+use Any::Moose;
 use Params::Validate;
 use Time::HiRes qw/usleep/;
-has sync_source => 
+
+has sync_source =>
     ( isa => 'App::SD::Replica::trac',
       is => 'rw');
 
 extends 'App::SD::ForeignReplica::PushEncoder';
 
-
 sub after_integrate_change {
-  usleep(1100); # trac only accepts one ticket update per second. Yes. 
+    usleep(1100); # trac only accepts one ticket update per second. Yes.
 }
 
 sub integrate_ticket_update {
@@ -25,8 +25,10 @@ sub integrate_ticket_update {
     my $remote_ticket_id =
       $self->sync_source->remote_id_for_uuid( $change->record_uuid );
     my $ticket = Net::Trac::Ticket->new( connection => $self->sync_source->trac);
-    $ticket->load($remote_ticket_id);
-    $ticket->update( %{ $self->_recode_props_for_integrate($change) } );
+    $ticket->load($remote_ticket_id) or
+        die "couldn't load remote track ticket $remote_ticket_id\n";
+    $ticket->update( %{ $self->_recode_props_for_integrate($change) } ) or
+        die "couldn't update remote track ticket $remote_ticket_id\n";
     return $remote_ticket_id;
 }
 
@@ -48,7 +50,8 @@ sub integrate_ticket_create {
 
 sub integrate_comment {
     my $self = shift;
-    my ($change, $changeset) = validate_pos( @_, { isa => 'Prophet::Change' }, {isa => 'Prophet::ChangeSet'} );
+    my ($change, $changeset) = validate_pos( @_,
+        { isa => 'Prophet::Change' }, {isa => 'Prophet::ChangeSet'} );
 
     # Figure out the remote site's ticket ID for this change's record
 
@@ -59,11 +62,13 @@ sub integrate_comment {
     $ticket->load($ticket_id);
     $ticket->comment( $props{content});
     return $ticket_id;
-} 
+}
 
 sub integrate_attachment {
-    my ($self, $change, $changeset ) = validate_pos( @_, { isa => 'App::SD::Replica::trac::PushEncoder'}, { isa => 'Prophet::Change' }, { isa => 'Prophet::ChangeSet' });
-
+    my ($self, $change, $changeset ) = validate_pos( @_,
+      { isa => 'App::SD::Replica::trac::PushEncoder'},
+      { isa => 'Prophet::Change' },
+      { isa => 'Prophet::ChangeSet' });
 
     my %props = map { $_->name => $_->new_value } $change->prop_changes;
 

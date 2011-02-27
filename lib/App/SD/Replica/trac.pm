@@ -10,12 +10,10 @@ use constant scheme => 'trac';
 use constant pull_encoder => 'App::SD::Replica::trac::PullEncoder';
 use constant push_encoder => 'App::SD::Replica::trac::PushEncoder';
 
-
-use Prophet::ChangeSet;
-
 has trac => ( isa => 'Net::Trac::Connection', is => 'rw');
 has remote_url => ( isa => 'Str', is => 'rw');
 has query => ( isa => 'Maybe[Str]', is => 'rw');
+
 sub foreign_username { return shift->trac->user(@_) }
 
 sub BUILD {
@@ -57,16 +55,18 @@ sub BUILD {
     $self->trac->ensure_logged_in;
 }
 
-
-
 sub get_txn_list_by_date {
     my $self   = shift;
     my $ticket = shift;
 
     my $ticket_obj = Net::Trac::Ticket->new( connection => $self->trac);
     $ticket_obj->load($ticket);
-        
-    my @txns   = map { { id => $_->date->epoch, creator => $_->author, created => $_->date->epoch } } sort {$b->date <=> $a->date }  @{$ticket_obj->history->entries};
+
+    my @txns   = map {
+        { id => $_->date->epoch, creator => $_->author,
+          created => $_->date->epoch }
+    } sort {$b->date <=> $a->date }  @{$ticket_obj->history->entries};
+
     return @txns;
 }
 
@@ -118,7 +118,6 @@ sub database_settings {
         statuses => [ @active_statuses, 'closed', @resolutions ],
     };
 }
-
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
