@@ -30,7 +30,7 @@ sub run {
     for my $ticket (@$tickets) {
         $counter++;
         my $changesets;
-        print $progress->();
+        $progress->();
         $self->sync_source->log_debug( "Fetching $counter of " . scalar @$tickets  . " tickets");
         ( $last_modified, $changesets ) = $self->transcode_ticket( $ticket, $last_modified );
         unshift @changesets, @$changesets;
