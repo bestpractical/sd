@@ -420,6 +420,8 @@ sub login_loop {
         if $args{username_prompt};
     $login_args{secret_prompt} = $args{secret_prompt}
         if $args{secret_prompt};
+    # allow prompting for just password if username already specified
+    $login_args{username} = $args{username} if $args{username};
 
     while (!$login_successful) {
         ( $username, $password ) = $self->prompt_for_login(%login_args);
