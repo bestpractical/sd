@@ -6,8 +6,8 @@ use URI;
 use Memoize;
 use Prophet::ChangeSet;
 use File::Temp 'tempdir';
-use Try::Tiny;
 use Carp;
+use Try::Tiny;
 
 has hm               => ( isa => 'Net::Jifty', is => 'rw' );
 has remote_url       => ( isa => 'Str',        is => 'rw' );
@@ -52,49 +52,41 @@ sub BUILD {
     }
     $self->remote_url("$uri");
 
-    my $login_successful = 0;
+    unless ( $password ) {
+        ($username, $password) = $self->login_loop(
+            uri      => $uri,
+            username => $username,
+            # remind the user that hiveminder logins are email addresses
+            username_prompt => sub {
+                my $uri = shift;
+                return "Login email for $uri: ";
+            },
+            login_callback => sub {
+                my ($self, $username, $password) = @_;
 
-    while (!$login_successful) {
-        ( $username, $password )
-            = $self->prompt_for_login(
-                uri      => $uri,
-                username => $username,
-                # remind the user that hiveminder logins are email addresses
-                username_prompt => sub {
-                    my $uri = shift;
-                    return "Login email for $uri: ";
-                },
-            ) unless $password;
-
-        $self->foreign_username($username) if ($username);
-
-        try {
-            $self->hm(
-                Net::Jifty->new(
-                    site        => $self->remote_url,
-                    cookie_name => 'JIFTY_SID_HIVEMINDER',
-
-                    email    => $username,
-                    password => $password
-                )
-            );
-            $login_successful = 1;
-        } catch {
-            # Net::Jifty uses Carp::confess to deal with login problems :(
-            ($username, $password) = (undef, undef);
-            my $error_message = (split /\n/, $_)[0];
-            $error_message =~ s/ at .* line [0-9]+$//;
-            warn "\n$error_message\n\n";
-        };
+                $self->hm(
+                    Net::Jifty->new(
+                        site        => $self->remote_url,
+                        cookie_name => 'JIFTY_SID_HIVEMINDER',
+                        email    => $username,
+                        password => $password
+                    )
+                );
+            },
+            catch_callback => sub {
+                my $verbose_error = shift;
+                # Net::Jifty uses Carp::confess to deal with login problems :(
+                my $error_message = (split /\n/, $verbose_error)[0];
+                $error_message =~ s/ at .* line [0-9]+$//;
+                warn "\n$error_message\n\n";
+            }
+        );
     }
 
     if ($props) {
         my %props = split /=|;/, $props;
         $self->props( \%props );
     }
-
-    # only save username/password if login was successful
-    $self->save_username_and_token( $username, $password );
 }
 
 sub request_failed {

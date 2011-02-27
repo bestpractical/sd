@@ -5,6 +5,7 @@ extends qw/App::SD::ForeignReplica/;
 use Params::Validate qw(:all);
 use File::Temp 'tempdir';
 use Memoize;
+use Try::Tiny;
 
 use constant scheme => 'rt';
 use constant pull_encoder => 'App::SD::Replica::rt::PullEncoder';
@@ -13,11 +14,11 @@ use constant push_encoder => 'App::SD::Replica::rt::PushEncoder';
 
 use Prophet::ChangeSet;
 
-has rt => ( isa => 'RT::Client::REST', is => 'rw');
-has remote_url => ( isa => 'Str', is => 'rw');
-has rt_queue => ( isa => 'Str', is => 'rw');
-has query => ( isa => 'Str', is => 'rw');
-has rt_username => (isa => 'Str', is => 'rw');
+has rt               => ( isa => 'RT::Client::REST', is => 'rw');
+has remote_url       => ( isa => 'Str', is              => 'rw');
+has rt_queue         => ( isa => 'Str', is              => 'rw');
+has query            => ( isa => 'Str', is              => 'rw');
+has foreign_username => ( isa => 'Str', is              => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -47,25 +48,21 @@ sub BUILD {
     $self->query( ( $query ?  "($query) AND " :"") . " Queue = '$type'" );
     $self->rt( RT::Client::REST->new( server => $server ) );
 
-    ( $username, $password )
-        = $self->prompt_for_login(
+    unless ( $password ) {
+        ($username, $password) = $self->login_loop(
             uri      => $uri,
             username => $username,
-        ) unless $password;
+            login_callback => sub {
+                my ($self, $username, $password) = @_;
 
-    $self->rt_username($username);
-
-    eval {
-        $self->rt->login( username => $username, password => $password );
-    };
-    if ($@) {
-        die "Login to '$server' with username '$username' failed!\n"
-            ."Error was: $@.\n";
+                $self->rt->login( username => $username, password => $password );
+            },
+        );
     }
 }
 
-sub foreign_username { return shift->rt_username(@_)}
-  
+sub foreign_username { return shift->rt_username(@_) }
+
 sub get_txn_list_by_date {
     my $self   = shift;
     my $ticket = shift;

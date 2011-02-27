@@ -2,6 +2,8 @@ package App::SD::ForeignReplica;
 use Any::Moose;
 use Params::Validate qw/:all/;
 
+use Try::Tiny;
+
 extends 'Prophet::ForeignReplica';
 
 
@@ -383,6 +385,67 @@ sub record_upstream_last_modified_date {
 sub upstream_last_modified_date {
     my $self = shift;
     return $self->fetch_local_metadata('last_modified_date');
+}
+
+=head2 login_loop
+
+Loop on prompting for username/password until login is successful; user can
+abort with ^C.
+
+Saves username and password to the replica's configuration file
+upon successful login.
+
+params:
+- uri             # login url
+- username_prompt # optional; custom username prompt
+- secret_prompt   # optional; custom secret prompt
+- login_callback  # coderef of code that attempts login; should throw exception
+                  # on error
+- catch_callback  # optional; process thrown exception message (e.g. munge
+                  # in some way and then print to STDERR)
+
+returns: ($username, $password)
+
+=cut
+
+sub login_loop {
+    my $self = shift;
+    my %args = @_;
+
+    my $login_successful = 0;
+    my ($username, $password);
+
+    my %login_args = ( uri => $args{uri}, username => $username );
+    $login_args{username_prompt} = $args{username_prompt}
+        if $args{username_prompt};
+    $login_args{secret_prompt} = $args{secret_prompt}
+        if $args{secret_prompt};
+
+    while (!$login_successful) {
+        ( $username, $password ) = $self->prompt_for_login(%login_args);
+
+        $self->foreign_username($username) if ($username);
+
+        try {
+            $args{login_callback}->($self, $username, $password);
+            $login_successful = 1;
+        } catch {
+            if ($args{catch_callback}) {
+                $args{catch_callback}->($_);
+            }
+            else {
+                warn "\n$_\n\n";
+            }
+        };
+    }
+    # only save username/password if login was successful
+    $self->save_username_and_token( $username, $password );
+
+    return ($username, $password);
+}
+
+sub foreign_username {
+    die "replica class must implement foreign_username";
 }
 
 __PACKAGE__->meta->make_immutable;
