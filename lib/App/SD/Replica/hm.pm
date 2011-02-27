@@ -31,20 +31,22 @@ Open a connection to the source identified by C<$self->{url}>.
 
 sub BUILD {
     my $self = shift;
-    eval {
-        require Net::Jifty;
-    };
 
-    if ($@) {
+    # Require rather than use to defer load
+    try {
+        require Net::Jifty;
+    } catch {
         die "SD requires Net::Jifty to sync with a Hiveminder server.\n".
         "'cpan Net::Jifty' may sort this out for you";
-    }
+    };
 
     my ( $server, $props ) = $self->{url} =~ m/^hm:(.*?)(?:\|(.*))?$/
         or die
         "Can't parse Hiveminder server spec. Expected hm:http://hiveminder.com or hm:http://hiveminder.com|props";
+
     $self->url($server);
     my $uri = URI->new($server);
+
     my ( $username, $password );
     if ( $uri->can('userinfo') && ( my $auth = $uri->userinfo ) ) {
         ( $username, $password ) = split /:/, $auth, 2;
