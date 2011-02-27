@@ -424,8 +424,6 @@ sub login_loop {
     while (!$login_successful) {
         ( $username, $password ) = $self->prompt_for_login(%login_args);
 
-        $self->foreign_username($username) if ($username);
-
         try {
             $args{login_callback}->($self, $username, $password);
             $login_successful = 1;
@@ -437,6 +435,7 @@ sub login_loop {
                 warn "\n$_\n\n";
             }
         };
+        $self->foreign_username($username) if ($username);
     }
     # only save username/password if login was successful
     $self->save_username_and_token( $username, $password );
