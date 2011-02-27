@@ -5,28 +5,27 @@ extends qw/App::SD::ForeignReplica/;
 use Params::Validate qw(:all);
 use File::Temp 'tempdir';
 use Memoize;
+use Try::Tiny;
 
 use constant scheme => 'trac';
 use constant pull_encoder => 'App::SD::Replica::trac::PullEncoder';
 use constant push_encoder => 'App::SD::Replica::trac::PushEncoder';
 
-has trac => ( isa => 'Net::Trac::Connection', is => 'rw');
-has remote_url => ( isa => 'Str', is => 'rw');
-has query => ( isa => 'Maybe[Str]', is => 'rw');
-
-sub foreign_username { return shift->trac->user(@_) }
+has trac             => ( isa => 'Net::Trac::Connection', is => 'rw');
+has remote_url       => ( isa => 'Str', is                   => 'rw');
+has query            => ( isa => 'Maybe[Str]', is            => 'rw');
+has foreign_username => ( isa => 'Str', is                   => 'rw' );
 
 sub BUILD {
     my $self = shift;
 
     # Require rather than use to defer load
-    eval {
+    try {
         require Net::Trac;
-    };
-    if ($@) {
+    } catch {
         die "SD requires Net::Trac to sync with a Trac server.\n".
         "'cpan Net::Trac' may sort this out for you.\n";
-    }
+    };
 
     my ( $server, $type, $query ) = $self->{url} =~ m/^trac:(.*?)$/
         or die
@@ -39,20 +38,26 @@ sub BUILD {
     }
     $self->remote_url( $uri->as_string );
 
-    ( $username, $password )
-        = $self->prompt_for_login(
+    unless ( $password ) {
+        ($username, $password) = $self->login_loop(
             uri      => $uri,
             username => $username,
-        ) unless $password;
+            login_callback => sub {
+                my ($self, $username, $password) = @_;
 
-    $self->trac(
-        Net::Trac::Connection->new(
-            url      => $self->remote_url,
-            user     => $username,
-            password => $password,
-        )
-    );
-    $self->trac->ensure_logged_in;
+                $self->trac(
+                    Net::Trac::Connection->new(
+                        url      => $self->remote_url,
+                        user     => $username,
+                        password => $password,
+                    )
+                );
+                # Net::Trac doesn't give us enough information
+                # to give a better diagnostic message, unfortunately
+                die "login failed!\n" unless $self->trac->ensure_logged_in;
+            },
+        );
+    }
 }
 
 sub get_txn_list_by_date {
