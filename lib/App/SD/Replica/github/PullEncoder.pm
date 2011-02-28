@@ -66,7 +66,8 @@ sub _only_pull_tickets_modified_after {
 
 =head2 find_matching_transactions { ticket => $id, starting_transaction => $num  }
 
-Returns a reference to an array of all transactions (as hashes) on ticket $id after transaction $num.
+Returns a reference to an array of all transactions (as hashes) on ticket $id
+after transaction $num.
 
 =cut
 
