@@ -397,6 +397,8 @@ upon successful login.
 
 params:
 - uri             # login url
+- username        # optional; a pre-seeded username
+- password        # optional; a pre-seeded password
 - username_prompt # optional; custom username prompt
 - secret_prompt   # optional; custom secret prompt
 - login_callback  # coderef of code that attempts login; should throw exception
@@ -421,7 +423,11 @@ sub login_loop {
     $login_args{secret_prompt} = $args{secret_prompt}
         if $args{secret_prompt};
     # allow prompting for just password if username already specified
+    # and vice-versa for password
+    # if both are specified, we still want to loop in case the
+    # credentials are wrong
     $login_args{username} = $args{username} if $args{username};
+    $login_args{password} = $args{password} if $args{password};
 
     while (!$login_successful) {
         ( $username, $password ) = $self->prompt_for_login(%login_args);
