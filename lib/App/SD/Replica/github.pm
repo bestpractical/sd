@@ -19,6 +19,7 @@ has remote_url => ( isa => 'Str',             is => 'rw' );
 has owner      => ( isa => 'Str',             is => 'rw' );
 has repo       => ( isa => 'Str',             is => 'rw' );
 has query      => ( isa => 'Str',             is => 'rw' );
+has foreign_username => ( isa => 'Str', is              => 'rw' );
 
 our %PROP_MAP = ( state => 'status', title => 'summary' );
 
@@ -53,35 +54,39 @@ sub BUILD {
         $uri = 'http://github.com/';
     }
 
+    # try loading github username & token from git configuration
     # see http://github.com/blog/180-local-github-config
-    if ( !$api_token ) {
+    unless ( $api_token ) {
         my $config = Config::GitLike::Git->new;
         $config->load;
         $username  = $config->get(key => 'github.user');
         $api_token = $config->get(key => 'github.token');
     }
 
-    ( $username, $api_token )
-        = $self->prompt_for_login(
-            uri => $uri,
-            username => $username,
-            secret_prompt => sub {
-                my ($uri, $username) = @_;
-                return "GitHub API token for $username (from ${uri}account): ";
-            },
-        ) unless $api_token;
+    ($username, $api_token) = $self->login_loop(
+        uri      => $uri,
+        username => $username,
+        password => $api_token,
+        secret_prompt => sub {
+            my ($uri, $username) = @_;
+            return "GitHub API token for $username (from ${uri}account): ";
+        },
+        login_callback => sub {
+            my ($self, $username, $api_token) = @_;
+
+            $self->github(
+                Net::GitHub->new(
+                    login => $username,
+                    token => $api_token,
+                    repo  => $repo,
+                    owner => $owner,
+                ) );
+        },
+    );
 
     $self->remote_url("$uri");
     $self->owner( $owner );
     $self->repo( $repo );
-
-    $self->github(
-        Net::GitHub->new(
-            login => $username,
-            token => $api_token,
-            repo  => $repo,
-            owner => $owner,
-        ) );
 }
 
 sub record_pushed_transactions {}
