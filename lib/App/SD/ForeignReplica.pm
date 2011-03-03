@@ -27,7 +27,10 @@ so the user doesn't have to enter it every time.
 sub save_username_and_token {
     my ($self, $username, $password) = @_;
 
-    # make sure replica is initialized
+    # make sure replica is initialized, since this method is generally called
+    # in the BUILD method of an object, which makes it end up being called
+    # before the initialize call in clone
+    $self->app_handle->handle->after_initialize( sub { shift->app_handle->set_db_defaults } );
     $self->app_handle->handle->initialize;
 
     my $replica_username_key = 'replica.' . $self->scheme . ":" . $self->{url} . '.username';
